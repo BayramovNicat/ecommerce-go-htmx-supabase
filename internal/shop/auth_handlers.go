@@ -50,7 +50,7 @@ func HandleGoogleAuth(w http.ResponseWriter, r *http.Request) {
 		"Title":           "Authenticating",
 		"SupabaseURL":     supabaseURL,
 		"SupabaseAnonKey": supabaseAnonKey,
-		"SuccessRedirect": "/admin",
+		"SuccessRedirect": "/",
 		"FailureRedirect": "/login",
 	}
 
