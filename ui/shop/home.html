@@ -25,12 +25,9 @@
                     <a href="/cart" class="px-4 py-2 text-gray-700 hover:text-gray-900">Cart</a>
                     
                     <!-- User Auth Section -->
-                    <div x-data="authState()" x-init="init()" class="flex items-center gap-3">
-                        <!-- Loading State -->
-                        <div x-show="loading" class="w-8 h-8 rounded-full bg-gray-200 animate-pulse"></div>
-                        
+                    <div x-data="authState()" class="flex items-center gap-3">
                         <!-- Signed In State -->
-                        <div x-show="!loading && user" x-cloak class="relative" x-data="{ open: false }">
+                        <div x-show="user" x-cloak class="relative" x-data="{ open: false }">
                             <button @click="open = !open" class="flex items-center gap-2 hover:opacity-80 transition">
                                 <img x-show="user?.user_metadata?.avatar_url" 
                                      :src="user?.user_metadata?.avatar_url" 
@@ -56,7 +53,7 @@
                         </div>
                         
                         <!-- Signed Out State -->
-                        <div x-show="!loading && !user" x-cloak>
+                        <div x-show="!user" x-cloak>
                             <a href="/login" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">Sign In</a>
                         </div>
                     </div>
@@ -107,20 +104,8 @@
         // Alpine.js auth state component
         function authState() {
             return {
-                user: null,
-                loading: true,
-                async init() {
-                    // Fetch session from server
-                    try {
-                        const response = await fetch('/api/session')
-                        const data = await response.json()
-                        this.user = data.user
-                    } catch (error) {
-                        console.error('Failed to fetch session:', error)
-                        this.user = null
-                    }
-                    this.loading = false
-                },
+                user: {{if .User}}{{.User | json}}{{else}}null{{end}},
+                loading: false,
                 async signOut() {
                     document.cookie = 'sb-access-token=; Path=/; Max-Age=0'
                     this.user = null

@@ -8,11 +8,18 @@ import (
 	"strconv"
 	"strings"
 
+	"htmxshop/internal/auth"
 	"htmxshop/internal/db"
 	ui "htmxshop/ui"
 )
 
 const productsPerPage = 20
+
+// jsonHelper is a template function to convert Go data to JSON
+func jsonHelper(v interface{}) template.JS {
+	b, _ := json.Marshal(v)
+	return template.JS(b)
+}
 
 // HandleHome renders the shop homepage with initial products
 func HandleHome(w http.ResponseWriter, r *http.Request) {
@@ -22,12 +29,29 @@ func HandleHome(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Check for user session
+	var user map[string]interface{}
+	cookie, err := r.Cookie("sb-access-token")
+	if err == nil && cookie.Value != "" {
+		userData, err := auth.VerifySupabaseToken(cookie.Value)
+		if err == nil {
+			user = map[string]interface{}{
+				"id":            userData.ID,
+				"email":         userData.Email,
+				"user_metadata": userData.UserMetadata,
+			}
+		}
+	}
+
 	data := map[string]interface{}{
 		"Products": products,
 		"Title":    "Shop - Premium Products",
+		"User":     user,
 	}
 
-	tmpl, err := template.ParseFS(ui.FS, "shop/home.html")
+	tmpl, err := template.New("home.html").Funcs(template.FuncMap{
+		"json": jsonHelper,
+	}).ParseFS(ui.FS, "shop/home.html")
 	if err != nil {
 		http.Error(w, "Template parse error: "+err.Error(), http.StatusInternalServerError)
 		return
