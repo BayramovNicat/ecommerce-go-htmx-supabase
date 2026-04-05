@@ -3,10 +3,11 @@
   "version": "1.0.0",
   "description": "HTMX Shop with Tailwind CSS",
   "scripts": {
-    "build:css": "tailwindcss -i ./styles/input.css -o ./public/styles.css --minify",
-    "watch:css": "tailwindcss -i ./styles/input.css -o ./public/styles.css --watch"
+    "build:css": "tailwindcss -i ./styles/input.css -o ./public/styles.css -m",
+    "watch:css": "tailwindcss -i ./styles/input.css -o ./public/styles.css -w"
   },
   "devDependencies": {
-    "tailwindcss": "^3.4.1"
+    "@tailwindcss/cli": "^4.2.2",
+    "tailwindcss": "^4.2.2"
   }
 }
