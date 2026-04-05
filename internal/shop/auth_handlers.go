@@ -1,12 +1,14 @@
 package shop
 
 import (
+	"encoding/json"
 	"fmt"
 	"html/template"
 	"net/http"
 	"os"
 	"strings"
 
+	"htmxshop/internal/auth"
 	ui "htmxshop/ui"
 )
 
@@ -88,4 +90,46 @@ func stripPort(host string) string {
 		return host[:colon]
 	}
 	return host
+}
+
+// HandleGetSession returns the current user session from the server
+func HandleGetSession(w http.ResponseWriter, r *http.Request) {
+	// Extract JWT from cookie
+	cookie, err := r.Cookie("sb-access-token")
+	if err != nil {
+		// No session
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"user": nil,
+		})
+		return
+	}
+
+	token := cookie.Value
+	if token == "" {
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"user": nil,
+		})
+		return
+	}
+
+	// Verify the token with Supabase
+	userID, err := auth.VerifySupabaseToken(token)
+	if err != nil {
+		// Invalid token
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"user": nil,
+		})
+		return
+	}
+
+	// Return user info (you can expand this with more user details from your DB)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"user": map[string]interface{}{
+			"id": userID,
+		},
+	})
 }

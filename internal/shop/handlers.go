@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"html/template"
 	"net/http"
-	"os"
 	"strconv"
 	"strings"
 
@@ -24,10 +23,8 @@ func HandleHome(w http.ResponseWriter, r *http.Request) {
 	}
 
 	data := map[string]interface{}{
-		"Products":        products,
-		"Title":           "Shop - Premium Products",
-		"SupabaseURL":     os.Getenv("SUPABASE_URL"),
-		"SupabaseAnonKey": os.Getenv("SUPABASE_ANON_KEY"),
+		"Products": products,
+		"Title":    "Shop - Premium Products",
 	}
 
 	tmpl, err := template.ParseFS(ui.FS, "shop/home.html")

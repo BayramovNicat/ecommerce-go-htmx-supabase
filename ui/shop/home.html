@@ -6,12 +6,6 @@
     <title>{{.Title}}</title>
     <link rel="stylesheet" href="/styles.css">
     <script src="https://unpkg.com/htmx.org@1.9.10"></script>
-    <script type="module">
-        import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.43.4'
-        window.supabase = createClient('{{.SupabaseURL}}', '{{.SupabaseAnonKey}}')
-        window.supabaseReady = true
-        window.dispatchEvent(new Event('supabase-ready'))
-    </script>
     <script src="https://unpkg.com/alpinejs@3.13.5/dist/cdn.min.js" defer></script>
 </head>
 <body class="bg-gray-50">
@@ -38,10 +32,10 @@
                         <!-- Signed In State -->
                         <div x-show="!loading && user" x-cloak class="relative" x-data="{ open: false }">
                             <button @click="open = !open" class="flex items-center gap-2 hover:opacity-80 transition">
-                                <img :src="user?.user_metadata?.avatar_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(user?.email || 'User')" 
-                                     :alt="user?.email" 
-                                     class="w-8 h-8 rounded-full border-2 border-gray-300">
-                                <span class="text-sm font-medium text-gray-700" x-text="user?.user_metadata?.full_name || user?.email"></span>
+                                <div class="w-8 h-8 rounded-full border-2 border-gray-300 bg-blue-500 flex items-center justify-center text-white font-semibold">
+                                    <span x-text="(user?.email || 'U')[0].toUpperCase()"></span>
+                                </div>
+                                <span class="text-sm font-medium text-gray-700" x-text="user?.email || 'User'"></span>
                             </button>
                             
                             <!-- Dropdown Menu -->
@@ -111,25 +105,20 @@
                 user: null,
                 loading: true,
                 async init() {
-                    // Wait for Supabase to be ready
-                    if (!window.supabase) {
-                        await new Promise(resolve => {
-                            window.addEventListener('supabase-ready', resolve, { once: true })
-                        })
+                    // Fetch session from server
+                    try {
+                        const response = await fetch('/api/session')
+                        const data = await response.json()
+                        this.user = data.user
+                    } catch (error) {
+                        console.error('Failed to fetch session:', error)
+                        this.user = null
                     }
-                    
-                    const { data: { session } } = await window.supabase.auth.getSession()
-                    this.user = session?.user || null
                     this.loading = false
-                    
-                    // Listen for auth changes
-                    window.supabase.auth.onAuthStateChange((event, session) => {
-                        this.user = session?.user || null
-                    })
                 },
                 async signOut() {
-                    await window.supabase.auth.signOut()
                     document.cookie = 'sb-access-token=; Path=/; Max-Age=0'
+                    this.user = null
                     window.location.href = '/'
                 }
             }
