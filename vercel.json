@@ -2,6 +2,10 @@
   "regions": ["fra1"],
   "rewrites": [
     {
+      "source": "/public/(.*)",
+      "destination": "/public/$1"
+    },
+    {
       "source": "/(.*)",
       "destination": "/api/index.go"
     }
@@ -12,7 +16,7 @@
       "headers": [
         {
           "key": "Cache-Control",
-          "value": "public, s-maxage=1, stale-while-revalidate=59"
+          "value": "public, max-age=31536000, immutable"
         }
       ]
     },

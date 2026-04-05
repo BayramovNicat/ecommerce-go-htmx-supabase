@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{.Title}}</title>
+    <link rel="stylesheet" href="/public/styles.css">
     <script src="https://unpkg.com/htmx.org@1.9.10"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
     <script type="module">
         import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.43.4'
         window.supabase = createClient('{{.SupabaseURL}}', '{{.SupabaseAnonKey}}')
@@ -13,17 +13,6 @@
         window.dispatchEvent(new Event('supabase-ready'))
     </script>
     <script src="https://unpkg.com/alpinejs@3.13.5/dist/cdn.min.js" defer></script>
-    <style>
-        .product-card {
-            content-visibility: auto;
-            contain-intrinsic-size: 300px;
-        }
-        .product-image {
-            width: 100%;
-            height: 200px;
-            object-fit: cover;
-        }
-    </style>
 </head>
 <body class="bg-gray-50">
     <header class="bg-white shadow-sm">
