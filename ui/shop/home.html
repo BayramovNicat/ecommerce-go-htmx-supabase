@@ -5,12 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{.Title}}</title>
     <script src="https://unpkg.com/htmx.org@1.9.10"></script>
-    <script src="https://unpkg.com/alpinejs@3.13.5/dist/cdn.min.js" defer></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script type="module">
         import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.43.4'
         window.supabase = createClient('{{.SupabaseURL}}', '{{.SupabaseAnonKey}}')
+        window.supabaseReady = true
+        window.dispatchEvent(new Event('supabase-ready'))
     </script>
+    <script src="https://unpkg.com/alpinejs@3.13.5/dist/cdn.min.js" defer></script>
     <style>
         .product-card {
             content-visibility: auto;
@@ -120,6 +122,13 @@
                 user: null,
                 loading: true,
                 async init() {
+                    // Wait for Supabase to be ready
+                    if (!window.supabase) {
+                        await new Promise(resolve => {
+                            window.addEventListener('supabase-ready', resolve, { once: true })
+                        })
+                    }
+                    
                     const { data: { session } } = await window.supabase.auth.getSession()
                     this.user = session?.user || null
                     this.loading = false
