@@ -14,25 +14,6 @@ import (
 
 // Handler is the main entry point for Vercel
 func Handler(w http.ResponseWriter, r *http.Request) {
-	// Debug: Test if function runs at all
-	if r.URL.Path == "/health" {
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("OK"))
-		return
-	}
-
-	// Debug: Show DB connection error
-	if r.URL.Path == "/debug" {
-		if err := db.Init(); err != nil {
-			w.WriteHeader(http.StatusOK)
-			w.Write([]byte("DB Error: " + err.Error()))
-			return
-		}
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("DB OK"))
-		return
-	}
-
 	// Lazy initialize database connection
 	if err := db.Init(); err != nil {
 		log.Printf("Database initialization error: %v", err)
@@ -134,10 +115,6 @@ func shopHandler(w http.ResponseWriter, r *http.Request) {
 		if method == http.MethodGet {
 			handleSearch(w, r)
 		}
-	case path == "/api/session":
-		if method == http.MethodGet {
-			handleGetSession(w, r)
-		}
 	default:
 		http.NotFound(w, r)
 	}
@@ -200,10 +177,6 @@ func handleLogin(w http.ResponseWriter, r *http.Request) {
 
 func handleGoogleAuth(w http.ResponseWriter, r *http.Request) {
 	shop.HandleGoogleAuth(w, r)
-}
-
-func handleGetSession(w http.ResponseWriter, r *http.Request) {
-	shop.HandleGetSession(w, r)
 }
 
 // Admin handlers
