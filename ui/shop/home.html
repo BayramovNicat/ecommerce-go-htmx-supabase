@@ -32,10 +32,15 @@
                         <!-- Signed In State -->
                         <div x-show="!loading && user" x-cloak class="relative" x-data="{ open: false }">
                             <button @click="open = !open" class="flex items-center gap-2 hover:opacity-80 transition">
-                                <div class="w-8 h-8 rounded-full border-2 border-gray-300 bg-blue-500 flex items-center justify-center text-white font-semibold">
+                                <img x-show="user?.user_metadata?.avatar_url" 
+                                     :src="user?.user_metadata?.avatar_url" 
+                                     :alt="user?.email" 
+                                     class="w-8 h-8 rounded-full border-2 border-gray-300">
+                                <div x-show="!user?.user_metadata?.avatar_url" 
+                                     class="w-8 h-8 rounded-full border-2 border-gray-300 bg-blue-500 flex items-center justify-center text-white font-semibold">
                                     <span x-text="(user?.email || 'U')[0].toUpperCase()"></span>
                                 </div>
-                                <span class="text-sm font-medium text-gray-700" x-text="user?.email || 'User'"></span>
+                                <span class="text-sm font-medium text-gray-700" x-text="user?.user_metadata?.full_name || user?.email || 'User'"></span>
                             </button>
                             
                             <!-- Dropdown Menu -->

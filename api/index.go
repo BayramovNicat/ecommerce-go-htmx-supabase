@@ -76,7 +76,7 @@ func adminMiddleware(next http.HandlerFunc) http.HandlerFunc {
 		}
 
 		// Verify JWT token
-		userID, err := auth.VerifySupabaseToken(token)
+		user, err := auth.VerifySupabaseToken(token)
 		if err != nil {
 			log.Printf("admin auth: token verification failed: %v", err)
 			http.Error(w, "Unauthorized: Invalid token", http.StatusUnauthorized)
@@ -84,19 +84,19 @@ func adminMiddleware(next http.HandlerFunc) http.HandlerFunc {
 		}
 
 		// Check admin privileges
-		isAdmin, err := auth.VerifyAdminAccess(r.Context(), userID)
+		isAdmin, err := auth.VerifyAdminAccess(r.Context(), user.ID)
 		if err != nil || !isAdmin {
 			if err != nil {
 				log.Printf("admin auth: verify admin failed: %v", err)
 			} else {
-				log.Printf("admin auth: user %s not admin", userID)
+				log.Printf("admin auth: user %s not admin", user.ID)
 			}
 			http.Error(w, "Forbidden: Admin access required", http.StatusForbidden)
 			return
 		}
 
 		// Add user ID to context
-		ctx := context.WithValue(r.Context(), "userID", userID)
+		ctx := context.WithValue(r.Context(), "userID", user.ID)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	}
 }

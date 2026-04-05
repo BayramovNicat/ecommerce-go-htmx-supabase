@@ -115,7 +115,7 @@ func HandleGetSession(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Verify the token with Supabase
-	userID, err := auth.VerifySupabaseToken(token)
+	user, err := auth.VerifySupabaseToken(token)
 	if err != nil {
 		// Invalid token
 		w.Header().Set("Content-Type", "application/json")
@@ -125,11 +125,13 @@ func HandleGetSession(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Return user info (you can expand this with more user details from your DB)
+	// Return user info with email and metadata
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]interface{}{
 		"user": map[string]interface{}{
-			"id": userID,
+			"id":            user.ID,
+			"email":         user.Email,
+			"user_metadata": user.UserMetadata,
 		},
 	})
 }
