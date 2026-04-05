@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{.Title}}</title>
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <script src="https://unpkg.com/alpinejs@3.13.5/dist/cdn.min.js" defer></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .product-card {
+            content-visibility: auto;
+            contain-intrinsic-size: 300px;
+        }
+        .product-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <header class="bg-white shadow-sm">
+        <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            <div class="flex justify-between items-center">
+                <a href="/" class="text-2xl font-bold text-gray-900">Shop</a>
+                <div class="flex gap-4">
+                    <form action="/search" method="get" class="relative">
+                        <input 
+                            type="text" 
+                            name="q" 
+                            placeholder="Search products..." 
+                            class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                    </form>
+                    <a href="/cart" class="px-4 py-2 text-gray-700 hover:text-gray-900">Cart</a>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <h1 class="text-3xl font-bold text-gray-900 mb-8">Premium Products</h1>
+        
+        <div id="products-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            {{range $index, $product := .Products}}
+            <div class="product-card bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow"
+                {{if eq $index 17}}
+                hx-get="/api/products?cursor={{$product.ID}}" 
+                hx-trigger="revealed" 
+                hx-swap="afterend"
+                {{end}}>
+                <a href="/products/{{$product.Slug}}">
+                    <img src="{{$product.ImageThumbURL}}" alt="{{$product.Name}}" loading="lazy" class="product-image">
+                    <div class="p-4">
+                        <h3 class="product-name text-lg font-semibold text-gray-900 mb-2">{{$product.Name}}</h3>
+                        <p class="product-price text-xl font-bold text-blue-600">${{printf "%.2f" $product.Price}}</p>
+                        {{if gt $product.Stock 0}}
+                        <p class="text-sm text-green-600 mt-2">In Stock</p>
+                        {{else}}
+                        <p class="text-sm text-red-600 mt-2">Out of Stock</p>
+                        {{end}}
+                    </div>
+                </a>
+            </div>
+            {{end}}
+        </div>
+
+        <div id="loading" class="hidden text-center py-8">
+            <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+        </div>
+    </main>
+
+    <footer class="bg-white border-t mt-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <p class="text-center text-gray-600">&copy; 2026 Shop. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Show loading indicator during HTMX requests
+        document.body.addEventListener('htmx:beforeRequest', function() {
+            document.getElementById('loading').classList.remove('hidden');
+        });
+        document.body.addEventListener('htmx:afterRequest', function() {
+            document.getElementById('loading').classList.add('hidden');
+        });
+    </script>
+</body>
+</html>

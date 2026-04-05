@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{.Title}}</title>
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <script src="https://unpkg.com/alpinejs@3.13.5/dist/cdn.min.js" defer></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50">
+    <header class="bg-white shadow-sm">
+        <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            <div class="flex justify-between items-center">
+                <a href="/" class="text-2xl font-bold text-gray-900">Shop</a>
+                <div class="flex gap-4">
+                    <form action="/search" method="get" class="relative">
+                        <input 
+                            type="text" 
+                            name="q" 
+                            placeholder="Search products..." 
+                            class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                    </form>
+                    <a href="/cart" class="px-4 py-2 text-gray-700 hover:text-gray-900">Cart</a>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+            <div class="md:flex">
+                <div class="md:w-1/2">
+                    <img src="{{.Product.ImageURL}}" alt="{{.Product.Name}}" class="w-full h-96 object-cover">
+                </div>
+                <div class="md:w-1/2 p-8">
+                    <h1 class="text-3xl font-bold text-gray-900 mb-4">{{.Product.Name}}</h1>
+                    <p class="text-4xl font-bold text-blue-600 mb-6">${{printf "%.2f" .Product.Price}}</p>
+                    
+                    {{if gt .Product.Stock 0}}
+                    <p class="text-green-600 font-semibold mb-4">In Stock ({{.Product.Stock}} available)</p>
+                    {{else}}
+                    <p class="text-red-600 font-semibold mb-4">Out of Stock</p>
+                    {{end}}
+
+                    <div class="mb-6">
+                        <h2 class="text-lg font-semibold text-gray-900 mb-2">Description</h2>
+                        <p class="text-gray-700">{{.Product.Description}}</p>
+                    </div>
+
+                    {{if gt .Product.Stock 0}}
+                    <div x-data="{ quantity: 1 }" class="mb-6">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Quantity</label>
+                        <div class="flex items-center gap-4">
+                            <button 
+                                @click="quantity = Math.max(1, quantity - 1)"
+                                class="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300">
+                                -
+                            </button>
+                            <span x-text="quantity" class="text-xl font-semibold w-12 text-center"></span>
+                            <button 
+                                @click="quantity = Math.min({{.Product.Stock}}, quantity + 1)"
+                                class="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300">
+                                +
+                            </button>
+                        </div>
+                    </div>
+
+                    <button 
+                        class="w-full bg-blue-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-blue-700 transition-colors">
+                        Add to Cart
+                    </button>
+                    {{end}}
+
+                    <a href="/" class="block text-center mt-4 text-blue-600 hover:text-blue-800">
+                        &larr; Back to Shop
+                    </a>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="bg-white border-t mt-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <p class="text-center text-gray-600">&copy; 2026 Shop. All rights reserved.</p>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{.Title}}</title>
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <script src="https://unpkg.com/alpinejs@3.13.5/dist/cdn.min.js" defer></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100">
+    <div class="flex h-screen">
+        <!-- Sidebar -->
+        <aside class="w-64 bg-gray-900 text-white">
+            <div class="p-6">
+                <h1 class="text-2xl font-bold">Admin Panel</h1>
+            </div>
+            <nav class="mt-6">
+                <a href="/admin" class="block px-6 py-3 hover:bg-gray-800 border-l-4 border-blue-500">
+                    Dashboard
+                </a>
+                <a href="/admin/products" class="block px-6 py-3 hover:bg-gray-800 border-l-4 border-transparent">
+                    Products
+                </a>
+                <a href="/admin/orders" class="block px-6 py-3 hover:bg-gray-800 border-l-4 border-transparent">
+                    Orders
+                </a>
+                <a href="/" class="block px-6 py-3 hover:bg-gray-800 border-l-4 border-transparent">
+                    View Shop
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 overflow-y-auto">
+            <header class="bg-white shadow-sm">
+                <div class="px-8 py-4">
+                    <h2 class="text-2xl font-bold text-gray-900">Dashboard</h2>
+                </div>
+            </header>
+
+            <div class="p-8">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <!-- Stats Cards -->
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <h3 class="text-gray-500 text-sm font-medium">Total Products</h3>
+                        <p class="text-3xl font-bold text-gray-900 mt-2">-</p>
+                    </div>
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <h3 class="text-gray-500 text-sm font-medium">Total Orders</h3>
+                        <p class="text-3xl font-bold text-gray-900 mt-2">-</p>
+                    </div>
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <h3 class="text-gray-500 text-sm font-medium">Revenue</h3>
+                        <p class="text-3xl font-bold text-gray-900 mt-2">$-</p>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow">
+                    <div class="p-6">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
+                        <div class="space-y-2">
+                            <a href="/admin/products" class="block px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-center">
+                                Manage Products
+                            </a>
+                            <a href="/admin/orders" class="block px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 text-center">
+                                View Orders
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+</html>
