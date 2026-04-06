@@ -161,20 +161,20 @@ func setPublicRouteCacheHeaders(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Vary", "HX-Request")
 
 	if isAuthenticatedRequest(r) {
-		w.Header().Set("Cache-Control", "private, no-store")
+		w.Header().Set("Cache-Control", "private, max-age=0, must-revalidate")
 		return
 	}
 
 	path := r.URL.Path
 	switch {
 	case path == "/" || path == "/shop":
-		w.Header().Set("Cache-Control", "public, s-maxage=60, stale-while-revalidate=300")
+		w.Header().Set("Cache-Control", "public, max-age=60, stale-while-revalidate=300")
 	case strings.HasPrefix(path, "/products/"):
-		w.Header().Set("Cache-Control", "public, s-maxage=120, stale-while-revalidate=300")
+		w.Header().Set("Cache-Control", "public, max-age=120, stale-while-revalidate=300")
 	case path == "/search" || path == "/api/products":
-		w.Header().Set("Cache-Control", "public, s-maxage=30, stale-while-revalidate=120")
+		w.Header().Set("Cache-Control", "public, max-age=30, stale-while-revalidate=120")
 	default:
-		w.Header().Set("Cache-Control", "public, s-maxage=15, stale-while-revalidate=60")
+		w.Header().Set("Cache-Control", "public, max-age=15, stale-while-revalidate=60")
 	}
 }
 
@@ -190,7 +190,7 @@ func isAuthenticatedRequest(r *http.Request) bool {
 // adminHandler handles all admin dashboard routes
 func adminHandler(w http.ResponseWriter, r *http.Request) {
 	// No cache for admin routes
-	w.Header().Set("Cache-Control", "no-store, no-cache, must-revalidate")
+	w.Header().Set("Cache-Control", "private, max-age=0, must-revalidate")
 
 	path := strings.TrimPrefix(r.URL.Path, "/admin")
 	method := r.Method
