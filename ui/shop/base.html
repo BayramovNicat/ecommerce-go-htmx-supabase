@@ -1,0 +1,139 @@
+{{define "base"}}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{.Title}}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=General+Sans:wght@400;500;600&family=Playfair+Display:wght@600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/styles.css">
+    <script src="/bundle.js" defer></script>
+    {{block "extra_head" .}}{{end}}
+</head>
+<body class="{{block "body_class" .}}bg-[color:var(--color-background)] text-[color:var(--color-contrast)]{{end}}">
+    {{block "header" .}}
+        {{template "base_header" .}}
+    {{end}}
+
+    {{block "content" .}}{{end}}
+
+    {{block "footer" .}}
+        {{template "base_footer" .}}
+    {{end}}
+
+    {{block "scripts" .}}{{end}}
+</body>
+</html>
+{{end}}
+
+{{define "product_card"}}
+<div class="product-card rounded-[30px] bg-white shadow-sm ring-1 ring-black/5 hover:-translate-y-1 hover:shadow-xl transition duration-300">
+    <a href="/products/{{.Slug}}">
+        <div class="overflow-hidden rounded-[30px]">
+            <img src="{{.ImageThumbURL}}" alt="{{.Name}}" loading="lazy" class="h-64 w-full object-cover transition duration-500 hover:scale-105">
+        </div>
+        <div class="flex flex-col gap-3 p-5">
+            <div>
+                <p class="text-xs uppercase tracking-[0.3em] text-[color:var(--color-muted)]">Signature Piece</p>
+                <h3 class="text-lg font-semibold text-[color:var(--color-contrast)]">{{.Name}}</h3>
+            </div>
+            <div class="flex items-center justify-between">
+                <p class="text-xl font-bold text-[color:var(--color-primary)]">${{printf "%.2f" .Price}}</p>
+                {{if gt .Stock 0}}
+                <p class="text-xs font-medium uppercase tracking-[0.4em] text-green-600">In Stock</p>
+                {{else}}
+                <p class="text-xs font-medium uppercase tracking-[0.4em] text-red-500">Waitlist</p>
+                {{end}}
+            </div>
+        </div>
+    </a>
+</div>
+{{end}}
+
+{{define "base_header"}}
+<header class="bg-white/90 backdrop-blur border-b border-[#ece6dd] sticky top-0 z-40">
+    <nav class="max-w-7xl mx-auto px-6 lg:px-10 py-5">
+        <div class="flex items-center justify-between gap-8">
+            <a href="/" class="text-3xl font-serif tracking-tight text-[color:var(--color-contrast)]">Meridian Living</a>
+            <div class="hidden lg:flex items-center gap-8 text-sm font-medium text-[color:var(--color-muted)]">
+                <div class="group relative">
+                    <button class="inline-flex items-center gap-2 tracking-wide uppercase">Kafel · Metlax <svg class="w-3 h-3" viewBox="0 0 12 12" fill="none"><path d="M2 4l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button>
+                    <div class="absolute left-1/2 top-full z-30 mt-4 hidden w-[520px] -translate-x-1/2 rounded-3xl bg-white p-6 shadow-2xl ring-1 ring-black/5 group-hover:block">
+                        <div class="grid grid-cols-2 gap-4 text-sm">
+                            <div>
+                                <p class="mb-2 text-xs uppercase tracking-[0.3em] text-[color:var(--color-muted)]">Tiles</p>
+                                <a href="/category/tiles-ceramic" class="block rounded-xl p-3 hover:bg-[#f4eee5]">Ceramic &amp; Porcelain</a>
+                                <a href="/category/tiles-natural" class="block rounded-xl p-3 hover:bg-[#f4eee5]">Natural Stone</a>
+                                <a href="/category/tiles-mosaic" class="block rounded-xl p-3 hover:bg-[#f4eee5]">Mosaic Sets</a>
+                            </div>
+                            <div>
+                                <p class="mb-2 text-xs uppercase tracking-[0.3em] text-[color:var(--color-muted)]">Surfaces</p>
+                                <a href="/category/tiles-outdoor" class="block rounded-xl p-3 hover:bg-[#f4eee5]">Outdoor Systems</a>
+                                <a href="/category/tiles-patterned" class="block rounded-xl p-3 hover:bg-[#f4eee5]">Patterned Classics</a>
+                                <a href="/category/tiles-tools" class="block rounded-xl p-3 hover:bg-[#f4eee5]">Tools &amp; Adhesives</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <a href="/category/lyustra" class="tracking-wide uppercase">Lyustra</a>
+                <a href="/category/mebel" class="tracking-wide uppercase">Mebel</a>
+                <a href="/category/paint" class="tracking-wide uppercase">Paint</a>
+            </div>
+            <div class="flex flex-1 items-center justify-end gap-5">
+                <form action="/search" method="get" class="relative hidden md:block w-64">
+                    <input 
+                        type="text" 
+                        name="q" 
+                        value="{{with .SearchQuery}}{{.}}{{end}}"
+                        placeholder="Search finishes, lighting, furniture..." 
+                        class="w-full rounded-full border border-transparent bg-[#f0ebe2] px-4 py-2 text-sm text-[color:var(--color-contrast)] placeholder:text-[color:var(--color-muted)] focus:border-[color:var(--color-primary)] focus:outline-none"
+                    >
+                </form>
+                <a href="/cart" class="relative inline-flex items-center gap-2 rounded-full border border-[#e5dccf] px-4 py-2 text-sm font-semibold text-[color:var(--color-contrast)] hover:border-[color:var(--color-primary)]">
+                    <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none"><path d="M6 6h15l-2 9H8L6 6zm0 0H4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="10" cy="20" r="1" fill="currentColor"/><circle cx="17" cy="20" r="1" fill="currentColor"/></svg>
+                    <span>Cart</span>
+                </a>
+                <button class="lg:hidden rounded-full border border-[#e5dccf] p-2">
+                    <span class="sr-only">Open menu</span>
+                    <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none"><path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                </button>
+            </div>
+        </div>
+    </nav>
+</header>
+{{end}}
+
+{{define "base_footer"}}
+<footer class="mt-16 bg-[color:var(--color-contrast)] text-white">
+    <div class="max-w-7xl mx-auto px-6 lg:px-10 py-12 grid grid-cols-1 md:grid-cols-4 gap-10">
+        <div>
+            <p class="text-2xl font-serif mb-4">Meridian Living</p>
+            <p class="text-sm text-white/70">Curated finishes, lighting, and furnishings for sophisticated interiors.</p>
+        </div>
+        <div>
+            <p class="text-xs uppercase tracking-[0.4em] text-white/60 mb-3">Studio</p>
+            <a href="/about" class="block py-1 text-sm">Design Services</a>
+            <a href="/projects" class="block py-1 text-sm">Lookbook</a>
+            <a href="/journal" class="block py-1 text-sm">Journal</a>
+        </div>
+        <div>
+            <p class="text-xs uppercase tracking-[0.4em] text-white/60 mb-3">Support</p>
+            <a href="/shipping" class="block py-1 text-sm">Shipping &amp; Delivery</a>
+            <a href="/returns" class="block py-1 text-sm">Returns</a>
+            <a href="/contact" class="block py-1 text-sm">Concierge</a>
+        </div>
+        <div>
+            <p class="text-xs uppercase tracking-[0.4em] text-white/60 mb-3">Newsletter</p>
+            <p class="text-sm text-white/70 mb-3">Monthly edits, exclusive launches, and design notes.</p>
+            <form class="flex gap-2">
+                <input type="email" placeholder="Email"
+                    class="flex-1 rounded-full border border-white/30 bg-transparent px-4 py-2 text-sm placeholder:text-white/50 focus:outline-none">
+                <button class="btn-primary px-4">Join</button>
+            </form>
+        </div>
+    </div>
+    <div class="border-t border-white/10 py-4 text-center text-xs text-white/60">&copy; 2026 Meridian Living. All rights reserved.</div>
+</footer>
+{{end}}

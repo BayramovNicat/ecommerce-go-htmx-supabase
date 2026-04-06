@@ -1,4 +1,41 @@
+
 @import "tailwindcss";
+
+:root {
+    --font-sans: "General Sans", "Inter", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-serif: "Playfair Display", "Times New Roman", serif;
+    --color-background: #f8f6f2;
+    --color-surface: #ffffff;
+    --color-muted: #a29a8d;
+    --color-primary: #c26b2f;
+    --color-primary-dark: #9e501c;
+    --color-contrast: #1f1a17;
+}
+
+@layer base {
+    body {
+        font-family: var(--font-sans);
+        background-color: var(--color-background);
+        color: var(--color-contrast);
+    }
+
+    h1, h2, h3, h4, h5, h6 {
+        font-family: var(--font-serif);
+        letter-spacing: -0.02em;
+    }
+}
+
+@layer components {
+    .btn-primary {
+        @apply inline-flex items-center justify-center rounded-full px-5 py-2 font-semibold transition-colors;
+        background-color: var(--color-primary);
+        color: #fff;
+    }
+
+    .btn-primary:hover {
+        background-color: var(--color-primary-dark);
+    }
+}
 
 /* Custom styles */
 .product-card {

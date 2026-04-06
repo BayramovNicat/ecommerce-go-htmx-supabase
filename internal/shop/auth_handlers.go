@@ -26,7 +26,7 @@ func HandleLogin(w http.ResponseWriter, r *http.Request) {
 		"OAuthRedirectURL": oauthRedirectURL(r),
 	}
 
-	tmpl, err := template.ParseFS(ui.FS, "shop/login.html")
+	tmpl, err := template.ParseFS(ui.FS, "shop/base.html", "shop/login.html")
 	if err != nil {
 		http.Error(w, "Template parse error: "+err.Error(), http.StatusInternalServerError)
 		return
@@ -54,7 +54,7 @@ func HandleGoogleAuth(w http.ResponseWriter, r *http.Request) {
 		"FailureRedirect": "/login",
 	}
 
-	tmpl, err := template.ParseFS(ui.FS, "shop/oauth-callback.html")
+	tmpl, err := template.ParseFS(ui.FS, "shop/base.html", "shop/oauth-callback.html")
 	if err != nil {
 		http.Error(w, "Template parse error: "+err.Error(), http.StatusInternalServerError)
 		return

@@ -1,104 +1,79 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{.Title}}</title>
-    <link rel="stylesheet" href="/styles.css">
-    <script src="/bundle.js" defer></script>
-</head>
-<body class="bg-gray-50">
-    <header class="bg-white shadow-sm">
-        <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-            <div class="flex justify-between items-center">
-                <a href="/" class="text-2xl font-bold text-gray-900">Shop</a>
-                <div class="flex items-center gap-4">
-                    <form action="/search" method="get" class="relative">
-                        <input 
-                            type="text" 
-                            name="q" 
-                            placeholder="Search products..." 
-                            class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        >
-                    </form>
-                    <a href="/cart" class="px-4 py-2 text-gray-700 hover:text-gray-900">Cart</a>
-                    
-                    <!-- User Auth Section -->
-                    <div x-data="authState()" class="flex items-center gap-3">
-                        <!-- Signed In State -->
-                        <div x-show="user" x-cloak class="relative" x-data="{ open: false }">
-                            <button @click="open = !open" class="flex items-center gap-2 hover:opacity-80 transition">
-                                <img x-show="user?.user_metadata?.avatar_url" 
-                                     :src="user?.user_metadata?.avatar_url" 
-                                     :alt="user?.email" 
-                                     class="w-8 h-8 rounded-full border-2 border-gray-300">
-                                <div x-show="!user?.user_metadata?.avatar_url" 
-                                     class="w-8 h-8 rounded-full border-2 border-gray-300 bg-blue-500 flex items-center justify-center text-white font-semibold">
-                                    <span x-text="(user?.email || 'U')[0].toUpperCase()"></span>
-                                </div>
-                                <span class="text-sm font-medium text-gray-700" x-text="user?.user_metadata?.full_name || user?.email || 'User'"></span>
-                            </button>
-                            
-                            <!-- Dropdown Menu -->
-                            <div x-show="open" 
-                                 @click.away="open = false"
-                                 x-transition
-                                 class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
-                                <a href="/orders" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">My Orders</a>
-                                <a href="/profile" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Profile</a>
-                                <hr class="my-1">
-                                <button @click="signOut()" class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100">Sign Out</button>
-                            </div>
-                        </div>
-                        
-                        <!-- Signed Out State -->
-                        <div x-show="!user" x-cloak>
-                            <a href="/login" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">Sign In</a>
-                        </div>
+{{define "home"}}
+{{template "base" .}}
+{{end}}
+
+{{define "header_actions"}}
+    <div x-data="authState()" class="flex items-center gap-3">
+        <div x-show="user" x-cloak class="relative" x-data="{ open: false }">
+            <button @click="open = !open" class="flex items-center gap-2 rounded-full border border-[#e5dccf] px-3 py-1 text-sm text-[color:var(--color-contrast)] hover:border-[color:var(--color-primary)]">
+                <img x-show="user?.user_metadata?.avatar_url" 
+                     :src="user?.user_metadata?.avatar_url" 
+                     :alt="user?.email" 
+                     class="w-8 h-8 rounded-full border-2 border-gray-300">
+                <div x-show="!user?.user_metadata?.avatar_url" 
+                     class="w-8 h-8 rounded-full border-2 border-gray-300 bg-blue-500 flex items-center justify-center text-white font-semibold">
+                    <span x-text="(user?.email || 'U')[0].toUpperCase()"></span>
+                </div>
+                <span class="text-sm font-medium text-gray-700" x-text="user?.user_metadata?.full_name || user?.email || 'User'"></span>
+            </button>
+            <div x-show="open" 
+                 @click.away="open = false"
+                 x-transition
+                 class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
+                <a href="/orders" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">My Orders</a>
+                <a href="/profile" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Profile</a>
+                <hr class="my-1">
+                <button @click="signOut()" class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100">Sign Out</button>
+            </div>
+        </div>
+        <div x-show="!user" x-cloak>
+            <a href="/login" class="btn-primary">Sign In</a>
+        </div>
+    </div>
+{{end}}
+
+{{define "content"}}
+    <main class="max-w-7xl mx-auto px-6 lg:px-10 py-12 space-y-12">
+        <section class="relative overflow-hidden rounded-[40px] bg-white shadow-lg">
+            <div class="grid lg:grid-cols-2">
+                <div class="p-10 lg:p-16">
+                    <p class="text-xs uppercase tracking-[0.4em] text-[color:var(--color-muted)] mb-6">curated renovation atelier</p>
+                    <h1 class="text-4xl lg:text-5xl font-serif text-[color:var(--color-contrast)] mb-6">Elevate every surface, lumen, and texture.</h1>
+                    <p class="text-lg text-[color:var(--color-muted)] mb-8">Artful tilework, sculptural lighting, bespoke furniture, and heritage pigments designed to layer beautifully within modern homes.</p>
+                    <div class="flex flex-wrap gap-4">
+                        <a href="/category/kafel" class="btn-primary px-6">Explore Collections</a>
+                        <a href="/journal" class="inline-flex items-center gap-2 text-sm font-semibold text-[color:var(--color-contrast)]">View Studio Journal →</a>
+                    </div>
+                </div>
+                <div class="relative">
+                    <img src="https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&w=1200&q=80" alt="Interior inspiration" class="h-full w-full object-cover">
+                    <div class="absolute bottom-6 left-6 rounded-2xl bg-white/90 p-4 text-sm shadow-lg">
+                        <p class="font-semibold">Living Room Renewal</p>
+                        <p class="text-[color:var(--color-muted)]">Paint · Tiles · Lighting Set</p>
                     </div>
                 </div>
             </div>
-        </nav>
-    </header>
+        </section>
 
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <h1 class="text-3xl font-bold text-gray-900 mb-8">Premium Products</h1>
-        
-        <div id="products-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {{range $index, $product := .Products}}
-            <div class="product-card bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow"
-                {{if eq $index 17}}
-                hx-get="/api/products?cursor={{$product.ID}}" 
-                hx-trigger="revealed" 
-                hx-swap="afterend"
-                {{end}}>
-                <a href="/products/{{$product.Slug}}">
-                    <img src="{{$product.ImageThumbURL}}" alt="{{$product.Name}}" loading="lazy" class="product-image">
-                    <div class="p-4">
-                        <h3 class="product-name text-lg font-semibold text-gray-900 mb-2">{{$product.Name}}</h3>
-                        <p class="product-price text-xl font-bold text-blue-600">${{printf "%.2f" $product.Price}}</p>
-                        {{if gt $product.Stock 0}}
-                        <p class="text-sm text-green-600 mt-2">In Stock</p>
-                        {{else}}
-                        <p class="text-sm text-red-600 mt-2">Out of Stock</p>
-                        {{end}}
-                    </div>
-                </a>
+        <section class="space-y-6">
+            <div class="flex items-center justify-between">
+                <h2 class="text-3xl font-serif">Featured Curation</h2>
+                <a href="/collections" class="text-sm font-semibold text-[color:var(--color-primary)]">Browse All Collections →</a>
             </div>
-            {{end}}
-        </div>
+            <div id="products-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                {{range $index, $product := .Products}}
+                {{template "product_card" $product}}
+                {{end}}
+            </div>
+        </section>
 
         <div id="loading" class="hidden text-center py-8">
-            <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+            <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[color:var(--color-contrast)]"></div>
         </div>
     </main>
+{{end}}
 
-    <footer class="bg-white border-t mt-16">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <p class="text-center text-gray-600">&copy; 2026 Shop. All rights reserved.</p>
-        </div>
-    </footer>
-
+{{define "scripts"}}
     <script>
         // Alpine.js auth state component
         function authState() {
@@ -121,5 +96,4 @@
             document.getElementById('loading').classList.add('hidden');
         });
     </script>
-</body>
-</html>
+{{end}}

@@ -49,9 +49,9 @@ func HandleHome(w http.ResponseWriter, r *http.Request) {
 		"User":     user,
 	}
 
-	tmpl, err := template.New("home.html").Funcs(template.FuncMap{
+	tmpl, err := template.New("base.html").Funcs(template.FuncMap{
 		"json": jsonHelper,
-	}).ParseFS(ui.FS, "shop/home.html")
+	}).ParseFS(ui.FS, "shop/base.html", "shop/home.html")
 	if err != nil {
 		http.Error(w, "Template parse error: "+err.Error(), http.StatusInternalServerError)
 		return
@@ -109,7 +109,7 @@ func HandleProductDetail(w http.ResponseWriter, r *http.Request) {
 		"Title":   product.Name,
 	}
 
-	tmpl := template.Must(template.ParseFS(ui.FS, "shop/product.html"))
+	tmpl := template.Must(template.ParseFS(ui.FS, "shop/base.html", "shop/product.html"))
 	if err := tmpl.Execute(w, data); err != nil {
 		http.Error(w, "Template error", http.StatusInternalServerError)
 	}
@@ -154,7 +154,7 @@ func HandleSearch(w http.ResponseWriter, r *http.Request) {
 		"Title":       fmt.Sprintf("Search: %s", query),
 	}
 
-	tmpl := template.Must(template.ParseFS(ui.FS, "shop/search.html"))
+	tmpl := template.Must(template.ParseFS(ui.FS, "shop/base.html", "shop/search.html"))
 	if err := tmpl.Execute(w, data); err != nil {
 		http.Error(w, "Template error", http.StatusInternalServerError)
 	}
