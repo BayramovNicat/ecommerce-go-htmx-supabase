@@ -21,14 +21,12 @@
     </script>
     {{end}}
 </head>
-<body class="{{block "body_class" .}}bg-[color:var(--color-background)] text-[color:var(--color-contrast)]{{end}} h-full flex flex-col">
+<body class="{{block "body_class" .}}bg-[color:var(--color-background)] text-[color:var(--color-contrast)]{{end}} h-full flex flex-col" hx-boost="true" hx-target="#page-root" hx-swap="innerHTML" hx-push-url="true">
     {{block "header" .}}
         {{template "base_header" .}}
     {{end}}
 
-    <div class="flex-1">
-        {{block "content" .}}{{end}}
-    </div>
+    {{template "page_root" .}}
 
     {{block "footer" .}}
         {{template "base_footer" .}}
@@ -115,4 +113,10 @@
         &copy; 2026 Meridian Living. All rights reserved.
     </div>
 </footer>
+{{end}}
+
+{{define "page_root"}}
+<div id="page-root" class="flex-1" hx-history-elt>
+    {{block "content" .}}{{end}}
+</div>
 {{end}}

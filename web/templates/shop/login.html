@@ -2,6 +2,12 @@
 {{template "base" .}}
 {{end}}
 
+{{define "page_root"}}
+<div id="page-root" hx-history-elt class="flex-1">
+    {{block "content" .}}
+</div>
+{{end}}
+
 {{define "content"}}
 <div class="flex items-center justify-center min-h-full px-6 py-12">
     <div class="w-full max-w-md">

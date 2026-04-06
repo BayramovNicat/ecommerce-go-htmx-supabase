@@ -2,7 +2,8 @@
 {{template "base" .}}
 {{end}}
 
-{{define "content"}}
+{{define "page_root"}}
+<div id="page-root" hx-history-elt>
     <main class="max-w-6xl mx-auto px-6 py-12">
         <div class="grid gap-12 lg:grid-cols-2">
             <!-- Product Image -->
@@ -63,6 +64,7 @@
             </div>
         </div>
     </main>
+</div>
 {{end}}
 
 {{define "scripts"}}

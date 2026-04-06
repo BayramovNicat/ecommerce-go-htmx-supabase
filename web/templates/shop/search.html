@@ -6,6 +6,12 @@
     <!-- No extra actions needed -->
 {{end}}
 
+{{define "page_root"}}
+<div id="page-root" hx-history-elt class="flex-1">
+    {{block "content" .}}{{end}}
+</div>
+{{end}}
+
 {{define "content"}}
     <main class="max-w-7xl mx-auto px-6 lg:px-10 py-10 space-y-6">
         <div>

@@ -2,7 +2,8 @@
 {{template "base" .}}
 {{end}}
 
-{{define "content"}}
+{{define "page_root"}}
+<div id="page-root" hx-history-elt>
     <main class="max-w-7xl mx-auto px-6 py-16 min-h-[calc(100vh-8rem)]">
         <div id="products-grid" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-8">
                 {{range $index, $product := .Products}}
@@ -30,20 +31,6 @@
                 {{end}}
             </div>
 
-        <div id="loading" class="hidden text-center py-8">
-            <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
-        </div>
     </main>
-{{end}}
-
-{{define "scripts"}}
-    <script>
-        // Show loading indicator during HTMX requests
-        document.body.addEventListener('htmx:beforeRequest', function() {
-            document.getElementById('loading').classList.remove('hidden');
-        });
-        document.body.addEventListener('htmx:afterRequest', function() {
-            document.getElementById('loading').classList.add('hidden');
-        });
-    </script>
+</div>
 {{end}}

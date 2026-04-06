@@ -68,7 +68,12 @@ func HandleHome(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := tmpl.ExecuteTemplate(w, "home", data); err != nil {
+	target := "home"
+	if r.Header.Get("HX-Request") == "true" {
+		target = "page_root"
+	}
+
+	if err := tmpl.ExecuteTemplate(w, target, data); err != nil {
 		http.Error(w, "Template execute error: "+err.Error(), http.StatusInternalServerError)
 	}
 }
@@ -144,7 +149,12 @@ func HandleProductDetail(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := tmpl.ExecuteTemplate(w, "product", data); err != nil {
+	target := "product"
+	if r.Header.Get("HX-Request") == "true" {
+		target = "page_root"
+	}
+
+	if err := tmpl.ExecuteTemplate(w, target, data); err != nil {
 		http.Error(w, "Template execute error: "+err.Error(), http.StatusInternalServerError)
 	}
 }
@@ -176,11 +186,6 @@ func HandleSearch(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Check if this is an HTMX request
-	if r.Header.Get("HX-Request") == "true" {
-		renderProductCards(w, products)
-		return
-	}
-
 	// Full page render
 	data := map[string]interface{}{
 		"Products":    products,
@@ -189,7 +194,13 @@ func HandleSearch(w http.ResponseWriter, r *http.Request) {
 	}
 
 	tmpl := template.Must(template.New("base.html").ParseFS(web.FS, "templates/layouts/base.html", "templates/shop/search.html"))
-	if err := tmpl.ExecuteTemplate(w, "search", data); err != nil {
+
+	target := "search"
+	if r.Header.Get("HX-Request") == "true" {
+		target = "page_root"
+	}
+
+	if err := tmpl.ExecuteTemplate(w, target, data); err != nil {
 		http.Error(w, "Template error", http.StatusInternalServerError)
 	}
 }
@@ -248,7 +259,12 @@ func HandleCart(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := tmpl.ExecuteTemplate(w, "cart", data); err != nil {
+	target := "cart"
+	if r.Header.Get("HX-Request") == "true" {
+		target = "page_root"
+	}
+
+	if err := tmpl.ExecuteTemplate(w, target, data); err != nil {
 		http.Error(w, "Template execute error: "+err.Error(), http.StatusInternalServerError)
 	}
 }
