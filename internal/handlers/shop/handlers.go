@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 	"strconv"
@@ -173,6 +174,7 @@ func HandleSearch(w http.ResponseWriter, r *http.Request) {
 
 	products, err := database.SearchProducts(r.Context(), query, cursor, productsPerPage)
 	if err != nil {
+		log.Printf("Search failed for query '%s': %v", query, err)
 		http.Error(w, "Search failed", http.StatusInternalServerError)
 		return
 	}
@@ -188,6 +190,7 @@ func HandleSearch(w http.ResponseWriter, r *http.Request) {
 
 	tmpl, err := web.GetTemplate("shop:search", "templates/layouts/base.html", "templates/shop/search.html")
 	if err != nil {
+		log.Printf("Template parse error: %v", err)
 		http.Error(w, "Template parse error", http.StatusInternalServerError)
 		return
 	}
@@ -198,6 +201,7 @@ func HandleSearch(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := tmpl.ExecuteTemplate(w, target, data); err != nil {
+		log.Printf("Template execution error: %v", err)
 		http.Error(w, "Template error", http.StatusInternalServerError)
 	}
 }
