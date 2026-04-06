@@ -17,7 +17,7 @@ import (
 	"htmxshop/web"
 )
 
-const productsPerPage = 36
+const productsPerPage = 60
 
 const homeProductsCacheTTL = 30 * time.Second
 const productCacheTTL = 5 * time.Minute
