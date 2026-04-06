@@ -44,10 +44,11 @@ func HandleHome(w http.ResponseWriter, r *http.Request) {
 	}
 
 	data := map[string]interface{}{
-		"Products": products,
-		"Title":    "Shop - Premium Products",
-		"User":     getUserFromRequest(r),
-		"Env":      getEnv(),
+		"Products":    products,
+		"Title":       "Shop - Premium Products",
+		"User":        getUserFromRequest(r),
+		"Env":         getEnv(),
+		"CriticalCSS": web.GetCriticalCSS(),
 	}
 
 	tmpl, err := web.GetTemplate("shop:home", "templates/layouts/base.html", "templates/shop/home.html")
@@ -109,10 +110,11 @@ func HandleProductDetail(w http.ResponseWriter, r *http.Request) {
 	}
 
 	data := map[string]interface{}{
-		"Product": product,
-		"Title":   product.Name,
-		"User":    getUserFromRequest(r),
-		"Env":     getEnv(),
+		"Product":     product,
+		"Title":       product.Name,
+		"User":        getUserFromRequest(r),
+		"Env":         getEnv(),
+		"CriticalCSS": web.GetCriticalCSS(),
 	}
 
 	tmpl, err := web.GetTemplate("shop:product", "templates/layouts/base.html", "templates/shop/product.html")
@@ -163,6 +165,7 @@ func HandleSearch(w http.ResponseWriter, r *http.Request) {
 		"Products":    products,
 		"SearchQuery": query,
 		"Title":       fmt.Sprintf("Search: %s", query),
+		"CriticalCSS": web.GetCriticalCSS(),
 	}
 
 	tmpl, err := web.GetTemplate("shop:search", "templates/layouts/base.html", "templates/shop/search.html")
@@ -225,9 +228,10 @@ func renderProductCards(w http.ResponseWriter, products []database.Product) {
 // HandleCart renders the cart page (static placeholder)
 func HandleCart(w http.ResponseWriter, r *http.Request) {
 	data := map[string]interface{}{
-		"Title": "Your Cart",
-		"User":  getUserFromRequest(r),
-		"Env":   getEnv(),
+		"Title":       "Your Cart",
+		"User":        getUserFromRequest(r),
+		"Env":         getEnv(),
+		"CriticalCSS": web.GetCriticalCSS(),
 	}
 
 	tmpl, err := web.GetTemplate("shop:cart", "templates/layouts/base.html", "templates/shop/cart.html")

@@ -24,6 +24,7 @@ func HandleLogin(w http.ResponseWriter, r *http.Request) {
 		"SupabaseAnonKey":  supabaseAnonKey,
 		"OAuthRedirectURL": oauthRedirectURL(r),
 		"Env":              getEnv(),
+		"CriticalCSS":      web.GetCriticalCSS(),
 	}
 
 	tmpl, err := web.GetTemplate("shop:login", "templates/layouts/base.html", "templates/shop/login.html")

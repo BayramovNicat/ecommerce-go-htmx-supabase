@@ -1,11 +1,15 @@
 package web
 
 import (
+	_ "embed"
 	"encoding/json"
 	"html/template"
 	"os"
 	"sync"
 )
+
+//go:embed critical.css
+var criticalCSS string
 
 var (
 	templateCache sync.Map
@@ -16,6 +20,11 @@ var (
 		},
 	}
 )
+
+// GetCriticalCSS returns the inlined critical CSS
+func GetCriticalCSS() string {
+	return criticalCSS
+}
 
 func GetTemplate(key string, files ...string) (*template.Template, error) {
 	if os.Getenv("ENV") != "production" {
