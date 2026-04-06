@@ -1,70 +1,81 @@
-{{define "oauth_callback"}}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Signing In...</title>
-    <style>
-        body {
-            margin: 0;
-            padding: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            font-family: system-ui, -apple-system, sans-serif;
-            background: white;
-        }
-        .spinner {
-            width: 40px;
-            height: 40px;
-            border: 3px solid #e5e7eb;
-            border-top-color: #111827;
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-        }
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-        .message {
-            text-align: center;
-        }
-        h1 {
-            margin: 20px 0 10px;
-            font-size: 20px;
-            font-weight: 600;
-            color: #111827;
-        }
-        p {
-            margin: 0;
-            font-size: 14px;
-            color: #6b7280;
-        }
-    </style>
-</head>
-<body>
-    <div class="message">
-        <div class="spinner"></div>
-        <h1>Signing in...</h1>
-        <p>Please wait</p>
-    </div>
+{{ define "oauth_callback" }}
+	<!doctype html>
+	<html lang="en">
+		<head>
+			<meta charset="UTF-8" />
+			<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+			<title>Signing In...</title>
+			<style>
+				body {
+					margin: 0;
+					padding: 0;
+					display: flex;
+					align-items: center;
+					justify-content: center;
+					min-height: 100vh;
+					font-family:
+						system-ui,
+						-apple-system,
+						sans-serif;
+					background: white;
+				}
 
-    <script type="module">
-        import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.43.4'
-        const supabase = createClient('{{.SupabaseURL}}', '{{.SupabaseAnonKey}}', {
-            auth: { detectSessionInUrl: true }
-        })
+				.spinner {
+					width: 40px;
+					height: 40px;
+					border: 3px solid #e5e7eb;
+					border-top-color: #111827;
+					border-radius: 50%;
+					animation: spin 0.8s linear infinite;
+				}
 
-        supabase.auth.onAuthStateChange(async (event, session) => {
-            if (event === 'SIGNED_IN' && session?.access_token) {
-                document.cookie = `sb-access-token=${session.access_token}; Path=/; Max-Age=3600; SameSite=Lax`
-                window.location.href = '{{.SuccessRedirect}}'
-            } else if (event === 'SIGNED_OUT' || !session) {
-                window.location.href = '{{.FailureRedirect}}'
-            }
-        })
-    </script>
-</body>
-</html>
-{{end}}
+				@keyframes spin {
+					to {
+						transform: rotate(360deg);
+					}
+				}
+
+				.message {
+					text-align: center;
+				}
+
+				h1 {
+					margin: 20px 0 10px;
+					font-size: 20px;
+					font-weight: 600;
+					color: #111827;
+				}
+
+				p {
+					margin: 0;
+					font-size: 14px;
+					color: #6b7280;
+				}
+			</style>
+		</head>
+
+		<body>
+			<div class="message">
+				<div class="spinner"></div>
+				<h1>Signing in...</h1>
+				<p>Please wait</p>
+			</div>
+
+		<script type="module">
+			import { createClient } from "https://esm.sh/@supabase/supabase-js@2.43.4"
+			const supabase = createClient("{{.SupabaseURL}}", "{{.SupabaseAnonKey}}", {
+				auth: { detectSessionInUrl: true },
+			})
+
+			supabase.auth.onAuthStateChange(async (event, session) => {
+				if (event === "SIGNED_IN" && session?.access_token) {
+					document.cookie = `sb-access-token=${session.access_token}; Path=/; Max-Age=3600; SameSite=Lax`
+					window.location.href = "{{.SuccessRedirect}}"
+				} else if (event === "SIGNED_OUT" || !session) {
+					window.location.href = "{{.FailureRedirect}}"
+				}
+			})
+		</script>
+		</body>
+	</html>
+{{ end }}

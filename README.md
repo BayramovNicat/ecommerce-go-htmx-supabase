@@ -12,6 +12,7 @@ High-performance e-commerce site built with Go, HTMX, and Supabase.
 ## Setup
 
 1. Install dependencies:
+
 ```bash
 go mod download
 bun install
@@ -23,6 +24,7 @@ bun install
    - Get your database connection string
 
 3. Configure environment variables in Vercel:
+
 ```
 SUPABASE_DB_URL=postgresql://...
 SUPABASE_JWT_SECRET=your-jwt-secret
@@ -31,11 +33,13 @@ SUPABASE_ANON_KEY=your-anon-key
 ```
 
 4. Build frontend assets:
+
 ```bash
 bun run build
 ```
 
 5. Deploy to Vercel:
+
 ```bash
 vercel
 ```

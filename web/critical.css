@@ -1,147 +1,154 @@
 /* Critical CSS - Above the fold styles */
 :root {
-    --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Helvetica Neue", Arial, sans-serif;
-    --font-serif: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
-    --color-background: #f8f6f2;
-    --color-surface: #ffffff;
-    --color-muted: #a29a8d;
-    --color-primary: #c26b2f;
-    --color-primary-dark: #9e501c;
-    --color-contrast: #1f1a17;
+	--font-sans:
+		system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Helvetica Neue", Arial,
+		sans-serif;
+	--font-serif: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+	--color-background: #f8f6f2;
+	--color-surface: #ffffff;
+	--color-muted: #a29a8d;
+	--color-primary: #c26b2f;
+	--color-primary-dark: #9e501c;
+	--color-contrast: #1f1a17;
 }
 
 html {
-    height: 100%;
+	height: 100%;
 }
 
 body {
-    font-family: var(--font-sans);
-    background-color: var(--color-background);
-    color: var(--color-contrast);
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    margin: 0;
+	font-family: var(--font-sans);
+	background-color: var(--color-background);
+	color: var(--color-contrast);
+	height: 100%;
+	display: flex;
+	flex-direction: column;
+	margin: 0;
 }
 
-h1, h2, h3, h4, h5, h6 {
-    font-family: var(--font-serif);
-    letter-spacing: -0.02em;
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+	font-family: var(--font-serif);
+	letter-spacing: -0.02em;
 }
 
 /* Header styles */
 header {
-    background-color: #fff;
-    border-bottom: 1px solid #e5e7eb;
+	background-color: #fff;
+	border-bottom: 1px solid #e5e7eb;
 }
 
 nav {
-    max-width: 80rem;
-    margin-left: auto;
-    margin-right: auto;
-    padding: 1rem 1.5rem;
+	max-width: 80rem;
+	margin-left: auto;
+	margin-right: auto;
+	padding: 1rem 1.5rem;
 }
 
 .flex {
-    display: flex;
+	display: flex;
 }
 
 .items-center {
-    align-items: center;
+	align-items: center;
 }
 
 .justify-between {
-    justify-content: space-between;
+	justify-content: space-between;
 }
 
 .gap-4 {
-    gap: 1rem;
+	gap: 1rem;
 }
 
 /* Typography */
 .text-2xl {
-    font-size: 1.5rem;
-    line-height: 2rem;
+	font-size: 1.5rem;
+	line-height: 2rem;
 }
 
 .text-lg {
-    font-size: 1.125rem;
-    line-height: 1.75rem;
+	font-size: 1.125rem;
+	line-height: 1.75rem;
 }
 
 .text-sm {
-    font-size: 0.875rem;
-    line-height: 1.25rem;
+	font-size: 0.875rem;
+	line-height: 1.25rem;
 }
 
 .font-semibold {
-    font-weight: 600;
+	font-weight: 600;
 }
 
 .font-bold {
-    font-weight: 700;
+	font-weight: 700;
 }
 
 /* Colors */
 .text-gray-900 {
-    color: #111827;
+	color: #111827;
 }
 
 .bg-white {
-    background-color: #fff;
+	background-color: #fff;
 }
 
 /* Layout */
 .max-w-7xl {
-    max-width: 80rem;
+	max-width: 80rem;
 }
 
 .mx-auto {
-    margin-left: auto;
-    margin-right: auto;
+	margin-left: auto;
+	margin-right: auto;
 }
 
 .px-6 {
-    padding-left: 1.5rem;
-    padding-right: 1.5rem;
+	padding-left: 1.5rem;
+	padding-right: 1.5rem;
 }
 
 .py-4 {
-    padding-top: 1rem;
-    padding-bottom: 1rem;
+	padding-top: 1rem;
+	padding-bottom: 1rem;
 }
 
 .py-16 {
-    padding-top: 4rem;
-    padding-bottom: 4rem;
+	padding-top: 4rem;
+	padding-bottom: 4rem;
 }
 
 /* Grid */
 .grid {
-    display: grid;
+	display: grid;
 }
 
 .grid-cols-2 {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+	grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .gap-8 {
-    gap: 2rem;
+	gap: 2rem;
 }
 
 @media (min-width: 768px) {
-    .md\:grid-cols-4 {
-        grid-template-columns: repeat(4, minmax(0, 1fr));
-    }
+	.md\:grid-cols-4 {
+		grid-template-columns: repeat(4, minmax(0, 1fr));
+	}
 }
 
 @media (min-width: 1024px) {
-    .lg\:grid-cols-6 {
-        grid-template-columns: repeat(6, minmax(0, 1fr));
-    }
+	.lg\:grid-cols-6 {
+		grid-template-columns: repeat(6, minmax(0, 1fr));
+	}
 }
 
 /* Alpine.js cloak */
 [x-cloak] {
-    display: none !important;
+	display: none !important;
 }

@@ -1,71 +1,103 @@
-{{define "product"}}
-{{template "base" .}}
-{{end}}
+{{ define "product" }}
+	{{ template "base" . }}
+{{ end }}
 
-{{define "page_root"}}
-<div id="page-root" hx-history-elt>
-    <main class="max-w-6xl mx-auto px-6 py-12">
-        <div class="grid gap-12 lg:grid-cols-2">
-            <!-- Product Image -->
-            <div>
-                <div class="aspect-square rounded-lg bg-gray-200 overflow-hidden relative flex items-center justify-center">
-                    {{if .Product.ImageURL}}
-                    <img src="{{.Product.ImageURL}}" alt="{{.Product.Name}}" class="absolute inset-0 w-full h-full object-cover" loading="eager" fetchpriority="high" onerror="this.style.display='none';">
-                    {{end}}
-                    <div class="w-3/4 aspect-[3/1] border-2 border-gray-400 rounded-md flex items-center justify-center">
-                        <div class="w-16 h-16 rounded-full bg-gray-400"></div>
-                    </div>
-                </div>
-            </div>
+{{ define "page_root" }}
+	<div id="page-root" hx-history-elt>
+		<main class="max-w-6xl mx-auto px-6 py-12">
+			<div class="grid gap-12 lg:grid-cols-2">
+				<!-- Product Image -->
+				<div>
+					<div
+						class="aspect-square rounded-lg bg-gray-200 overflow-hidden relative flex items-center justify-center"
+					>
+						{{ if .Product.ImageURL }}
+							<img
+								src="{{ .Product.ImageURL }}"
+								alt="{{ .Product.Name }}"
+								class="absolute inset-0 w-full h-full object-cover"
+								loading="eager"
+								fetchpriority="high"
+								onerror="this.style.display='none';"
+							/>
+						{{ end }}
+						<div
+							class="w-3/4 aspect-[3/1] border-2 border-gray-400 rounded-md flex items-center justify-center"
+						>
+							<div class="w-16 h-16 rounded-full bg-gray-400"></div>
+						</div>
+					</div>
+				</div>
 
-            <!-- Product Info -->
-            <div class="space-y-6">
-                <div>
-                    <h1 class="text-3xl font-bold text-gray-900 mb-4">{{.Product.Name}}</h1>
-                    <p class="text-2xl font-bold text-gray-900 mb-4">${{printf "%.2f" .Product.Price}}</p>
-                    {{if gt .Product.Stock 0}}
-                    <p class="text-sm text-green-600">In Stock ({{.Product.Stock}} available)</p>
-                    {{else}}
-                    <p class="text-sm text-red-500">Out of Stock</p>
-                    {{end}}
-                </div>
+				<!-- Product Info -->
+				<div class="space-y-6">
+					<div>
+						<h1 class="text-3xl font-bold text-gray-900 mb-4">{{ .Product.Name }}</h1>
+						<p class="text-2xl font-bold text-gray-900 mb-4">${{ printf "%.2f" .Product.Price }}</p>
+						{{ if gt .Product.Stock 0 }}
+							<p class="text-sm text-green-600">In Stock ({{ .Product.Stock }} available)</p>
+						{{ else }}
+							<p class="text-sm text-red-500">Out of Stock</p>
+						{{ end }}
+					</div>
 
-                {{if .Product.Description}}
-                <div>
-                    <h2 class="text-lg font-semibold text-gray-900 mb-2">Description</h2>
-                    <p class="text-gray-600">{{.Product.Description}}</p>
-                </div>
-                {{end}}
+					{{ if .Product.Description }}
+						<div>
+							<h2 class="text-lg font-semibold text-gray-900 mb-2">Description</h2>
+							<p class="text-gray-600">{{ .Product.Description }}</p>
+						</div>
+					{{ end }}
 
-                {{if gt .Product.Stock 0}}
-                <div class="space-y-4" x-data="productCart({
-                    slug: {{printf "%q" .Product.Slug}},
-                    name: {{printf "%q" .Product.Name}},
-                    price: {{printf "%.2f" .Product.Price}},
-                    image: {{printf "%q" .Product.ImageThumbURL}},
-                    url: {{printf "%q" (printf "/products/%s" .Product.Slug)}}
-                })">
-                    <div>
-                        <label class="text-sm font-semibold text-gray-900 mb-2 block">Quantity</label>
-                        <div class="flex items-center gap-3">
-                            <button @click="quantity = Math.max(1, quantity - 1)" class="w-12 h-12 flex items-center justify-center rounded-full border-2 border-gray-300 hover:border-gray-900 text-xl font-semibold">−</button>
-                            <span x-text="quantity" class="text-xl font-semibold w-16 text-center"></span>
-                            <button @click="quantity = Math.min({{.Product.Stock}}, quantity + 1)" class="w-12 h-12 flex items-center justify-center rounded-full border-2 border-gray-300 hover:border-gray-900 text-xl font-semibold">+</button>
-                        </div>
-                    </div>
+					{{ if gt .Product.Stock 0 }}
+						<div
+							class="space-y-4"
+							x-data="productCart({
+                    slug: {{ printf " %q" .Product.Slug }}, name: {{ printf "%q" .Product.Name }}, price: {{ printf "%.2f"
+								.Product.Price
+							}}, image: {{ printf "%q" .Product.ImageThumbURL }}, url: {{ printf "%q"
+								(printf "/products/%s" .Product.Slug)
+							}} })"
+						>
+							<div>
+								<label class="text-sm font-semibold text-gray-900 mb-2 block">Quantity</label>
+								<div class="flex items-center gap-3">
+									<button
+										@click="quantity = Math.max(1, quantity - 1)"
+										class="w-12 h-12 flex items-center justify-center rounded-full border-2 border-gray-300 hover:border-gray-900 text-xl font-semibold"
+									>
+										−
+									</button>
+									<span x-text="quantity" class="text-xl font-semibold w-16 text-center"></span>
+									<button
+										@click="quantity = Math.min({{ .Product.Stock }}, quantity + 1)"
+										class="w-12 h-12 flex items-center justify-center rounded-full border-2 border-gray-300 hover:border-gray-900 text-xl font-semibold"
+									>
+										+
+									</button>
+								</div>
+							</div>
 
-                    <button @click="addToCart()" class="w-full bg-gray-900 text-white py-3 rounded-lg font-semibold hover:bg-gray-800">Add to Cart</button>
-                </div>
-                {{end}}
+							<button
+								@click="addToCart()"
+								class="w-full bg-gray-900 text-white py-3 rounded-lg font-semibold hover:bg-gray-800"
+							>
+								Add to Cart
+							</button>
+						</div>
+					{{ end }}
 
-                <a href="/" class="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900">
-                    ← Back to Products
-                </a>
-            </div>
-        </div>
-    </main>
-</div>
-{{end}}
 
-{{define "scripts"}}
-{{end}}
+					<a
+						href="/"
+						class="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900"
+					>
+						← Back to Products
+					</a>
+				</div>
+			</div>
+		</main>
+	</div>
+{{ end }}
+
+{{ define "scripts" }}
+{{ end }}

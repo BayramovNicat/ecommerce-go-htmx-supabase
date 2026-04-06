@@ -1,35 +1,33 @@
-{{define "search"}}
-{{template "base" .}}
-{{end}}
+{{ define "search" }}{{ template "base" . }}{{ end }}
+{{ define "header_actions" }}
+	<!-- No extra actions needed -->
+{{ end }}
+{{ define "page_root" }}
+	<div id="page-root" hx-history-elt class="flex-1">{{ block "content" . }}{{ end }}</div>
+{{ end }}
+{{ define "content" }}
+	<main class="max-w-7xl mx-auto px-6 lg:px-10 py-10 space-y-6">
+		<div>
+			<p class="text-xs uppercase tracking-[0.4em] text-[color:var(--color-muted)]">Results</p>
+			<h1 class="text-4xl font-serif text-[color:var(--color-contrast)]">
+				Search: "{{ .SearchQuery }}"
+			</h1>
+		</div>
 
-{{define "header_actions"}}
-    <!-- No extra actions needed -->
-{{end}}
-
-{{define "page_root"}}
-<div id="page-root" hx-history-elt class="flex-1">
-    {{block "content" .}}{{end}}
-</div>
-{{end}}
-
-{{define "content"}}
-    <main class="max-w-7xl mx-auto px-6 lg:px-10 py-10 space-y-6">
-        <div>
-            <p class="text-xs uppercase tracking-[0.4em] text-[color:var(--color-muted)]">Results</p>
-            <h1 class="text-4xl font-serif text-[color:var(--color-contrast)]">Search: "{{.SearchQuery}}"</h1>
-        </div>
-        
-        {{if .Products}}
-        <div id="products-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {{range .Products}}
-            {{template "product_card" .}}
-            {{end}}
-        </div>
-        {{else}}
-        <div class="text-center py-16 rounded-[40px] bg-white shadow-lg">
-            <p class="text-xl text-[color:var(--color-muted)]">No products found matching your search.</p>
-            <a href="/" class="inline-block mt-4 btn-primary">Browse all products</a>
-        </div>
-        {{end}}
-    </main>
-{{end}}
+		{{ if .Products }}
+			<div
+				id="products-grid"
+				class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"
+			>
+				{{ range .Products }}{{ template "product_card" . }}{{ end }}
+			</div>
+		{{ else }}
+			<div class="text-center py-16 rounded-[40px] bg-white shadow-lg">
+				<p class="text-xl text-[color:var(--color-muted)]">
+					No products found matching your search.
+				</p>
+				<a href="/" class="inline-block mt-4 btn-primary">Browse all products</a>
+			</div>
+		{{ end }}
+	</main>
+{{ end }}

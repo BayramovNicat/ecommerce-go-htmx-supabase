@@ -1,36 +1,42 @@
-{{define "home"}}
-{{template "base" .}}
-{{end}}
-
-{{define "page_root"}}
-<div id="page-root" hx-history-elt>
-    <main class="max-w-7xl mx-auto px-6 py-16 min-h-[calc(100vh-8rem)]">
-        <div id="products-grid" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-8">
-                {{range $index, $product := .Products}}
-                <div class="group">
-                    <a href="/products/{{.Slug}}" class="block">
-                        <div class="aspect-square overflow-hidden rounded-lg bg-gray-200 mb-4 relative flex items-center justify-center">
-                            {{if .ImageThumbURL}}
-                            <img src="{{.ImageThumbURL}}" alt="{{.Name}}" loading="lazy" class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition duration-300" onerror="this.style.display='none';">
-                            {{end}}
-                            <div class="w-3/4 aspect-[3/1] border-2 border-gray-400 rounded-md flex items-center justify-center">
-                                <div class="w-16 h-16 rounded-full bg-gray-400"></div>
-                            </div>
-                        </div>
-                        <h3 class="text-lg font-semibold text-gray-900 mb-2">{{.Name}}</h3>
-                        <div class="flex items-center justify-between">
-                            <p class="text-xl font-bold text-gray-900">${{printf "%.2f" .Price}}</p>
-                            {{if gt .Stock 0}}
-                            <span class="text-sm text-green-600">In Stock</span>
-                            {{else}}
-                            <span class="text-sm text-red-500">Out of Stock</span>
-                            {{end}}
-                        </div>
-                    </a>
-                </div>
-                {{end}}
-            </div>
-
-    </main>
-</div>
-{{end}}
+{{ define "home" }}{{ template "base" . }}{{ end }}
+{{ define "page_root" }}
+	<div id="page-root" hx-history-elt>
+		<main class="max-w-7xl mx-auto px-6 py-16 min-h-[calc(100vh-8rem)]">
+			<div id="products-grid" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-8">
+				{{ range $index, $product := .Products }}
+					<div class="group">
+						<a href="/products/{{ .Slug }}" class="block">
+							<div
+								class="aspect-square overflow-hidden rounded-lg bg-gray-200 mb-4 relative flex items-center justify-center"
+							>
+								{{ if .ImageThumbURL }}
+									<img
+										src="{{ .ImageThumbURL }}"
+										alt="{{ .Name }}"
+										loading="lazy"
+										class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition duration-300"
+										onerror="this.style.display = 'none'"
+									/>
+								{{ end }}
+								<div
+									class="w-3/4 aspect-[3/1] border-2 border-gray-400 rounded-md flex items-center justify-center"
+								>
+									<div class="w-16 h-16 rounded-full bg-gray-400"></div>
+								</div>
+							</div>
+							<h3 class="text-lg font-semibold text-gray-900 mb-2">{{ .Name }}</h3>
+							<div class="flex items-center justify-between">
+								<p class="text-xl font-bold text-gray-900">${{ printf "%.2f" .Price }}</p>
+								{{ if gt .Stock 0 }}
+									<span class="text-sm text-green-600">In Stock</span>
+								{{ else }}
+									<span class="text-sm text-red-500">Out of Stock</span>
+								{{ end }}
+							</div>
+						</a>
+					</div>
+				{{ end }}
+			</div>
+		</main>
+	</div>
+{{ end }}

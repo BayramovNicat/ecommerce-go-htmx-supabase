@@ -1,24 +1,28 @@
 {
-  "name": "htmxshop",
-  "version": "1.0.0",
-  "description": "HTMX Shop with Tailwind CSS",
-  "scripts": {
-    "dev": "nodemon --watch api --watch internal --watch web --watch cmd --signal SIGTERM --exec go run ./cmd/server",
-    "start": "go run ./cmd/server",
-    "build": "npm run build:css && npm run build:js",
-    "build:css": "tailwindcss -i ./web/static/css/styles.css -o ./web/dist/styles.css -m",
-    "build:js": "esbuild web/static/js/bundle.js --bundle --minify --outfile=web/dist/bundle.js",
-    "watch": "concurrently -k \"npm:watch:css\" \"npm:watch:js\"",
-    "watch:css": "tailwindcss -i ./web/static/css/styles.css -o ./web/dist/styles.css -w",
-    "watch:js": "esbuild web/static/js/bundle.js --bundle --outfile=web/dist/bundle.js --watch"
-  },
-  "devDependencies": {
-    "@tailwindcss/cli": "^4.2.2",
-    "alpinejs": "^3.15.11",
-    "concurrently": "^9.2.1",
-    "esbuild": "^0.28.0",
-    "htmx.org": "^2.0.8",
-    "nodemon": "^3.1.14",
-    "tailwindcss": "^4.2.2"
-  }
+	"name": "htmxshop",
+	"version": "1.0.0",
+	"description": "HTMX Shop with Tailwind CSS",
+	"scripts": {
+		"dev": "nodemon --watch api --watch internal --watch web --watch cmd --signal SIGTERM --exec go run ./cmd/server",
+		"start": "go run ./cmd/server",
+		"build": "npm run build:css && npm run build:js",
+		"build:css": "tailwindcss -i ./web/static/css/styles.css -o ./web/dist/styles.css -m",
+		"build:js": "esbuild web/static/js/bundle.js --bundle --minify --outfile=web/dist/bundle.js",
+		"watch": "concurrently -k \"npm:watch:css\" \"npm:watch:js\"",
+		"watch:css": "tailwindcss -i ./web/static/css/styles.css -o ./web/dist/styles.css -w",
+		"watch:js": "esbuild web/static/js/bundle.js --bundle --outfile=web/dist/bundle.js --watch",
+		"lint": "prettier --check .",
+		"format": "prettier --write ."
+	},
+	"devDependencies": {
+		"@tailwindcss/cli": "^4.2.2",
+		"alpinejs": "^3.15.11",
+		"concurrently": "^9.2.1",
+		"esbuild": "^0.28.0",
+		"htmx.org": "^2.0.8",
+		"nodemon": "^3.1.14",
+		"prettier": "^3.8.1",
+		"prettier-plugin-go-template": "^0.0.15",
+		"tailwindcss": "^4.2.2"
+	}
 }

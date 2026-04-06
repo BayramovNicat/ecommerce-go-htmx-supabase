@@ -1,124 +1,193 @@
-{{define "base"}}
-<!DOCTYPE html>
-<html lang="en" class="h-full">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{.Title}}</title>
-    <link rel="dns-prefetch" href="https://images.unsplash.com">
-    <link rel="preconnect" href="https://images.unsplash.com" crossorigin>
+{{ define "base" }}
+	<!doctype html>
+	<html lang="en" class="h-full">
+		<head>
+			<meta charset="UTF-8" />
+			<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+			<title>{{ .Title }}</title>
+			<link rel="dns-prefetch" href="https://images.unsplash.com" />
+			<link rel="preconnect" href="https://images.unsplash.com" crossorigin />
     <style>{{.CriticalCSS}}</style>
-    <link rel="preload" href="/dist/styles.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
-    <noscript><link rel="stylesheet" href="/dist/styles.css"></noscript>
-    <link rel="modulepreload" href="/dist/bundle.js">
-    <script src="/dist/bundle.js" defer></script>
-    {{block "extra_head" .}}{{end}}
-    {{if ne .Env "production"}}
-    <script>
-        (function() {
-            const ws = new WebSocket('ws://' + window.location.host + '/livereload');
-            ws.onmessage = () => window.location.reload();
-            ws.onclose = () => setTimeout(() => window.location.reload(), 1000);
-        })();
-    </script>
-    {{end}}
-</head>
-<body class="{{block "body_class" .}}bg-[color:var(--color-background)] text-[color:var(--color-contrast)]{{end}} h-full flex flex-col" hx-boost="true" hx-target="#page-root" hx-swap="innerHTML" hx-push-url="true">
-    {{block "header" .}}
-        {{template "base_header" .}}
-    {{end}}
+			<link
+				rel="preload"
+				href="/dist/styles.css"
+				as="style"
+				onload="this.onload=null;this.rel='stylesheet'"
+			/>
+			<noscript><link rel="stylesheet" href="/dist/styles.css" /></noscript>
+			<link rel="modulepreload" href="/dist/bundle.js" />
+			<script src="/dist/bundle.js" defer></script>
+			{{ block "extra_head" . }}{{ end }}
+			{{ if ne .Env "production" }}
+				<script>
+					;(function () {
+						const ws = new WebSocket("ws://" + window.location.host + "/livereload")
+						ws.onmessage = () => window.location.reload()
+						ws.onclose = () => setTimeout(() => window.location.reload(), 1000)
+					})()
+				</script>
+			{{ end }}
+		</head>
+		<body
+			class="{{ block "body_class" . }}
+				bg-[color:var(--color-background)] text-[color:var(--color-contrast)]
+			{{ end }} h-full flex flex-col"
+			hx-boost="true"
+			hx-target="#page-root"
+			hx-swap="innerHTML"
+			hx-push-url="true"
+		>
+			{{ block "header" . }}
+				{{ template "base_header" . }}
+			{{ end }}
 
-    {{template "page_root" .}}
+			{{ template "page_root" . }}
 
-    {{block "footer" .}}
-        {{template "base_footer" .}}
-    {{end}}
+			{{ block "footer" . }}
+				{{ template "base_footer" . }}
+			{{ end }}
 
-    {{block "scripts" .}}{{end}}
-</body>
-</html>
-{{end}}
+			{{ block "scripts" . }}{{ end }}
+		</body>
+	</html>
+{{ end }}
 
-{{define "product_card"}}
-<div class="product-card rounded-lg bg-white shadow-sm border border-gray-200 hover:shadow-lg transition duration-300">
-    <a href="/products/{{.Slug}}">
-        <div class="overflow-hidden rounded-t-lg aspect-square bg-gray-200 relative flex items-center justify-center">
-            {{if .ImageThumbURL}}
-            <img src="{{.ImageThumbURL}}" alt="{{.Name}}" loading="lazy" class="absolute inset-0 w-full h-full object-cover transition duration-500 hover:scale-105" onerror="this.style.display='none';">
-            {{end}}
-            <div class="w-3/4 aspect-[3/1] border-2 border-gray-400 rounded-md flex items-center justify-center">
-                <div class="w-16 h-16 rounded-full bg-gray-400"></div>
-            </div>
-        </div>
-        <div class="p-4">
-            <h3 class="text-lg font-semibold text-gray-900 mb-2">{{.Name}}</h3>
-            <div class="flex items-center justify-between">
-                <p class="text-xl font-bold text-gray-900">${{printf "%.2f" .Price}}</p>
-                {{if gt .Stock 0}}
-                <span class="text-sm text-green-600">In Stock</span>
-                {{else}}
-                <span class="text-sm text-red-500">Out of Stock</span>
-                {{end}}
-            </div>
-        </div>
-    </a>
-</div>
-{{end}}
+{{ define "product_card" }}
+	<div
+		class="product-card rounded-lg bg-white shadow-sm border border-gray-200 hover:shadow-lg transition duration-300"
+	>
+		<a href="/products/{{ .Slug }}">
+			<div
+				class="overflow-hidden rounded-t-lg aspect-square bg-gray-200 relative flex items-center justify-center"
+			>
+				{{ if .ImageThumbURL }}
+					<img
+						src="{{ .ImageThumbURL }}"
+						alt="{{ .Name }}"
+						loading="lazy"
+						class="absolute inset-0 w-full h-full object-cover transition duration-500 hover:scale-105"
+						onerror="this.style.display='none';"
+					/>
+				{{ end }}
+				<div
+					class="w-3/4 aspect-[3/1] border-2 border-gray-400 rounded-md flex items-center justify-center"
+				>
+					<div class="w-16 h-16 rounded-full bg-gray-400"></div>
+				</div>
+			</div>
+			<div class="p-4">
+				<h3 class="text-lg font-semibold text-gray-900 mb-2">{{ .Name }}</h3>
+				<div class="flex items-center justify-between">
+					<p class="text-xl font-bold text-gray-900">${{ printf "%.2f" .Price }}</p>
+					{{ if gt .Stock 0 }}
+						<span class="text-sm text-green-600">In Stock</span>
+					{{ else }}
+						<span class="text-sm text-red-500">Out of Stock</span>
+					{{ end }}
+				</div>
+			</div>
+		</a>
+	</div>
+{{ end }}
 
-{{define "base_header"}}
-<header class="bg-white border-b border-gray-200">
-    <nav class="max-w-7xl mx-auto px-6 py-4">
-        <div class="flex items-center justify-between">
-            <a href="/" class="text-2xl font-semibold text-gray-900">Meridian Living</a>
-            <div class="flex items-center gap-4">
-                <form action="/search" method="get" class="relative">
-                    <input 
-                        type="text" 
-                        name="q" 
-                        value="{{with .SearchQuery}}{{.}}{{end}}"
-                        placeholder="Search products..." 
-                        class="w-64 rounded-lg border border-gray-300 px-4 py-2 text-sm focus:border-gray-900 focus:outline-none"
-                    >
-                </form>
-                <a href="/cart" class="flex items-center gap-2 rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium hover:border-gray-900">
-                    <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none"><path d="M6 6h15l-2 9H8L6 6zm0 0H4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="10" cy="20" r="1" fill="currentColor"/><circle cx="17" cy="20" r="1" fill="currentColor"/></svg>
-                    <span>Cart</span>
-                </a>
-                <div x-data="{ user: null }" x-init="user = {{if .User}}{{.User | json}}{{else}}null{{end}}">
-                    <div x-show="user" x-cloak>
-                        <div x-data="{ open: false }" class="relative">
-                            <button @click="open = !open" class="flex items-center gap-2 rounded-lg border border-gray-300 px-3 py-2 text-sm hover:border-gray-900">
-                                <div class="w-6 h-6 rounded-full bg-gray-900 text-white flex items-center justify-center text-xs font-semibold" x-text="(user?.email || 'U')[0].toUpperCase()"></div>
-                                <span x-text="user?.email"></span>
-                            </button>
-                            <div x-show="open" @click.away="open = false" x-transition class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
-                                <a href="/orders" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Orders</a>
-                                <a href="/profile" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Profile</a>
-                                <hr class="my-1">
-                                <button @click="document.cookie='sb-access-token=; Path=/; Max-Age=0'; window.location.href='/'" class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100">Sign Out</button>
-                            </div>
-                        </div>
-                    </div>
-                    <div x-show="!user" x-cloak>
-                        <a href="/login" class="rounded-lg bg-gray-900 text-white px-4 py-2 text-sm font-medium hover:bg-gray-800">Sign In</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </nav>
-</header>
-{{end}}
+{{ define "base_header" }}
+	<header class="bg-white border-b border-gray-200">
+		<nav class="max-w-7xl mx-auto px-6 py-4">
+			<div class="flex items-center justify-between">
+				<a href="/" class="text-2xl font-semibold text-gray-900">Meridian Living</a>
+				<div class="flex items-center gap-4">
+					<form action="/search" method="get" class="relative">
+						<input
+							type="text"
+							name="q"
+							value="{{ with .SearchQuery }}{{ . }}{{ end }}"
+							placeholder="Search products..."
+							class="w-64 rounded-lg border border-gray-300 px-4 py-2 text-sm focus:border-gray-900 focus:outline-none"
+						/>
+					</form>
+					<a
+						href="/cart"
+						class="flex items-center gap-2 rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium hover:border-gray-900"
+					>
+						<svg class="h-5 w-5" viewBox="0 0 24 24" fill="none">
+							<path
+								d="M6 6h15l-2 9H8L6 6zm0 0H4"
+								stroke="currentColor"
+								stroke-width="1.5"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+							/>
+							<circle cx="10" cy="20" r="1" fill="currentColor" />
+							<circle cx="17" cy="20" r="1" fill="currentColor" />
+						</svg>
+						<span>Cart</span>
+					</a>
+					<div
+						x-data="{ user: null }"
+						x-init="user = {{ if .User }}
+							{{ .User | json }}
+						{{ else }}
+							null
+						{{ end }}"
+					>
+						<div x-show="user" x-cloak>
+							<div x-data="{ open: false }" class="relative">
+								<button
+									@click="open = !open"
+									class="flex items-center gap-2 rounded-lg border border-gray-300 px-3 py-2 text-sm hover:border-gray-900"
+								>
+									<div
+										class="w-6 h-6 rounded-full bg-gray-900 text-white flex items-center justify-center text-xs font-semibold"
+										x-text="(user?.email || 'U')[0].toUpperCase()"
+									></div>
+									<span x-text="user?.email"></span>
+								</button>
+								<div
+									x-show="open"
+									@click.away="open = false"
+									x-transition
+									class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50"
+								>
+									<a href="/orders" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+										>Orders</a
+									>
+									<a href="/profile" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+										>Profile</a
+									>
+									<hr class="my-1" />
+									<button
+										@click="document.cookie='sb-access-token=; Path=/; Max-Age=0'; window.location.href='/'"
+										class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+									>
+										Sign Out
+									</button>
+								</div>
+							</div>
+						</div>
+						<div x-show="!user" x-cloak>
+							<a
+								href="/login"
+								class="rounded-lg bg-gray-900 text-white px-4 py-2 text-sm font-medium hover:bg-gray-800"
+								>Sign In</a
+							>
+						</div>
+					</div>
+				</div>
+			</div>
+		</nav>
+	</header>
+{{ end }}
 
-{{define "base_footer"}}
-<footer class="mt-16 border-t border-gray-200 py-6">
-    <div class="max-w-7xl mx-auto px-6 text-center text-sm text-gray-600">
-        &copy; 2026 Meridian Living. All rights reserved.
-    </div>
-</footer>
-{{end}}
+{{ define "base_footer" }}
+	<footer class="mt-16 border-t border-gray-200 py-6">
+		<div class="max-w-7xl mx-auto px-6 text-center text-sm text-gray-600">
+			&copy; 2026 Meridian Living. All rights reserved.
+		</div>
+	</footer>
+{{ end }}
 
-{{define "page_root"}}
-<div id="page-root" class="flex-1" hx-history-elt>
-    {{block "content" .}}{{end}}
-</div>
-{{end}}
+{{ define "page_root" }}
+	<div id="page-root" class="flex-1" hx-history-elt>
+		{{ block "content" . }}{{ end }}
+	</div>
+{{ end }}
