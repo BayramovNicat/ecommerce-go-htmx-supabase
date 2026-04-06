@@ -3,7 +3,7 @@
 {{end}}
 
 {{define "body_class"}}
-min-h-screen bg-slate-950 text-white
+min-h-screen text-white bg-[#0d1116]
 {{end}}
 
 {{define "extra_head"}}
@@ -23,32 +23,54 @@ min-h-screen bg-slate-950 text-white
 {{define "header"}}{{end}}
 
 {{define "content"}}
-<div class="relative min-h-screen flex flex-col">
-    <div class="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-950 to-slate-900"></div>
-    <div class="relative flex-1 flex flex-col">
-        <header class="p-6">
-            <a href="/" class="inline-flex items-center gap-3 text-slate-100/80 hover:text-white transition">
-                <span class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center border border-white/20">↩</span>
-                <span class="text-lg tracking-wide">Return to Shop</span>
-            </a>
-        </header>
-        <main class="flex-1 flex items-center justify-center px-6 pb-16">
-            <section class="w-full max-w-xl bg-white/5 border border-white/10 rounded-3xl p-10 glow">
-                <div class="text-center mb-10">
-                    <p class="uppercase text-xs tracking-[0.4em] text-emerald-300/70 mb-3">Admin Access</p>
-                    <h1 class="text-4xl font-semibold text-white mb-4">Sign in with Google</h1>
-                    <p class="text-slate-300 text-base">Use your Supabase-managed Google account to access the control room.</p>
+<div class="relative min-h-screen">
+    <div class="absolute inset-0 bg-gradient-to-br from-[#0d1116] via-[#11161f] to-[#1d2a33]"></div>
+    <div class="absolute inset-0 opacity-20" style="background-image:radial-gradient(circle at 10% 10%, #ffffff22 2px, transparent 0); background-size:120px 120px"></div>
+
+    <div class="relative grid min-h-screen lg:grid-cols-2">
+        <div class="hidden lg:flex flex-col justify-between border-r border-white/10 px-16 py-14">
+            <a href="/" class="inline-flex items-center gap-3 text-white/70 hover:text-white transition font-semibold uppercase tracking-[0.4em] text-xs">↩ Return to Store</a>
+            <div>
+                <p class="text-xs uppercase tracking-[0.6em] text-white/60 mb-6">Meridian Control</p>
+                <h1 class="text-5xl font-serif leading-tight">Craft the experience before anyone else.</h1>
+                <p class="mt-6 text-lg text-white/70 max-w-xl">Preview unreleased collections, manage inventory, and launch curated drops from an environment tuned for interior professionals.</p>
+            </div>
+            <div class="flex flex-wrap gap-6 text-sm text-white/60">
+                <div>
+                    <p class="text-white font-semibold text-lg">24/7</p>
+                    <p>Concierge Support</p>
                 </div>
-                <div class="bg-grid rounded-2xl p-8 border border-white/10">
-                    <p class="text-sm text-slate-300 mb-6">We authenticate via Supabase Auth. After signing in you'll be redirected back with a secure session.</p>
-                    <button id="google-login" class="w-full inline-flex items-center justify-center gap-3 bg-white text-slate-900 py-3 rounded-xl font-semibold text-base hover:bg-emerald-50 transition focus:outline-none">
+                <div>
+                    <p class="text-white font-semibold text-lg">256-bit</p>
+                    <p>Encrypted Sessions</p>
+                </div>
+                <div>
+                    <p class="text-white font-semibold text-lg">EU</p>
+                    <p>Regional Hosting</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex flex-col justify-center px-6 py-16 lg:px-20">
+            <div class="mx-auto w-full max-w-md rounded-[32px] bg-white/10 border border-white/15 backdrop-blur-xl p-10 shadow-2xl">
+                <p class="text-xs uppercase tracking-[0.5em] text-white/60">Secure Entry</p>
+                <h2 class="mt-4 text-3xl font-serif">Sign in to Meridian Console</h2>
+                <p class="mt-3 text-sm text-white/70">Use your Supabase-verified Google workspace account to access merchandising and fulfillment tools.</p>
+
+                <div class="mt-10 space-y-4">
+                    <div class="rounded-2xl border border-white/15 bg-white/5 p-4 text-sm text-white/80">
+                        <p class="font-semibold text-white">Single Sign-On</p>
+                        <p class="mt-1">Authentication handled through Supabase Auth with automatic session storage.</p>
+                    </div>
+                    <button id="google-login" class="w-full inline-flex items-center justify-center gap-3 rounded-2xl bg-white py-3 font-semibold text-[color:var(--color-contrast)] hover:bg-[#f5ede4] transition">
                         <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" class="w-5 h-5">
                         Continue with Google
                     </button>
                 </div>
-                <p class="text-center text-xs text-slate-500 mt-8">Protected by Supabase · Redirect: {{.OAuthRedirectURL}}</p>
-            </section>
-        </main>
+
+                <p class="mt-8 text-xs text-white/60 text-center">Redirect URL: {{.OAuthRedirectURL}}</p>
+            </div>
+        </div>
     </div>
 </div>
 {{end}}
