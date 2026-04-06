@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"html/template"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
 
@@ -14,6 +15,15 @@ import (
 )
 
 const productsPerPage = 20
+
+// getEnv returns the current environment (production or development)
+func getEnv() string {
+	env := os.Getenv("ENV")
+	if env == "" {
+		return "development"
+	}
+	return env
+}
 
 // jsonHelper is a template function to convert Go data to JSON
 func jsonHelper(v interface{}) template.JS {
@@ -47,6 +57,7 @@ func HandleHome(w http.ResponseWriter, r *http.Request) {
 		"Products": products,
 		"Title":    "Shop - Premium Products",
 		"User":     user,
+		"Env":      getEnv(),
 	}
 
 	tmpl, err := template.New("base.html").Funcs(template.FuncMap{
@@ -104,14 +115,37 @@ func HandleProductDetail(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Check for user session
+	var user map[string]interface{}
+	cookie, err := r.Cookie("sb-access-token")
+	if err == nil && cookie.Value != "" {
+		userData, err := middleware.VerifySupabaseToken(cookie.Value)
+		if err == nil {
+			user = map[string]interface{}{
+				"id":            userData.ID,
+				"email":         userData.Email,
+				"user_metadata": userData.UserMetadata,
+			}
+		}
+	}
+
 	data := map[string]interface{}{
 		"Product": product,
 		"Title":   product.Name,
+		"User":    user,
+		"Env":     getEnv(),
 	}
 
-	tmpl := template.Must(template.New("base.html").ParseFS(web.FS, "templates/layouts/base.html", "templates/shop/product.html"))
+	tmpl, err := template.New("base.html").Funcs(template.FuncMap{
+		"json": jsonHelper,
+	}).ParseFS(web.FS, "templates/layouts/base.html", "templates/shop/product.html")
+	if err != nil {
+		http.Error(w, "Template parse error: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
 	if err := tmpl.ExecuteTemplate(w, "product", data); err != nil {
-		http.Error(w, "Template error", http.StatusInternalServerError)
+		http.Error(w, "Template execute error: "+err.Error(), http.StatusInternalServerError)
 	}
 }
 

@@ -24,9 +24,12 @@ func HandleLogin(w http.ResponseWriter, r *http.Request) {
 		"SupabaseURL":      supabaseURL,
 		"SupabaseAnonKey":  supabaseAnonKey,
 		"OAuthRedirectURL": oauthRedirectURL(r),
+		"Env":              getEnv(),
 	}
 
-	tmpl, err := template.ParseFS(web.FS, "templates/layouts/base.html", "templates/shop/login.html")
+	tmpl, err := template.New("base.html").Funcs(template.FuncMap{
+		"json": jsonHelper,
+	}).ParseFS(web.FS, "templates/layouts/base.html", "templates/shop/login.html")
 	if err != nil {
 		http.Error(w, "Template parse error: "+err.Error(), http.StatusInternalServerError)
 		return
@@ -54,7 +57,7 @@ func HandleGoogleAuth(w http.ResponseWriter, r *http.Request) {
 		"FailureRedirect": "/login",
 	}
 
-	tmpl, err := template.ParseFS(web.FS, "templates/layouts/base.html", "templates/shop/oauth-callback.html")
+	tmpl, err := template.New("oauth_callback").ParseFS(web.FS, "templates/shop/oauth-callback.html")
 	if err != nil {
 		http.Error(w, "Template parse error: "+err.Error(), http.StatusInternalServerError)
 		return
@@ -78,7 +81,10 @@ func oauthRedirectURL(r *http.Request) string {
 		host = r.Host
 	}
 
-	host = stripPort(host)
+	// Don't strip port in development (localhost)
+	if !strings.Contains(host, "localhost") && !strings.Contains(host, "127.0.0.1") {
+		host = stripPort(host)
+	}
 
 	return fmt.Sprintf("%s://%s/auth/google", scheme, host)
 }

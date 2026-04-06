@@ -2,80 +2,36 @@
 {{template "base" .}}
 {{end}}
 
-{{define "body_class"}}
-min-h-screen text-white bg-[#0d1116]
-{{end}}
-
-{{define "extra_head"}}
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
-<style>
-    body { font-family: 'Space Grotesk', sans-serif; }
-    .glow { box-shadow: 0 20px 60px rgba(15,23,42,0.25); }
-    .bg-grid {
-        background-image: radial-gradient(circle at 1px 1px, rgba(255,255,255,0.12) 1px, transparent 0);
-        background-size: 40px 40px;
-    }
-</style>
-{{end}}
-
-{{define "header"}}{{end}}
-
 {{define "content"}}
-<div class="relative min-h-screen">
-    <div class="absolute inset-0 bg-gradient-to-br from-[#0d1116] via-[#11161f] to-[#1d2a33]"></div>
-    <div class="absolute inset-0 opacity-20" style="background-image:radial-gradient(circle at 10% 10%, #ffffff22 2px, transparent 0); background-size:120px 120px"></div>
-
-    <div class="relative grid min-h-screen lg:grid-cols-2">
-        <div class="hidden lg:flex flex-col justify-between border-r border-white/10 px-16 py-14">
-            <a href="/" class="inline-flex items-center gap-3 text-white/70 hover:text-white transition font-semibold uppercase tracking-[0.4em] text-xs">↩ Return to Store</a>
-            <div>
-                <p class="text-xs uppercase tracking-[0.6em] text-white/60 mb-6">Meridian Control</p>
-                <h1 class="text-5xl font-serif leading-tight">Craft the experience before anyone else.</h1>
-                <p class="mt-6 text-lg text-white/70 max-w-xl">Preview unreleased collections, manage inventory, and launch curated drops from an environment tuned for interior professionals.</p>
-            </div>
-            <div class="flex flex-wrap gap-6 text-sm text-white/60">
-                <div>
-                    <p class="text-white font-semibold text-lg">24/7</p>
-                    <p>Concierge Support</p>
-                </div>
-                <div>
-                    <p class="text-white font-semibold text-lg">256-bit</p>
-                    <p>Encrypted Sessions</p>
-                </div>
-                <div>
-                    <p class="text-white font-semibold text-lg">EU</p>
-                    <p>Regional Hosting</p>
-                </div>
-            </div>
+<div class="flex items-center justify-center min-h-full px-6 py-12">
+    <div class="w-full max-w-md">
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-gray-900 mb-2">Sign In</h1>
+            <p class="text-gray-600">Sign in to your account</p>
         </div>
 
-        <div class="flex flex-col justify-center px-6 py-16 lg:px-20">
-            <div class="mx-auto w-full max-w-md rounded-[32px] bg-white/10 border border-white/15 backdrop-blur-xl p-10 shadow-2xl">
-                <p class="text-xs uppercase tracking-[0.5em] text-white/60">Secure Entry</p>
-                <h2 class="mt-4 text-3xl font-serif">Sign in to Meridian Console</h2>
-                <p class="mt-3 text-sm text-white/70">Use your Supabase-verified Google workspace account to access merchandising and fulfillment tools.</p>
+        <div class="bg-white rounded-lg border border-gray-200 p-8 shadow-sm">
+            <button id="google-login" class="w-full flex items-center justify-center gap-3 rounded-lg border border-gray-300 bg-white py-3 px-4 font-medium text-gray-900 hover:bg-gray-50 transition">
+                <svg class="w-5 h-5" viewBox="0 0 24 24">
+                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                </svg>
+                Continue with Google
+            </button>
 
-                <div class="mt-10 space-y-4">
-                    <div class="rounded-2xl border border-white/15 bg-white/5 p-4 text-sm text-white/80">
-                        <p class="font-semibold text-white">Single Sign-On</p>
-                        <p class="mt-1">Authentication handled through Supabase Auth with automatic session storage.</p>
-                    </div>
-                    <button id="google-login" class="w-full inline-flex items-center justify-center gap-3 rounded-2xl bg-white py-3 font-semibold text-[color:var(--color-contrast)] hover:bg-[#f5ede4] transition">
-                        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" class="w-5 h-5">
-                        Continue with Google
-                    </button>
-                </div>
+            <p class="mt-6 text-xs text-center text-gray-500">
+                By signing in, you agree to our terms of service
+            </p>
+        </div>
 
-                <p class="mt-8 text-xs text-white/60 text-center">Redirect URL: {{.OAuthRedirectURL}}</p>
-            </div>
+        <div class="mt-6 text-center">
+            <a href="/" class="text-sm text-gray-600 hover:text-gray-900">← Back to Store</a>
         </div>
     </div>
 </div>
 {{end}}
-
-{{define "footer"}}{{end}}
 
 {{define "scripts"}}
 <script type="module">
