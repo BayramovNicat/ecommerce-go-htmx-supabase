@@ -23,6 +23,7 @@ func HandleLogin(w http.ResponseWriter, r *http.Request) {
 		"SupabaseURL":      supabaseURL,
 		"SupabaseAnonKey":  supabaseAnonKey,
 		"OAuthRedirectURL": oauthRedirectURL(r),
+		"User":             getUserFromRequest(r),
 		"Env":              getEnv(),
 		"CriticalCSS":      web.GetCriticalCSS(),
 	}
@@ -33,7 +34,12 @@ func HandleLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := tmpl.ExecuteTemplate(w, "login", data); err != nil {
+	target := "login"
+	if r.Header.Get("HX-Request") == "true" {
+		target = "page_root"
+	}
+
+	if err := tmpl.ExecuteTemplate(w, target, data); err != nil {
 		http.Error(w, "Template execute error: "+err.Error(), http.StatusInternalServerError)
 	}
 }

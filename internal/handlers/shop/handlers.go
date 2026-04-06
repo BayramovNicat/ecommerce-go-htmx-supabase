@@ -185,6 +185,8 @@ func HandleSearch(w http.ResponseWriter, r *http.Request) {
 		"Products":    products,
 		"SearchQuery": query,
 		"Title":       fmt.Sprintf("Search: %s", query),
+		"User":        getUserFromRequest(r),
+		"Env":         getEnv(),
 		"CriticalCSS": web.GetCriticalCSS(),
 	}
 

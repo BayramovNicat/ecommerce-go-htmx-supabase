@@ -124,11 +124,31 @@
 					</a>
 					<div
 						x-data="{ user: null }"
-						x-init="user = {{ if .User }}
+						x-init="
+							// Check if user data from server
+							user = {{ if .User }}
 							{{ .User | json }}
 						{{ else }}
 							null
-						{{ end }}"
+						{{ end }}
+						;
+							
+							// If no user from server, check cookie (for post-login scenarios)
+							if (!user) {
+								const token = document.cookie.split('; ').find(row => row.startsWith('sb-access-token='));
+								if (token) {
+									// Parse JWT to get user info
+									try {
+										const payload = JSON.parse(atob(token.split('=')[1].split('.')[1]));
+										if (payload.email) {
+											user = { email: payload.email, id: payload.sub };
+										}
+									} catch (e) {
+										console.error('Failed to parse token:', e);
+									}
+								}
+							}
+						"
 					>
 						<div x-show="user" x-cloak>
 							<div x-data="{ open: false }" class="relative">
