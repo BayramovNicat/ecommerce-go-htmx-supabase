@@ -169,13 +169,22 @@ func serveDistFile(w http.ResponseWriter, r *http.Request) bool {
 		return false
 	}
 
-	filePath := filepath.Join("web", "dist", strings.TrimPrefix(path, "/"))
+	relativePath := strings.TrimPrefix(path, "/")
+	if strings.HasPrefix(relativePath, "dist/") {
+		relativePath = strings.TrimPrefix(relativePath, "dist/")
+	}
+
+	filePath := filepath.Join("web", "dist", relativePath)
 	info, err := os.Stat(filePath)
 	if err != nil || info.IsDir() {
 		return false
 	}
 
-	w.Header().Set("Cache-Control", "public, max-age=31536000")
+	if strings.HasPrefix(path, "/dist/") {
+		w.Header().Set("Cache-Control", "public, max-age=31536000, immutable")
+	} else {
+		w.Header().Set("Cache-Control", "public, max-age=3600")
+	}
 	http.ServeFile(w, r, filePath)
 	return true
 }

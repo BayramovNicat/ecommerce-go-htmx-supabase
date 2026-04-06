@@ -84,8 +84,9 @@ func adminMiddleware(next http.HandlerFunc) http.HandlerFunc {
 
 // shopHandler handles all public-facing shop routes
 func shopHandler(w http.ResponseWriter, r *http.Request) {
-	// Set cache headers for public routes
-	w.Header().Set("Cache-Control", "public, s-maxage=1, stale-while-revalidate=59")
+	if r.Method == http.MethodGet || r.Method == http.MethodHead {
+		setPublicRouteCacheHeaders(w, r)
+	}
 
 	path := r.URL.Path
 	method := r.Method
@@ -122,6 +123,36 @@ func shopHandler(w http.ResponseWriter, r *http.Request) {
 	default:
 		http.NotFound(w, r)
 	}
+}
+
+func setPublicRouteCacheHeaders(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Vary", "HX-Request")
+
+	if isAuthenticatedRequest(r) {
+		w.Header().Set("Cache-Control", "private, no-store")
+		return
+	}
+
+	path := r.URL.Path
+	switch {
+	case path == "/" || path == "/shop":
+		w.Header().Set("Cache-Control", "public, s-maxage=60, stale-while-revalidate=300")
+	case strings.HasPrefix(path, "/products/"):
+		w.Header().Set("Cache-Control", "public, s-maxage=120, stale-while-revalidate=300")
+	case path == "/search" || path == "/api/products":
+		w.Header().Set("Cache-Control", "public, s-maxage=30, stale-while-revalidate=120")
+	default:
+		w.Header().Set("Cache-Control", "public, s-maxage=15, stale-while-revalidate=60")
+	}
+}
+
+func isAuthenticatedRequest(r *http.Request) bool {
+	if strings.TrimSpace(r.Header.Get("Authorization")) != "" {
+		return true
+	}
+
+	_, err := r.Cookie("sb-access-token")
+	return err == nil
 }
 
 // adminHandler handles all admin dashboard routes

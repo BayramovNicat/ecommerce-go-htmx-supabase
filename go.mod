@@ -11,7 +11,10 @@ require (
 	github.com/gorilla/websocket v1.5.3
 )
 
-require golang.org/x/sys v0.15.0 // indirect
+require (
+	github.com/golang-jwt/jwt/v5 v5.3.1 // indirect
+	golang.org/x/sys v0.15.0 // indirect
+)
 
 require (
 	github.com/jackc/pgpassfile v1.0.0 // indirect

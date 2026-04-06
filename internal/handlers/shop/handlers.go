@@ -1,13 +1,15 @@
 package shop
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
-	"html/template"
 	"net/http"
 	"os"
 	"strconv"
 	"strings"
+	"sync"
+	"time"
 
 	"htmxshop/internal/database"
 	"htmxshop/internal/middleware"
@@ -15,6 +17,14 @@ import (
 )
 
 const productsPerPage = 20
+
+const homeProductsCacheTTL = 30 * time.Second
+
+var homeProductsCache struct {
+	mu        sync.RWMutex
+	products  []database.Product
+	expiresAt time.Time
+}
 
 // getEnv returns the current environment (production or development)
 func getEnv() string {
@@ -25,44 +35,22 @@ func getEnv() string {
 	return env
 }
 
-// jsonHelper is a template function to convert Go data to JSON
-func jsonHelper(v interface{}) template.JS {
-	b, _ := json.Marshal(v)
-	return template.JS(b)
-}
-
 // HandleHome renders the shop homepage with initial products
 func HandleHome(w http.ResponseWriter, r *http.Request) {
-	products, err := database.GetProductsKeyset(r.Context(), 0, productsPerPage)
+	products, err := getHomeProducts(r.Context())
 	if err != nil {
 		http.Error(w, "Failed to load products: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	// Check for user session
-	var user map[string]interface{}
-	cookie, err := r.Cookie("sb-access-token")
-	if err == nil && cookie.Value != "" {
-		userData, err := middleware.VerifySupabaseToken(cookie.Value)
-		if err == nil {
-			user = map[string]interface{}{
-				"id":            userData.ID,
-				"email":         userData.Email,
-				"user_metadata": userData.UserMetadata,
-			}
-		}
-	}
-
 	data := map[string]interface{}{
 		"Products": products,
 		"Title":    "Shop - Premium Products",
-		"User":     user,
+		"User":     getUserFromRequest(r),
 		"Env":      getEnv(),
 	}
 
-	tmpl, err := template.New("base.html").Funcs(template.FuncMap{
-		"json": jsonHelper,
-	}).ParseFS(web.FS, "templates/layouts/base.html", "templates/shop/home.html")
+	tmpl, err := web.GetTemplate("shop:home", "templates/layouts/base.html", "templates/shop/home.html")
 	if err != nil {
 		http.Error(w, "Template parse error: "+err.Error(), http.StatusInternalServerError)
 		return
@@ -120,30 +108,14 @@ func HandleProductDetail(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Check for user session
-	var user map[string]interface{}
-	cookie, err := r.Cookie("sb-access-token")
-	if err == nil && cookie.Value != "" {
-		userData, err := middleware.VerifySupabaseToken(cookie.Value)
-		if err == nil {
-			user = map[string]interface{}{
-				"id":            userData.ID,
-				"email":         userData.Email,
-				"user_metadata": userData.UserMetadata,
-			}
-		}
-	}
-
 	data := map[string]interface{}{
 		"Product": product,
 		"Title":   product.Name,
-		"User":    user,
+		"User":    getUserFromRequest(r),
 		"Env":     getEnv(),
 	}
 
-	tmpl, err := template.New("base.html").Funcs(template.FuncMap{
-		"json": jsonHelper,
-	}).ParseFS(web.FS, "templates/layouts/base.html", "templates/shop/product.html")
+	tmpl, err := web.GetTemplate("shop:product", "templates/layouts/base.html", "templates/shop/product.html")
 	if err != nil {
 		http.Error(w, "Template parse error: "+err.Error(), http.StatusInternalServerError)
 		return
@@ -193,7 +165,11 @@ func HandleSearch(w http.ResponseWriter, r *http.Request) {
 		"Title":       fmt.Sprintf("Search: %s", query),
 	}
 
-	tmpl := template.Must(template.New("base.html").ParseFS(web.FS, "templates/layouts/base.html", "templates/shop/search.html"))
+	tmpl, err := web.GetTemplate("shop:search", "templates/layouts/base.html", "templates/shop/search.html")
+	if err != nil {
+		http.Error(w, "Template parse error", http.StatusInternalServerError)
+		return
+	}
 
 	target := "search"
 	if r.Header.Get("HX-Request") == "true" {
@@ -215,6 +191,9 @@ func renderProductCards(w http.ResponseWriter, products []database.Product) {
 	// Get the last product ID for the next cursor
 	lastID := products[len(products)-1].ID
 
+	var html strings.Builder
+	html.Grow(len(products) * 256)
+
 	// Render each product card
 	for i, product := range products {
 		// Apply hx-trigger="revealed" to the 3rd-to-last item for pre-fetch buffer
@@ -223,7 +202,7 @@ func renderProductCards(w http.ResponseWriter, products []database.Product) {
 			triggerAttr = fmt.Sprintf(` hx-get="/api/products?cursor=%d" hx-trigger="revealed" hx-swap="afterend"`, lastID)
 		}
 
-		card := fmt.Sprintf(`
+		fmt.Fprintf(&html, `
 <div class="product-card" style="content-visibility: auto;"%s>
 	<a href="/products/%s">
 		<img src="%s" alt="%s" loading="lazy" class="product-image">
@@ -238,9 +217,9 @@ func renderProductCards(w http.ResponseWriter, products []database.Product) {
 			product.Name,
 			product.Price,
 		)
-
-		w.Write([]byte(card))
 	}
+
+	_, _ = w.Write([]byte(html.String()))
 }
 
 // HandleCart renders the cart page (static placeholder)
@@ -251,9 +230,7 @@ func HandleCart(w http.ResponseWriter, r *http.Request) {
 		"Env":   getEnv(),
 	}
 
-	tmpl, err := template.New("base.html").Funcs(template.FuncMap{
-		"json": jsonHelper,
-	}).ParseFS(web.FS, "templates/layouts/base.html", "templates/shop/cart.html")
+	tmpl, err := web.GetTemplate("shop:cart", "templates/layouts/base.html", "templates/shop/cart.html")
 	if err != nil {
 		http.Error(w, "Template parse error: "+err.Error(), http.StatusInternalServerError)
 		return
@@ -286,4 +263,28 @@ func getUserFromRequest(r *http.Request) map[string]interface{} {
 		"email":         userData.Email,
 		"user_metadata": userData.UserMetadata,
 	}
+}
+
+func getHomeProducts(ctx context.Context) ([]database.Product, error) {
+	now := time.Now()
+
+	homeProductsCache.mu.RLock()
+	if now.Before(homeProductsCache.expiresAt) && len(homeProductsCache.products) > 0 {
+		cached := append([]database.Product(nil), homeProductsCache.products...)
+		homeProductsCache.mu.RUnlock()
+		return cached, nil
+	}
+	homeProductsCache.mu.RUnlock()
+
+	products, err := database.GetProductsKeyset(ctx, 0, productsPerPage)
+	if err != nil {
+		return nil, err
+	}
+
+	homeProductsCache.mu.Lock()
+	homeProductsCache.products = append(homeProductsCache.products[:0], products...)
+	homeProductsCache.expiresAt = now.Add(homeProductsCacheTTL)
+	homeProductsCache.mu.Unlock()
+
+	return products, nil
 }

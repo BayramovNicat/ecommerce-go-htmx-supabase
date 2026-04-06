@@ -2,7 +2,6 @@ package admin
 
 import (
 	"encoding/json"
-	"html/template"
 	"net/http"
 	"strconv"
 	"strings"
@@ -17,7 +16,12 @@ func HandleDashboard(w http.ResponseWriter, r *http.Request) {
 		"Title": "Admin Dashboard",
 	}
 
-	tmpl := template.Must(template.ParseFS(web.FS, "templates/admin/dashboard.html"))
+	tmpl, err := web.GetTemplate("admin:dashboard", "templates/admin/dashboard.html")
+	if err != nil {
+		http.Error(w, "Template parse error", http.StatusInternalServerError)
+		return
+	}
+
 	if err := tmpl.Execute(w, data); err != nil {
 		http.Error(w, "Template error", http.StatusInternalServerError)
 	}
@@ -48,7 +52,12 @@ func HandleProductsList(w http.ResponseWriter, r *http.Request) {
 		"Title":    "Manage Products",
 	}
 
-	tmpl := template.Must(template.ParseFS(web.FS, "templates/admin/products.html"))
+	tmpl, err := web.GetTemplate("admin:products", "templates/admin/products.html")
+	if err != nil {
+		http.Error(w, "Template parse error", http.StatusInternalServerError)
+		return
+	}
+
 	if err := tmpl.Execute(w, data); err != nil {
 		http.Error(w, "Template error", http.StatusInternalServerError)
 	}
@@ -170,7 +179,12 @@ func HandleOrdersList(w http.ResponseWriter, r *http.Request) {
 		"Title": "Manage Orders",
 	}
 
-	tmpl := template.Must(template.ParseFS(web.FS, "templates/admin/orders.html"))
+	tmpl, err := web.GetTemplate("admin:orders", "templates/admin/orders.html")
+	if err != nil {
+		http.Error(w, "Template parse error", http.StatusInternalServerError)
+		return
+	}
+
 	if err := tmpl.Execute(w, data); err != nil {
 		http.Error(w, "Template error", http.StatusInternalServerError)
 	}

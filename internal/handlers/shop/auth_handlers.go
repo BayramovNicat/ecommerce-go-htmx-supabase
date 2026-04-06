@@ -2,7 +2,6 @@ package shop
 
 import (
 	"fmt"
-	"html/template"
 	"net/http"
 	"os"
 	"strings"
@@ -27,9 +26,7 @@ func HandleLogin(w http.ResponseWriter, r *http.Request) {
 		"Env":              getEnv(),
 	}
 
-	tmpl, err := template.New("base.html").Funcs(template.FuncMap{
-		"json": jsonHelper,
-	}).ParseFS(web.FS, "templates/layouts/base.html", "templates/shop/login.html")
+	tmpl, err := web.GetTemplate("shop:login", "templates/layouts/base.html", "templates/shop/login.html")
 	if err != nil {
 		http.Error(w, "Template parse error: "+err.Error(), http.StatusInternalServerError)
 		return
@@ -57,7 +54,7 @@ func HandleGoogleAuth(w http.ResponseWriter, r *http.Request) {
 		"FailureRedirect": "/login",
 	}
 
-	tmpl, err := template.New("oauth_callback").ParseFS(web.FS, "templates/shop/oauth-callback.html")
+	tmpl, err := web.GetTemplate("shop:oauth-callback", "templates/shop/oauth-callback.html")
 	if err != nil {
 		http.Error(w, "Template parse error: "+err.Error(), http.StatusInternalServerError)
 		return
