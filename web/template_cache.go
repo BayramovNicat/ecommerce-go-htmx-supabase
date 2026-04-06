@@ -18,6 +18,9 @@ var (
 			b, _ := json.Marshal(v)
 			return template.JS(b)
 		},
+		"add": func(a, b int) int {
+			return a + b
+		},
 	}
 )
 

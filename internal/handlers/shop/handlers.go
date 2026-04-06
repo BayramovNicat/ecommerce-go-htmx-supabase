@@ -219,7 +219,7 @@ func renderProductCards(w http.ResponseWriter, products []database.Product) {
 	lastID := products[len(products)-1].ID
 
 	var html strings.Builder
-	html.Grow(len(products) * 256)
+	html.Grow(len(products) * 512)
 
 	// Render each product card
 	for i, product := range products {
@@ -229,20 +229,39 @@ func renderProductCards(w http.ResponseWriter, products []database.Product) {
 			triggerAttr = fmt.Sprintf(` hx-get="/api/products?cursor=%d" hx-trigger="revealed" hx-swap="afterend"`, lastID)
 		}
 
+		stockStatus := `<span class="text-sm text-green-600">In Stock</span>`
+		if product.Stock <= 0 {
+			stockStatus = `<span class="text-sm text-red-500">Out of Stock</span>`
+		}
+
+		imageHTML := ""
+		if product.ImageThumbURL != "" {
+			imageHTML = fmt.Sprintf(`<img src="%s" alt="%s" loading="lazy" class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition duration-300" onerror="this.style.display = 'none'" />`,
+				product.ImageThumbURL, product.Name)
+		}
+
 		fmt.Fprintf(&html, `
-<div class="product-card" style="content-visibility: auto;"%s>
-	<a href="/products/%s">
-		<img src="%s" alt="%s" loading="lazy" class="product-image">
-		<h3 class="product-name">%s</h3>
-		<p class="product-price">$%.2f</p>
+<div class="group"%s>
+	<a href="/products/%s" class="block">
+		<div class="aspect-square overflow-hidden rounded-lg bg-gray-200 mb-4 relative flex items-center justify-center">
+			%s
+			<div class="w-3/4 aspect-[3/1] border-2 border-gray-400 rounded-md flex items-center justify-center">
+				<div class="w-16 h-16 rounded-full bg-gray-400"></div>
+			</div>
+		</div>
+		<h3 class="text-lg font-medium text-gray-900 mb-2">%s</h3>
+		<div class="flex items-center justify-between">
+			<p class="text-xl font-semibold text-gray-900">$%.2f</p>
+			%s
+		</div>
 	</a>
 </div>`,
 			triggerAttr,
 			product.Slug,
-			product.ImageThumbURL,
-			product.Name,
+			imageHTML,
 			product.Name,
 			product.Price,
+			stockStatus,
 		)
 	}
 
