@@ -49,7 +49,7 @@ func serveDistFile(w http.ResponseWriter, r *http.Request) bool {
 		return false
 	}
 
-	filePath := filepath.Join("dist", strings.TrimPrefix(path, "/"))
+	filePath := filepath.Join("web", "dist", strings.TrimPrefix(path, "/"))
 	info, err := os.Stat(filePath)
 	if err != nil || info.IsDir() {
 		return false

@@ -3,8 +3,8 @@
   "buildCommand": "npm run build",
   "rewrites": [
     {
-      "source": "/public/(.*)",
-      "destination": "/public/$1"
+      "source": "/dist/(.*)",
+      "destination": "/web/dist/$1"
     },
     {
       "source": "/(.*)",
@@ -13,16 +13,7 @@
   ],
   "headers": [
     {
-      "source": "/public/(.*)",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=31536000, immutable"
-        }
-      ]
-    },
-    {
-      "source": "/static/(.*)",
+      "source": "/dist/(.*)",
       "headers": [
         {
           "key": "Cache-Control",

@@ -4,13 +4,13 @@
   "description": "HTMX Shop with Tailwind CSS",
   "scripts": {
     "start": "go run ./cmd/server",
-    "dev": "nodemon --watch api --watch internal --watch ui --watch cmd --signal SIGTERM --exec go run ./cmd/server",
+    "dev": "nodemon --watch api --watch internal --watch web --watch cmd --signal SIGTERM --exec go run ./cmd/server",
     "build": "npm run build:css && npm run build:js",
-    "build:css": "tailwindcss -i ./ui/styles.css -o ./dist/styles.css -m",
-    "build:js": "esbuild ui/bundle.js --bundle --minify --outfile=dist/bundle.js",
+    "build:css": "tailwindcss -i ./web/static/css/styles.css -o ./web/dist/styles.css -m",
+    "build:js": "esbuild web/static/js/bundle.js --bundle --minify --outfile=web/dist/bundle.js",
     "watch:assets": "concurrently -k \"npm:watch:css\" \"npm:watch:js\"",
-    "watch:css": "tailwindcss -i ./ui/styles.css -o ./dist/styles.css -w",
-    "watch:js": "esbuild ui/bundle.js --bundle --outfile=dist/bundle.js --watch"
+    "watch:css": "tailwindcss -i ./web/static/css/styles.css -o ./web/dist/styles.css -w",
+    "watch:js": "esbuild web/static/js/bundle.js --bundle --outfile=web/dist/bundle.js --watch"
   },
   "devDependencies": {
     "@tailwindcss/cli": "^4.2.2",

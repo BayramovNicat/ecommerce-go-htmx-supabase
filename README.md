@@ -45,22 +45,52 @@ vercel
 ```
 htmxshop/
 ├── api/
-│   └── index.go              # Main Vercel entry point
-├── cmd/server/               # Local dev server
-├── dist/                     # Built frontend assets (gitignored)
+│   └── index.go              # Vercel serverless entry point
+├── cmd/
+│   └── server/               # Local development server
+│       └── main.go
 ├── internal/
-│   ├── db/                   # Database connection & queries
-│   ├── shop/                 # Shop logic
-│   └── admin/                # Admin logic
-├── ui/
-│   ├── bundle.js             # Frontend JS entrypoint
-│   ├── styles.css            # Tailwind input
-│   ├── shop/                 # Shop templates
-│   └── admin/                # Admin templates
-├── bun.lock                  # Bun lockfile
-├── supabase_schema.sql       # Database schema
-├── vercel.json               # Vercel configuration
-└── go.mod                    # Go dependencies
+│   ├── database/             # Database layer
+│   │   └── db.go            # Connection pool, models & queries
+│   ├── middleware/           # HTTP middleware
+│   │   └── auth.go          # Authentication & authorization
+│   ├── handlers/             # HTTP handlers by domain
+│   │   ├── shop/            # Public shop handlers
+│   │   │   ├── handlers.go
+│   │   │   └── auth_handlers.go
+│   │   └── admin/           # Admin dashboard handlers
+│   │       └── handlers.go
+│   └── services/             # Business logic layer (future)
+├── web/
+│   ├── static/               # Source assets
+│   │   ├── css/
+│   │   │   └── styles.css   # Tailwind input
+│   │   └── js/
+│   │       └── bundle.js    # Frontend JS entrypoint
+│   ├── templates/            # HTML templates
+│   │   ├── layouts/
+│   │   │   └── base.html    # Base layout
+│   │   ├── shop/            # Shop templates
+│   │   │   ├── home.html
+│   │   │   ├── product.html
+│   │   │   ├── search.html
+│   │   │   ├── login.html
+│   │   │   └── oauth-callback.html
+│   │   └── admin/           # Admin templates
+│   │       ├── dashboard.html
+│   │       ├── products.html
+│   │       └── orders.html
+│   ├── dist/                 # Built assets (gitignored)
+│   │   ├── bundle.js
+│   │   └── styles.css
+│   └── templates.go          # Go embed directive
+├── migrations/               # Database migrations
+│   └── 001_initial_schema.sql
+├── scripts/                  # Build & deployment scripts
+├── .env.example              # Environment variables template
+├── go.mod                    # Go dependencies
+├── package.json              # Node.js dependencies
+└── vercel.json               # Vercel configuration
 ```
 
 ## Performance Features

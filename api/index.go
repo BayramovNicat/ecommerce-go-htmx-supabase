@@ -6,16 +6,16 @@ import (
 	"net/http"
 	"strings"
 
-	"htmxshop/internal/admin"
-	"htmxshop/internal/auth"
-	"htmxshop/internal/db"
-	"htmxshop/internal/shop"
+	"htmxshop/internal/database"
+	"htmxshop/internal/handlers/admin"
+	"htmxshop/internal/handlers/shop"
+	"htmxshop/internal/middleware"
 )
 
 // Handler is the main entry point for Vercel
 func Handler(w http.ResponseWriter, r *http.Request) {
 	// Lazy initialize database connection
-	if err := db.Init(); err != nil {
+	if err := database.Init(); err != nil {
 		log.Printf("Database initialization error: %v", err)
 		http.Error(w, "Database connection failed: "+err.Error(), http.StatusInternalServerError)
 		return
@@ -49,7 +49,7 @@ func adminMiddleware(next http.HandlerFunc) http.HandlerFunc {
 			cookieValue = cookie.Value
 		}
 
-		token := auth.ExtractToken(authHeader, cookieValue)
+		token := middleware.ExtractToken(authHeader, cookieValue)
 		if token == "" {
 			log.Println("admin auth: missing token")
 			http.Error(w, "Unauthorized", http.StatusUnauthorized)
@@ -57,7 +57,7 @@ func adminMiddleware(next http.HandlerFunc) http.HandlerFunc {
 		}
 
 		// Verify JWT token
-		user, err := auth.VerifySupabaseToken(token)
+		user, err := middleware.VerifySupabaseToken(token)
 		if err != nil {
 			log.Printf("admin auth: token verification failed: %v", err)
 			http.Error(w, "Unauthorized: Invalid token", http.StatusUnauthorized)
@@ -65,7 +65,7 @@ func adminMiddleware(next http.HandlerFunc) http.HandlerFunc {
 		}
 
 		// Check admin privileges
-		isAdmin, err := auth.VerifyAdminAccess(r.Context(), user.ID)
+		isAdmin, err := middleware.VerifyAdminAccess(r.Context(), user.ID)
 		if err != nil || !isAdmin {
 			if err != nil {
 				log.Printf("admin auth: verify admin failed: %v", err)

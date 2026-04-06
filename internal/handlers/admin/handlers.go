@@ -7,8 +7,8 @@ import (
 	"strconv"
 	"strings"
 
-	"htmxshop/internal/db"
-	ui "htmxshop/ui"
+	"htmxshop/internal/database"
+	"htmxshop/web"
 )
 
 // HandleDashboard renders the admin dashboard
@@ -17,7 +17,7 @@ func HandleDashboard(w http.ResponseWriter, r *http.Request) {
 		"Title": "Admin Dashboard",
 	}
 
-	tmpl := template.Must(template.ParseFS(ui.FS, "admin/dashboard.html"))
+	tmpl := template.Must(template.ParseFS(web.FS, "templates/admin/dashboard.html"))
 	if err := tmpl.Execute(w, data); err != nil {
 		http.Error(w, "Template error", http.StatusInternalServerError)
 	}
@@ -37,7 +37,7 @@ func HandleProductsList(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	products, err := db.GetProductsKeyset(r.Context(), cursor, 50)
+	products, err := database.GetProductsKeyset(r.Context(), cursor, 50)
 	if err != nil {
 		http.Error(w, "Failed to load products", http.StatusInternalServerError)
 		return
@@ -48,7 +48,7 @@ func HandleProductsList(w http.ResponseWriter, r *http.Request) {
 		"Title":    "Manage Products",
 	}
 
-	tmpl := template.Must(template.ParseFS(ui.FS, "admin/products.html"))
+	tmpl := template.Must(template.ParseFS(web.FS, "templates/admin/products.html"))
 	if err := tmpl.Execute(w, data); err != nil {
 		http.Error(w, "Template error", http.StatusInternalServerError)
 	}
@@ -73,7 +73,7 @@ func HandleProductCreate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	product := &db.Product{
+	product := &database.Product{
 		Name:          r.FormValue("name"),
 		Slug:          r.FormValue("slug"),
 		Description:   r.FormValue("description"),
@@ -84,7 +84,7 @@ func HandleProductCreate(w http.ResponseWriter, r *http.Request) {
 		IsActive:      r.FormValue("is_active") == "true",
 	}
 
-	if err := db.CreateProduct(r.Context(), product); err != nil {
+	if err := database.CreateProduct(r.Context(), product); err != nil {
 		http.Error(w, "Failed to create product", http.StatusInternalServerError)
 		return
 	}
@@ -125,7 +125,7 @@ func HandleProductUpdate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	product := &db.Product{
+	product := &database.Product{
 		ID:            id,
 		Name:          r.FormValue("name"),
 		Slug:          r.FormValue("slug"),
@@ -137,7 +137,7 @@ func HandleProductUpdate(w http.ResponseWriter, r *http.Request) {
 		IsActive:      r.FormValue("is_active") == "true",
 	}
 
-	if err := db.UpdateProduct(r.Context(), product); err != nil {
+	if err := database.UpdateProduct(r.Context(), product); err != nil {
 		http.Error(w, "Failed to update product", http.StatusInternalServerError)
 		return
 	}
@@ -155,7 +155,7 @@ func HandleProductDelete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := db.DeleteProduct(r.Context(), id); err != nil {
+	if err := database.DeleteProduct(r.Context(), id); err != nil {
 		http.Error(w, "Failed to delete product", http.StatusInternalServerError)
 		return
 	}
@@ -170,7 +170,7 @@ func HandleOrdersList(w http.ResponseWriter, r *http.Request) {
 		"Title": "Manage Orders",
 	}
 
-	tmpl := template.Must(template.ParseFS(ui.FS, "admin/orders.html"))
+	tmpl := template.Must(template.ParseFS(web.FS, "templates/admin/orders.html"))
 	if err := tmpl.Execute(w, data); err != nil {
 		http.Error(w, "Template error", http.StatusInternalServerError)
 	}

@@ -1,13 +1,22 @@
+# Environment variables
 .env
 .env.*
-.vercel
-*.log
-node_modules/
-dist/
-build/
-.DS_Store
-supabase
-
-.vercel
-
 .env*.local
+
+# Build outputs
+web/dist/
+node_modules/
+bin/
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Vercel
+.vercel/
+
+# Supabase
+supabase/

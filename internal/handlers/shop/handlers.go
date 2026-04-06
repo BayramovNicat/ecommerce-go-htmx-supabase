@@ -8,9 +8,9 @@ import (
 	"strconv"
 	"strings"
 
-	"htmxshop/internal/auth"
-	"htmxshop/internal/db"
-	ui "htmxshop/ui"
+	"htmxshop/internal/database"
+	"htmxshop/internal/middleware"
+	"htmxshop/web"
 )
 
 const productsPerPage = 20
@@ -23,7 +23,7 @@ func jsonHelper(v interface{}) template.JS {
 
 // HandleHome renders the shop homepage with initial products
 func HandleHome(w http.ResponseWriter, r *http.Request) {
-	products, err := db.GetProductsKeyset(r.Context(), 0, productsPerPage)
+	products, err := database.GetProductsKeyset(r.Context(), 0, productsPerPage)
 	if err != nil {
 		http.Error(w, "Failed to load products: "+err.Error(), http.StatusInternalServerError)
 		return
@@ -33,7 +33,7 @@ func HandleHome(w http.ResponseWriter, r *http.Request) {
 	var user map[string]interface{}
 	cookie, err := r.Cookie("sb-access-token")
 	if err == nil && cookie.Value != "" {
-		userData, err := auth.VerifySupabaseToken(cookie.Value)
+		userData, err := middleware.VerifySupabaseToken(cookie.Value)
 		if err == nil {
 			user = map[string]interface{}{
 				"id":            userData.ID,
@@ -51,7 +51,7 @@ func HandleHome(w http.ResponseWriter, r *http.Request) {
 
 	tmpl, err := template.New("base.html").Funcs(template.FuncMap{
 		"json": jsonHelper,
-	}).ParseFS(ui.FS, "shop/base.html", "shop/home.html")
+	}).ParseFS(web.FS, "templates/layouts/base.html", "templates/shop/home.html")
 	if err != nil {
 		http.Error(w, "Template parse error: "+err.Error(), http.StatusInternalServerError)
 		return
@@ -76,7 +76,7 @@ func HandleProductsList(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	products, err := db.GetProductsKeyset(r.Context(), cursor, productsPerPage)
+	products, err := database.GetProductsKeyset(r.Context(), cursor, productsPerPage)
 	if err != nil {
 		http.Error(w, "Failed to load products", http.StatusInternalServerError)
 		return
@@ -98,7 +98,7 @@ func HandleProductsList(w http.ResponseWriter, r *http.Request) {
 func HandleProductDetail(w http.ResponseWriter, r *http.Request) {
 	slug := strings.TrimPrefix(r.URL.Path, "/products/")
 
-	product, err := db.GetProductBySlug(r.Context(), slug)
+	product, err := database.GetProductBySlug(r.Context(), slug)
 	if err != nil {
 		http.NotFound(w, r)
 		return
@@ -109,7 +109,7 @@ func HandleProductDetail(w http.ResponseWriter, r *http.Request) {
 		"Title":   product.Name,
 	}
 
-	tmpl := template.Must(template.New("base.html").ParseFS(ui.FS, "shop/base.html", "shop/product.html"))
+	tmpl := template.Must(template.New("base.html").ParseFS(web.FS, "templates/layouts/base.html", "templates/shop/product.html"))
 	if err := tmpl.ExecuteTemplate(w, "product", data); err != nil {
 		http.Error(w, "Template error", http.StatusInternalServerError)
 	}
@@ -135,7 +135,7 @@ func HandleSearch(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	products, err := db.SearchProducts(r.Context(), query, cursor, productsPerPage)
+	products, err := database.SearchProducts(r.Context(), query, cursor, productsPerPage)
 	if err != nil {
 		http.Error(w, "Search failed", http.StatusInternalServerError)
 		return
@@ -154,14 +154,14 @@ func HandleSearch(w http.ResponseWriter, r *http.Request) {
 		"Title":       fmt.Sprintf("Search: %s", query),
 	}
 
-	tmpl := template.Must(template.New("base.html").ParseFS(ui.FS, "shop/base.html", "shop/search.html"))
+	tmpl := template.Must(template.New("base.html").ParseFS(web.FS, "templates/layouts/base.html", "templates/shop/search.html"))
 	if err := tmpl.ExecuteTemplate(w, "search", data); err != nil {
 		http.Error(w, "Template error", http.StatusInternalServerError)
 	}
 }
 
 // renderProductCards renders product cards as HTML fragment for HTMX
-func renderProductCards(w http.ResponseWriter, products []db.Product) {
+func renderProductCards(w http.ResponseWriter, products []database.Product) {
 	if len(products) == 0 {
 		w.Write([]byte(""))
 		return

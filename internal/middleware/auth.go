@@ -1,4 +1,4 @@
-package auth
+package middleware
 
 import (
 	"context"
@@ -10,7 +10,7 @@ import (
 	"os"
 	"strings"
 
-	"htmxshop/internal/db"
+	"htmxshop/internal/database"
 )
 
 // SupabaseClaims represents the claims in a Supabase JWT
@@ -79,7 +79,7 @@ func ExtractToken(authHeader string, cookieValue string) string {
 
 // VerifyAdminAccess verifies that a user has admin privileges
 func VerifyAdminAccess(ctx context.Context, userID string) (bool, error) {
-	return db.VerifyAdmin(ctx, userID)
+	return database.VerifyAdmin(ctx, userID)
 }
 
 // (legacy decode fns removed)
