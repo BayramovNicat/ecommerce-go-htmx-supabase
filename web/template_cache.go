@@ -25,8 +25,8 @@ var (
 )
 
 // GetCriticalCSS returns the inlined critical CSS
-func GetCriticalCSS() string {
-	return criticalCSS
+func GetCriticalCSS() template.CSS {
+	return template.CSS(criticalCSS)
 }
 
 func GetTemplate(key string, files ...string) (*template.Template, error) {
