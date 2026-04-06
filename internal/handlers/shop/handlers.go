@@ -226,7 +226,7 @@ func renderProductCards(w http.ResponseWriter, products []database.Product) {
 		// Apply hx-trigger="revealed" to the 10th-to-last item for pre-fetch buffer
 		triggerAttr := ""
 		if i == len(products)-10 {
-			triggerAttr = fmt.Sprintf(` hx-get="/api/products?cursor=%d" hx-trigger="revealed" hx-swap="beforeend" hx-target="#products-grid"`, lastID)
+			triggerAttr = fmt.Sprintf(` hx-get="/api/products?cursor=%d" hx-trigger="revealed" hx-swap="beforeend" hx-target="#products-grid" hx-push-url="false"`, lastID)
 		}
 
 		stockStatus := `<span class="text-sm text-green-600">In Stock</span>`
