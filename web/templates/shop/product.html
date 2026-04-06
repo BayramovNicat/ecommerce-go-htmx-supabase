@@ -37,7 +37,13 @@
                 {{end}}
 
                 {{if gt .Product.Stock 0}}
-                <div class="space-y-4" x-data="{ quantity: 1 }">
+                <div class="space-y-4" x-data="productCart({
+                    slug: {{printf "%q" .Product.Slug}},
+                    name: {{printf "%q" .Product.Name}},
+                    price: {{printf "%.2f" .Product.Price}},
+                    image: {{printf "%q" .Product.ImageThumbURL}},
+                    url: {{printf "%q" (printf "/products/%s" .Product.Slug)}}
+                })">
                     <div>
                         <label class="text-sm font-semibold text-gray-900 mb-2 block">Quantity</label>
                         <div class="flex items-center gap-3">
@@ -47,7 +53,7 @@
                         </div>
                     </div>
 
-                    <button class="w-full bg-gray-900 text-white py-3 rounded-lg font-semibold hover:bg-gray-800">Add to Cart</button>
+                    <button @click="addToCart()" class="w-full bg-gray-900 text-white py-3 rounded-lg font-semibold hover:bg-gray-800">Add to Cart</button>
                 </div>
                 {{end}}
 
@@ -57,4 +63,46 @@
             </div>
         </div>
     </main>
+{{end}}
+
+{{define "scripts"}}
+<script>
+    const CART_KEY = 'cart';
+
+    function getStoredCart() {
+        try {
+            return JSON.parse(localStorage.getItem(CART_KEY)) || [];
+        } catch (e) {
+            return [];
+        }
+    }
+
+    function saveCart(items) {
+        localStorage.setItem(CART_KEY, JSON.stringify(items));
+    }
+
+    function productCart(product) {
+        return {
+            quantity: 1,
+            addToCart() {
+                const cart = getStoredCart();
+                const existing = cart.find(item => item.slug === product.slug);
+                if (existing) {
+                    existing.quantity += this.quantity;
+                } else {
+                    cart.push({
+                        slug: product.slug,
+                        name: product.name,
+                        price: product.price,
+                        image: product.image,
+                        url: product.url,
+                        quantity: this.quantity
+                    });
+                }
+                saveCart(cart);
+                window.location.href = '/cart';
+            }
+        }
+    }
+</script>
 {{end}}
