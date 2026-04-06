@@ -12,6 +12,7 @@ require (
 )
 
 require (
+	github.com/brianvoe/gofakeit/v6 v6.28.0 // indirect
 	github.com/golang-jwt/jwt/v5 v5.3.1 // indirect
 	golang.org/x/sys v0.15.0 // indirect
 )
