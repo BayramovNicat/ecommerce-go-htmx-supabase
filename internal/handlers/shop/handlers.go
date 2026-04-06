@@ -231,3 +231,43 @@ func renderProductCards(w http.ResponseWriter, products []database.Product) {
 		w.Write([]byte(card))
 	}
 }
+
+// HandleCart renders the cart page (static placeholder)
+func HandleCart(w http.ResponseWriter, r *http.Request) {
+	data := map[string]interface{}{
+		"Title": "Your Cart",
+		"User":  getUserFromRequest(r),
+		"Env":   getEnv(),
+	}
+
+	tmpl, err := template.New("base.html").Funcs(template.FuncMap{
+		"json": jsonHelper,
+	}).ParseFS(web.FS, "templates/layouts/base.html", "templates/shop/cart.html")
+	if err != nil {
+		http.Error(w, "Template parse error: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	if err := tmpl.ExecuteTemplate(w, "cart", data); err != nil {
+		http.Error(w, "Template execute error: "+err.Error(), http.StatusInternalServerError)
+	}
+}
+
+// getUserFromRequest extracts user info from the Supabase session cookie
+func getUserFromRequest(r *http.Request) map[string]interface{} {
+	cookie, err := r.Cookie("sb-access-token")
+	if err != nil || cookie.Value == "" {
+		return nil
+	}
+
+	userData, err := middleware.VerifySupabaseToken(cookie.Value)
+	if err != nil {
+		return nil
+	}
+
+	return map[string]interface{}{
+		"id":            userData.ID,
+		"email":         userData.Email,
+		"user_metadata": userData.UserMetadata,
+	}
+}

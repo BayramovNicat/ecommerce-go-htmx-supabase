@@ -95,6 +95,10 @@ func shopHandler(w http.ResponseWriter, r *http.Request) {
 		if method == http.MethodGet {
 			handleShopHome(w, r)
 		}
+	case path == "/cart":
+		if method == http.MethodGet {
+			handleCart(w, r)
+		}
 	case path == "/login":
 		if method == http.MethodGet {
 			handleLogin(w, r)
@@ -157,6 +161,10 @@ func adminHandler(w http.ResponseWriter, r *http.Request) {
 // Shop handlers
 func handleShopHome(w http.ResponseWriter, r *http.Request) {
 	shop.HandleHome(w, r)
+}
+
+func handleCart(w http.ResponseWriter, r *http.Request) {
+	shop.HandleCart(w, r)
 }
 
 func handleProductDetail(w http.ResponseWriter, r *http.Request) {
