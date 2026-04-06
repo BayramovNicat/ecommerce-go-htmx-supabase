@@ -70,6 +70,8 @@
 					<img
 						src="{{ .ImageThumbURL }}"
 						alt="{{ .Name }}"
+						width="400"
+						height="400"
 						loading="lazy"
 						class="absolute inset-0 w-full h-full object-cover transition duration-500 hover:scale-105"
 						onerror="this.style.display='none';"
@@ -155,6 +157,7 @@
 								}
 							}
 						"
+						class="min-w-[120px]"
 					>
 						<div x-show="user" x-cloak>
 							<div x-data="{ open: false }" class="relative">

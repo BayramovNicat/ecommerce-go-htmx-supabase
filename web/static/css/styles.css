@@ -59,3 +59,23 @@
 [x-cloak] {
 	display: none !important;
 }
+
+/* Prevent layout shift on page load */
+#page-root {
+	min-height: 400px;
+}
+
+/* Skeleton loader for infinite scroll */
+.skeleton-product {
+	animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+	0%,
+	100% {
+		opacity: 1;
+	}
+	50% {
+		opacity: 0.5;
+	}
+}
