@@ -2,6 +2,7 @@ package handler
 
 import (
 	"context"
+	"io"
 	"log"
 	"net/http"
 	"strings"
@@ -10,18 +11,49 @@ import (
 	"htmxshop/internal/handlers/admin"
 	"htmxshop/internal/handlers/shop"
 	"htmxshop/internal/middleware"
+	"htmxshop/web"
 )
+
+// serveStaticFile serves static assets from embedded filesystem
+func serveStaticFile(w http.ResponseWriter, r *http.Request) {
+	path := strings.TrimPrefix(r.URL.Path, "/")
+
+	file, err := web.FS.Open(path)
+	if err != nil {
+		http.NotFound(w, r)
+		return
+	}
+	defer file.Close()
+
+	// Set appropriate content type
+	if strings.HasSuffix(path, ".css") {
+		w.Header().Set("Content-Type", "text/css; charset=utf-8")
+	} else if strings.HasSuffix(path, ".js") {
+		w.Header().Set("Content-Type", "application/javascript; charset=utf-8")
+	}
+
+	// Set cache headers for static assets
+	w.Header().Set("Cache-Control", "public, max-age=31536000, immutable")
+
+	io.Copy(w, file)
+}
 
 // Handler is the main entry point for Vercel
 func Handler(w http.ResponseWriter, r *http.Request) {
+	path := r.URL.Path
+
+	// Serve static files from embedded filesystem
+	if strings.HasPrefix(path, "/dist/") {
+		serveStaticFile(w, r)
+		return
+	}
+
 	// Lazy initialize database connection
 	if err := database.Init(); err != nil {
 		log.Printf("Database initialization error: %v", err)
 		http.Error(w, "Database connection failed: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
-
-	path := r.URL.Path
 
 	// Route to admin or shop handlers
 	if strings.HasPrefix(path, "/admin") {

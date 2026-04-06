@@ -6,7 +6,7 @@ import (
 	"os"
 )
 
-//go:embed templates/*/*.html
+//go:embed templates/*/*.html dist/*
 var embeddedFS embed.FS
 
 var FS fs.FS
