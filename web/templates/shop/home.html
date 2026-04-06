@@ -24,9 +24,9 @@
 									<div class="w-16 h-16 rounded-full bg-gray-400"></div>
 								</div>
 							</div>
-							<h3 class="text-lg font-semibold text-gray-900 mb-2">{{ .Name }}</h3>
+							<h3 class="text-lg font-medium text-gray-900 mb-2">{{ .Name }}</h3>
 							<div class="flex items-center justify-between">
-								<p class="text-xl font-bold text-gray-900">${{ printf "%.2f" .Price }}</p>
+								<p class="text-xl font-semibold text-gray-900">${{ printf "%.2f" .Price }}</p>
 								{{ if gt .Stock 0 }}
 									<span class="text-sm text-green-600">In Stock</span>
 								{{ else }}

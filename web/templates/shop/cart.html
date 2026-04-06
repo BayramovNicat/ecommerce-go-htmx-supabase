@@ -8,7 +8,7 @@
 		x-data="cartPage()"
 		x-init="loadCart()"
 	>
-		<h1 class="text-3xl font-bold text-gray-900 mb-8">Your Cart</h1>
+		<h1 class="text-3xl font-semibold text-gray-900 mb-8">Your Cart</h1>
 
 		<template x-if="items.length === 0">
 			<div class="rounded-lg border border-gray-200 bg-white p-8 text-center">
@@ -52,7 +52,7 @@
 								<div>
 									<a
 										:href="item.url"
-										class="text-lg font-semibold text-gray-900"
+										class="text-lg font-medium text-gray-900"
 										x-text="item.name"
 									></a>
 									<p class="text-sm text-gray-500 mt-1" x-text="`$${item.price}`"></p>
@@ -71,7 +71,7 @@
 								>
 									−
 								</button>
-								<span class="w-12 text-center font-semibold" x-text="item.quantity"></span>
+								<span class="w-12 text-center font-medium" x-text="item.quantity"></span>
 								<button
 									@click="increaseQuantity(item)"
 									class="w-10 h-10 flex items-center justify-center rounded-full border border-gray-300"
@@ -82,7 +82,7 @@
 						</div>
 						<div class="text-right">
 							<p
-								class="text-lg font-semibold text-gray-900"
+								class="text-lg font-medium text-gray-900"
 								x-text="`$${(item.price * item.quantity).toFixed(2)}`"
 							></p>
 						</div>
@@ -93,11 +93,11 @@
 			<div class="rounded-lg border border-gray-200 bg-white p-6">
 				<div class="flex items-center justify-between text-lg">
 					<span class="text-gray-600">Subtotal</span>
-					<span class="font-semibold text-gray-900" x-text="`$${total().toFixed(2)}`"></span>
+					<span class="font-medium text-gray-900" x-text="`$${total().toFixed(2)}`"></span>
 				</div>
 				<p class="text-sm text-gray-500 mt-2">Taxes and shipping calculated at checkout</p>
 				<button
-					class="w-full bg-gray-900 text-white py-3 rounded-lg font-semibold hover:bg-gray-800 mt-4"
+					class="w-full bg-gray-900 text-white py-3 rounded-lg font-medium hover:bg-gray-800 mt-4"
 				>
 					Checkout
 				</button>

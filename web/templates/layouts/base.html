@@ -76,9 +76,9 @@
 				</div>
 			</div>
 			<div class="p-4">
-				<h3 class="text-lg font-semibold text-gray-900 mb-2">{{ .Name }}</h3>
+				<h3 class="text-lg font-medium text-gray-900 mb-2">{{ .Name }}</h3>
 				<div class="flex items-center justify-between">
-					<p class="text-xl font-bold text-gray-900">${{ printf "%.2f" .Price }}</p>
+					<p class="text-xl font-semibold text-gray-900">${{ printf "%.2f" .Price }}</p>
 					{{ if gt .Stock 0 }}
 						<span class="text-sm text-green-600">In Stock</span>
 					{{ else }}
@@ -94,7 +94,7 @@
 	<header class="bg-white border-b border-gray-200">
 		<nav class="max-w-7xl mx-auto px-6 py-4">
 			<div class="flex items-center justify-between">
-				<a href="/" class="text-2xl font-semibold text-gray-900">Meridian Living</a>
+				<a href="/" class="text-2xl font-normal text-gray-900">Meridian Living</a>
 				<div class="flex items-center gap-4">
 					<form action="/search" method="get" class="relative">
 						<input
@@ -137,7 +137,7 @@
 									class="flex items-center gap-2 rounded-lg border border-gray-300 px-3 py-2 text-sm hover:border-gray-900"
 								>
 									<div
-										class="w-6 h-6 rounded-full bg-gray-900 text-white flex items-center justify-center text-xs font-semibold"
+										class="w-6 h-6 rounded-full bg-gray-900 text-white flex items-center justify-center text-xs font-medium"
 										x-text="(user?.email || 'U')[0].toUpperCase()"
 									></div>
 									<span x-text="user?.email"></span>

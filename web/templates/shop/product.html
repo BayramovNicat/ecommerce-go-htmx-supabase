@@ -32,8 +32,10 @@
 				<!-- Product Info -->
 				<div class="space-y-6">
 					<div>
-						<h1 class="text-3xl font-bold text-gray-900 mb-4">{{ .Product.Name }}</h1>
-						<p class="text-2xl font-bold text-gray-900 mb-4">${{ printf "%.2f" .Product.Price }}</p>
+						<h1 class="text-3xl font-normal text-gray-900 mb-4">{{ .Product.Name }}</h1>
+						<p class="text-2xl font-normal text-gray-900 mb-4">
+							${{ printf "%.2f" .Product.Price }}
+						</p>
 						{{ if gt .Product.Stock 0 }}
 							<p class="text-sm text-green-600">In Stock ({{ .Product.Stock }} available)</p>
 						{{ else }}
@@ -43,7 +45,7 @@
 
 					{{ if .Product.Description }}
 						<div>
-							<h2 class="text-lg font-semibold text-gray-900 mb-2">Description</h2>
+							<h2 class="text-lg font-medium text-gray-900 mb-2">Description</h2>
 							<p class="text-gray-600">{{ .Product.Description }}</p>
 						</div>
 					{{ end }}
@@ -59,18 +61,18 @@
 							}} })"
 						>
 							<div>
-								<label class="text-sm font-semibold text-gray-900 mb-2 block">Quantity</label>
+								<label class="text-sm font-medium text-gray-900 mb-2 block">Quantity</label>
 								<div class="flex items-center gap-3">
 									<button
 										@click="quantity = Math.max(1, quantity - 1)"
-										class="w-12 h-12 flex items-center justify-center rounded-full border-2 border-gray-300 hover:border-gray-900 text-xl font-semibold"
+										class="w-12 h-12 flex items-center justify-center rounded-full border-2 border-gray-300 hover:border-gray-900 text-xl font-medium"
 									>
 										−
 									</button>
-									<span x-text="quantity" class="text-xl font-semibold w-16 text-center"></span>
+									<span x-text="quantity" class="text-xl font-medium w-16 text-center"></span>
 									<button
 										@click="quantity = Math.min({{ .Product.Stock }}, quantity + 1)"
-										class="w-12 h-12 flex items-center justify-center rounded-full border-2 border-gray-300 hover:border-gray-900 text-xl font-semibold"
+										class="w-12 h-12 flex items-center justify-center rounded-full border-2 border-gray-300 hover:border-gray-900 text-xl font-medium"
 									>
 										+
 									</button>
@@ -79,7 +81,7 @@
 
 							<button
 								@click="addToCart()"
-								class="w-full bg-gray-900 text-white py-3 rounded-lg font-semibold hover:bg-gray-800"
+								class="w-full bg-gray-900 text-white py-3 rounded-lg font-medium hover:bg-gray-800"
 							>
 								Add to Cart
 							</button>
