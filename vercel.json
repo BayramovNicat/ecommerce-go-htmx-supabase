@@ -1,6 +1,6 @@
 {
 	"regions": ["fra1"],
-	"buildCommand": "npm run build && mkdir -p .vercel/output/static/dist && cp -r web/dist/* .vercel/output/static/dist/",
+	"buildCommand": "bash scripts/vercel-build.sh",
 	"routes": [
 		{
 			"src": "/dist/(.*)",
