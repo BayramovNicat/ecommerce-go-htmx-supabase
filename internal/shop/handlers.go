@@ -57,7 +57,7 @@ func HandleHome(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := tmpl.Execute(w, data); err != nil {
+	if err := tmpl.ExecuteTemplate(w, "home", data); err != nil {
 		http.Error(w, "Template execute error: "+err.Error(), http.StatusInternalServerError)
 	}
 }
@@ -109,8 +109,8 @@ func HandleProductDetail(w http.ResponseWriter, r *http.Request) {
 		"Title":   product.Name,
 	}
 
-	tmpl := template.Must(template.ParseFS(ui.FS, "shop/base.html", "shop/product.html"))
-	if err := tmpl.Execute(w, data); err != nil {
+	tmpl := template.Must(template.New("base.html").ParseFS(ui.FS, "shop/base.html", "shop/product.html"))
+	if err := tmpl.ExecuteTemplate(w, "product", data); err != nil {
 		http.Error(w, "Template error", http.StatusInternalServerError)
 	}
 }
@@ -154,8 +154,8 @@ func HandleSearch(w http.ResponseWriter, r *http.Request) {
 		"Title":       fmt.Sprintf("Search: %s", query),
 	}
 
-	tmpl := template.Must(template.ParseFS(ui.FS, "shop/base.html", "shop/search.html"))
-	if err := tmpl.Execute(w, data); err != nil {
+	tmpl := template.Must(template.New("base.html").ParseFS(ui.FS, "shop/base.html", "shop/search.html"))
+	if err := tmpl.ExecuteTemplate(w, "search", data); err != nil {
 		http.Error(w, "Template error", http.StatusInternalServerError)
 	}
 }

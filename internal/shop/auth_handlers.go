@@ -32,7 +32,7 @@ func HandleLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := tmpl.Execute(w, data); err != nil {
+	if err := tmpl.ExecuteTemplate(w, "login", data); err != nil {
 		http.Error(w, "Template execute error: "+err.Error(), http.StatusInternalServerError)
 	}
 }
@@ -60,7 +60,7 @@ func HandleGoogleAuth(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := tmpl.Execute(w, data); err != nil {
+	if err := tmpl.ExecuteTemplate(w, "oauth_callback", data); err != nil {
 		http.Error(w, "Template execute error: "+err.Error(), http.StatusInternalServerError)
 	}
 }
