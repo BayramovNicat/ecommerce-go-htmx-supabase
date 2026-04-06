@@ -118,6 +118,23 @@ func watchFiles() {
 		log.Println("Failed to watch dist directory:", err)
 	}
 
+	// Watch Go files in api, internal, web, and cmd directories
+	goDirs := []string{"api", "internal", "web", "cmd"}
+	for _, dir := range goDirs {
+		err = filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
+			if err != nil {
+				return err
+			}
+			if info.IsDir() {
+				return watcher.Add(path)
+			}
+			return nil
+		})
+		if err != nil {
+			log.Printf("Failed to watch %s directory: %v\n", dir, err)
+		}
+	}
+
 	log.Println("File watcher started for live reload")
 
 	// Debounce rapid file changes
@@ -129,6 +146,13 @@ func watchFiles() {
 				return
 			}
 			if event.Op&(fsnotify.Write|fsnotify.Create) != 0 {
+				// Check if it's a Go file change
+				if strings.HasSuffix(event.Name, ".go") {
+					log.Println("Go file changed:", event.Name, "- Server restart required")
+					// For Go files, we need to exit so nodemon can restart the server
+					os.Exit(0)
+				}
+
 				if debounceTimer != nil {
 					debounceTimer.Stop()
 				}

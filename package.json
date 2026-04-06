@@ -3,8 +3,8 @@
   "version": "1.0.0",
   "description": "HTMX Shop with Tailwind CSS",
   "scripts": {
-    "start": "go run ./cmd/server",
     "dev": "nodemon --watch api --watch internal --watch web --watch cmd --signal SIGTERM --exec go run ./cmd/server",
+    "start": "go run ./cmd/server",
     "build": "npm run build:css && npm run build:js",
     "build:css": "tailwindcss -i ./web/static/css/styles.css -o ./web/dist/styles.css -m",
     "build:js": "esbuild web/static/js/bundle.js --bundle --minify --outfile=web/dist/bundle.js",
