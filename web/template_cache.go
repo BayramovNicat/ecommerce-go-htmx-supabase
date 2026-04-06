@@ -8,7 +8,7 @@ import (
 	"sync"
 )
 
-//go:embed critical.css
+//go:embed critical.min.css
 var criticalCSS string
 
 var (
