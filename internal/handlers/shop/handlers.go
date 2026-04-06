@@ -19,11 +19,26 @@ import (
 const productsPerPage = 20
 
 const homeProductsCacheTTL = 30 * time.Second
+const productCacheTTL = 5 * time.Minute
 
 var homeProductsCache struct {
 	mu        sync.RWMutex
 	products  []database.Product
 	expiresAt time.Time
+}
+
+var productCache struct {
+	mu    sync.RWMutex
+	items map[string]*cachedProduct
+}
+
+type cachedProduct struct {
+	product   *database.Product
+	expiresAt time.Time
+}
+
+func init() {
+	productCache.items = make(map[string]*cachedProduct)
 }
 
 // getEnv returns the current environment (production or development)
@@ -103,11 +118,14 @@ func HandleProductsList(w http.ResponseWriter, r *http.Request) {
 func HandleProductDetail(w http.ResponseWriter, r *http.Request) {
 	slug := strings.TrimPrefix(r.URL.Path, "/products/")
 
-	product, err := database.GetProductBySlug(r.Context(), slug)
+	product, err := getCachedProduct(r.Context(), slug)
 	if err != nil {
 		http.NotFound(w, r)
 		return
 	}
+
+	// Set cache headers for browser caching
+	w.Header().Set("Cache-Control", "public, max-age=300, stale-while-revalidate=600")
 
 	data := map[string]interface{}{
 		"Product":     product,
@@ -291,4 +309,29 @@ func getHomeProducts(ctx context.Context) ([]database.Product, error) {
 	homeProductsCache.mu.Unlock()
 
 	return products, nil
+}
+
+func getCachedProduct(ctx context.Context, slug string) (*database.Product, error) {
+	now := time.Now()
+
+	productCache.mu.RLock()
+	if cached, ok := productCache.items[slug]; ok && now.Before(cached.expiresAt) {
+		productCache.mu.RUnlock()
+		return cached.product, nil
+	}
+	productCache.mu.RUnlock()
+
+	product, err := database.GetProductBySlug(ctx, slug)
+	if err != nil {
+		return nil, err
+	}
+
+	productCache.mu.Lock()
+	productCache.items[slug] = &cachedProduct{
+		product:   product,
+		expiresAt: now.Add(productCacheTTL),
+	}
+	productCache.mu.Unlock()
+
+	return product, nil
 }

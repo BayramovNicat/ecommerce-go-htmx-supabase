@@ -8,7 +8,7 @@
     "build": "npm run build:css && npm run build:js",
     "build:css": "tailwindcss -i ./web/static/css/styles.css -o ./web/dist/styles.css -m",
     "build:js": "esbuild web/static/js/bundle.js --bundle --minify --outfile=web/dist/bundle.js",
-    "watch:assets": "concurrently -k \"npm:watch:css\" \"npm:watch:js\"",
+    "watch": "concurrently -k \"npm:watch:css\" \"npm:watch:js\"",
     "watch:css": "tailwindcss -i ./web/static/css/styles.css -o ./web/dist/styles.css -w",
     "watch:js": "esbuild web/static/js/bundle.js --bundle --outfile=web/dist/bundle.js --watch"
   },
