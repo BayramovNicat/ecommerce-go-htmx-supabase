@@ -14,6 +14,7 @@ High-performance e-commerce site built with Go, HTMX, and Supabase.
 1. Install dependencies:
 ```bash
 go mod download
+bun install
 ```
 
 2. Set up Supabase:
@@ -29,7 +30,12 @@ SUPABASE_URL=https://your-project.supabase.co
 SUPABASE_ANON_KEY=your-anon-key
 ```
 
-4. Deploy to Vercel:
+4. Build frontend assets:
+```bash
+bun run build
+```
+
+5. Deploy to Vercel:
 ```bash
 vercel
 ```
@@ -40,13 +46,19 @@ vercel
 htmxshop/
 ├── api/
 │   └── index.go              # Main Vercel entry point
+├── cmd/server/               # Local dev server
+├── dist/                     # Built frontend assets (gitignored)
 ├── internal/
 │   ├── db/                   # Database connection & queries
 │   ├── shop/                 # Shop logic
 │   └── admin/                # Admin logic
+├── src/
+│   ├── scripts/              # JS entrypoints
+│   └── styles/               # Tailwind input
 ├── ui/
 │   ├── shop/                 # Shop templates
 │   └── admin/                # Admin templates
+├── bun.lock                  # Bun lockfile
 ├── supabase_schema.sql       # Database schema
 ├── vercel.json               # Vercel configuration
 └── go.mod                    # Go dependencies

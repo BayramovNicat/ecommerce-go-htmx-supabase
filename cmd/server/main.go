@@ -25,7 +25,7 @@ func main() {
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		if servePublicFile(w, r) {
+		if serveDistFile(w, r) {
 			return
 		}
 		handler.Handler(w, r)
@@ -39,7 +39,7 @@ func main() {
 	}
 }
 
-func servePublicFile(w http.ResponseWriter, r *http.Request) bool {
+func serveDistFile(w http.ResponseWriter, r *http.Request) bool {
 	if r.Method != http.MethodGet && r.Method != http.MethodHead {
 		return false
 	}
@@ -49,7 +49,7 @@ func servePublicFile(w http.ResponseWriter, r *http.Request) bool {
 		return false
 	}
 
-	filePath := filepath.Join("public", strings.TrimPrefix(path, "/"))
+	filePath := filepath.Join("dist", strings.TrimPrefix(path, "/"))
 	info, err := os.Stat(filePath)
 	if err != nil || info.IsDir() {
 		return false
