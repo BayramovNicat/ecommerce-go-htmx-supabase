@@ -37,9 +37,9 @@
 							${{ printf "%.2f" .Product.Price }}
 						</p>
 						{{ if gt .Product.Stock 0 }}
-							<p class="text-sm text-green-600">In Stock ({{ .Product.Stock }} available)</p>
+							<p class="text-sm text-green-700">In Stock ({{ .Product.Stock }} available)</p>
 						{{ else }}
-							<p class="text-sm text-red-500">Out of Stock</p>
+							<p class="text-sm text-red-600">Out of Stock</p>
 						{{ end }}
 					</div>
 

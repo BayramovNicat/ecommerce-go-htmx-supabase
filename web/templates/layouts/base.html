@@ -4,6 +4,15 @@
 		<head>
 			<meta charset="UTF-8" />
 			<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+			<meta
+				name="description"
+				content="{{ if .Description }}
+					{{ .Description }}
+				{{ else }}
+					Shop quality home furnishings and decor at Meridian Living. Discover our curated
+					collection of modern furniture and accessories.
+				{{ end }}"
+			/>
 			<title>{{ .Title }}</title>
 		<style>{{.CriticalCSS}}</style>
 			<link
@@ -77,9 +86,9 @@
 				<div class="flex items-center justify-between">
 					<p class="text-xl font-semibold text-gray-900">${{ printf "%.2f" .Price }}</p>
 					{{ if gt .Stock 0 }}
-						<span class="text-sm text-green-600">In Stock</span>
+						<span class="text-sm text-green-700">In Stock</span>
 					{{ else }}
-						<span class="text-sm text-red-500">Out of Stock</span>
+						<span class="text-sm text-red-600">Out of Stock</span>
 					{{ end }}
 				</div>
 			</div>
