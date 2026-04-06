@@ -11,6 +11,15 @@
     <link rel="stylesheet" href="/styles.css">
     <script src="/bundle.js" defer></script>
     {{block "extra_head" .}}{{end}}
+    {{if ne .Env "production"}}
+    <script>
+        (function() {
+            const ws = new WebSocket('ws://' + window.location.host + '/livereload');
+            ws.onmessage = () => window.location.reload();
+            ws.onclose = () => setTimeout(() => window.location.reload(), 1000);
+        })();
+    </script>
+    {{end}}
 </head>
 <body class="{{block "body_class" .}}bg-[color:var(--color-background)] text-[color:var(--color-contrast)]{{end}}">
     {{block "header" .}}
