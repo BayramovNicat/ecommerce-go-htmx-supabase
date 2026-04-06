@@ -1,10 +1,10 @@
 {
 	"regions": ["fra1"],
-	"buildCommand": "npm run build",
+	"buildCommand": "npm run build && mkdir -p .vercel/output/static/dist && cp -r web/dist/* .vercel/output/static/dist/",
 	"routes": [
 		{
 			"src": "/dist/(.*)",
-			"dest": "/web/dist/$1",
+			"dest": "/dist/$1",
 			"headers": {
 				"Cache-Control": "public, max-age=31536000, immutable"
 			}
