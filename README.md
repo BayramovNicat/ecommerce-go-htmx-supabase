@@ -52,10 +52,9 @@ htmxshop/
 │   ├── db/                   # Database connection & queries
 │   ├── shop/                 # Shop logic
 │   └── admin/                # Admin logic
-├── src/
-│   ├── scripts/              # JS entrypoints
-│   └── styles/               # Tailwind input
 ├── ui/
+│   ├── bundle.js             # Frontend JS entrypoint
+│   ├── styles.css            # Tailwind input
 │   ├── shop/                 # Shop templates
 │   └── admin/                # Admin templates
 ├── bun.lock                  # Bun lockfile
