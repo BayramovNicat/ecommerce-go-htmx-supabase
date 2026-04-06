@@ -223,9 +223,9 @@ func renderProductCards(w http.ResponseWriter, products []database.Product) {
 
 	// Render each product card
 	for i, product := range products {
-		// Apply hx-trigger="revealed" to the 3rd-to-last item for pre-fetch buffer
+		// Apply hx-trigger="revealed" to the 10th-to-last item for pre-fetch buffer
 		triggerAttr := ""
-		if i == len(products)-3 {
+		if i == len(products)-10 {
 			triggerAttr = fmt.Sprintf(` hx-get="/api/products?cursor=%d" hx-trigger="revealed" hx-swap="beforeend" hx-target="#products-grid"`, lastID)
 		}
 
