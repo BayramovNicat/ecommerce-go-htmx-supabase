@@ -1,5 +1,7067 @@
-(()=>{var yr=(function(){"use strict";let htmx={onLoad:null,process:null,on:null,off:null,trigger:null,ajax:null,find:null,findAll:null,closest:null,values:function(e,t){return getInputValues(e,t||"post").values},remove:null,addClass:null,removeClass:null,toggleClass:null,takeClass:null,swap:null,defineExtension:null,removeExtension:null,logAll:null,logNone:null,logger:null,config:{historyEnabled:!0,historyCacheSize:10,refreshOnHistoryMiss:!1,defaultSwapStyle:"innerHTML",defaultSwapDelay:0,defaultSettleDelay:20,includeIndicatorStyles:!0,indicatorClass:"htmx-indicator",requestClass:"htmx-request",addedClass:"htmx-added",settlingClass:"htmx-settling",swappingClass:"htmx-swapping",allowEval:!0,allowScriptTags:!0,inlineScriptNonce:"",inlineStyleNonce:"",attributesToSettle:["class","style","width","height"],withCredentials:!1,timeout:0,wsReconnectDelay:"full-jitter",wsBinaryType:"blob",disableSelector:"[hx-disable], [data-hx-disable]",scrollBehavior:"instant",defaultFocusScroll:!1,getCacheBusterParam:!1,globalViewTransitions:!1,methodsThatUseUrlParams:["get","delete"],selfRequestsOnly:!0,ignoreTitle:!1,scrollIntoViewOnBoost:!0,triggerSpecsCache:null,disableInheritance:!1,responseHandling:[{code:"204",swap:!1},{code:"[23]..",swap:!0},{code:"[45]..",swap:!1,error:!0}],allowNestedOobSwaps:!0,historyRestoreAsHxRequest:!0,reportValidityOfForms:!1},parseInterval:null,location,_:null,version:"2.0.8"};htmx.onLoad=onLoadHelper,htmx.process=processNode,htmx.on=addEventListenerImpl,htmx.off=removeEventListenerImpl,htmx.trigger=triggerEvent,htmx.ajax=ajaxHelper,htmx.find=find,htmx.findAll=findAll,htmx.closest=closest,htmx.remove=removeElement,htmx.addClass=addClassToElement,htmx.removeClass=removeClassFromElement,htmx.toggleClass=toggleClassOnElement,htmx.takeClass=takeClassForElement,htmx.swap=swap,htmx.defineExtension=defineExtension,htmx.removeExtension=removeExtension,htmx.logAll=logAll,htmx.logNone=logNone,htmx.parseInterval=parseInterval,htmx._=internalEval;let internalAPI={addTriggerHandler,bodyContains,canAccessLocalStorage,findThisElement,filterValues,swap,hasAttribute,getAttributeValue,getClosestAttributeValue,getClosestMatch,getExpressionVars,getHeaders,getInputValues,getInternalData,getSwapSpecification,getTriggerSpecs,getTarget,makeFragment,mergeObjects,makeSettleInfo,oobSwap,querySelectorExt,settleImmediately,shouldCancel,triggerEvent,triggerErrorEvent,withExtensions},VERBS=["get","post","put","delete","patch"],VERB_SELECTOR=VERBS.map(function(e){return"[hx-"+e+"], [data-hx-"+e+"]"}).join(", ");function parseInterval(e){if(e==null)return;let t=NaN;return e.slice(-2)=="ms"?t=parseFloat(e.slice(0,-2)):e.slice(-1)=="s"?t=parseFloat(e.slice(0,-1))*1e3:e.slice(-1)=="m"?t=parseFloat(e.slice(0,-1))*1e3*60:t=parseFloat(e),isNaN(t)?void 0:t}function getRawAttribute(e,t){return e instanceof Element&&e.getAttribute(t)}function hasAttribute(e,t){return!!e.hasAttribute&&(e.hasAttribute(t)||e.hasAttribute("data-"+t))}function getAttributeValue(e,t){return getRawAttribute(e,t)||getRawAttribute(e,"data-"+t)}function parentElt(e){let t=e.parentElement;return!t&&e.parentNode instanceof ShadowRoot?e.parentNode:t}function getDocument(){return document}function getRootNode(e,t){return e.getRootNode?e.getRootNode({composed:t}):getDocument()}function getClosestMatch(e,t){for(;e&&!t(e);)e=parentElt(e);return e||null}function getAttributeValueWithDisinheritance(e,t,n){let r=getAttributeValue(t,n),i=getAttributeValue(t,"hx-disinherit");var o=getAttributeValue(t,"hx-inherit");if(e!==t){if(htmx.config.disableInheritance)return o&&(o==="*"||o.split(" ").indexOf(n)>=0)?r:null;if(i&&(i==="*"||i.split(" ").indexOf(n)>=0))return"unset"}return r}function getClosestAttributeValue(e,t){let n=null;if(getClosestMatch(e,function(r){return!!(n=getAttributeValueWithDisinheritance(e,asElement(r),t))}),n!=="unset")return n}function matches(e,t){return e instanceof Element&&e.matches(t)}function getStartTag(e){let n=/<([a-z][^\/\0>\x20\t\r\n\f]*)/i.exec(e);return n?n[1].toLowerCase():""}function parseHTML(e){return"parseHTMLUnsafe"in Document?Document.parseHTMLUnsafe(e):new DOMParser().parseFromString(e,"text/html")}function takeChildrenFor(e,t){for(;t.childNodes.length>0;)e.append(t.childNodes[0])}function duplicateScript(e){let t=getDocument().createElement("script");return forEach(e.attributes,function(n){t.setAttribute(n.name,n.value)}),t.textContent=e.textContent,t.async=!1,htmx.config.inlineScriptNonce&&(t.nonce=htmx.config.inlineScriptNonce),t}function isJavaScriptScriptNode(e){return e.matches("script")&&(e.type==="text/javascript"||e.type==="module"||e.type==="")}function normalizeScriptTags(e){Array.from(e.querySelectorAll("script")).forEach(t=>{if(isJavaScriptScriptNode(t)){let n=duplicateScript(t),r=t.parentNode;try{r.insertBefore(n,t)}catch(i){logError(i)}finally{t.remove()}}})}function makeFragment(e){let t=e.replace(/<head(\s[^>]*)?>[\s\S]*?<\/head>/i,""),n=getStartTag(t),r;if(n==="html"){r=new DocumentFragment;let o=parseHTML(e);takeChildrenFor(r,o.body),r.title=o.title}else if(n==="body"){r=new DocumentFragment;let o=parseHTML(t);takeChildrenFor(r,o.body),r.title=o.title}else{let o=parseHTML('<body><template class="internal-htmx-wrapper">'+t+"</template></body>");r=o.querySelector("template").content,r.title=o.title;var i=r.querySelector("title");i&&i.parentNode===r&&(i.remove(),r.title=i.innerText)}return r&&(htmx.config.allowScriptTags?normalizeScriptTags(r):r.querySelectorAll("script").forEach(o=>o.remove())),r}function maybeCall(e){e&&e()}function isType(e,t){return Object.prototype.toString.call(e)==="[object "+t+"]"}function isFunction(e){return typeof e=="function"}function isRawObject(e){return isType(e,"Object")}function getInternalData(e){let t="htmx-internal-data",n=e[t];return n||(n=e[t]={}),n}function toArray(e){let t=[];if(e)for(let n=0;n<e.length;n++)t.push(e[n]);return t}function forEach(e,t){if(e)for(let n=0;n<e.length;n++)t(e[n])}function isScrolledIntoView(e){let t=e.getBoundingClientRect(),n=t.top,r=t.bottom;return n<window.innerHeight&&r>=0}function bodyContains(e){return e.getRootNode({composed:!0})===document}function splitOnWhitespace(e){return e.trim().split(/\s+/)}function mergeObjects(e,t){for(let n in t)t.hasOwnProperty(n)&&(e[n]=t[n]);return e}function parseJSON(e){try{return JSON.parse(e)}catch(t){return logError(t),null}}function canAccessLocalStorage(){let e="htmx:sessionStorageTest";try{return sessionStorage.setItem(e,e),sessionStorage.removeItem(e),!0}catch{return!1}}function normalizePath(e){let t=new URL(e,"http://x");return t&&(e=t.pathname+t.search),e!="/"&&(e=e.replace(/\/+$/,"")),e}function internalEval(str){return maybeEval(getDocument().body,function(){return eval(str)})}function onLoadHelper(e){return htmx.on("htmx:load",function(n){e(n.detail.elt)})}function logAll(){htmx.logger=function(e,t,n){console&&console.log(t,e,n)}}function logNone(){htmx.logger=null}function find(e,t){return typeof e!="string"?e.querySelector(t):find(getDocument(),e)}function findAll(e,t){return typeof e!="string"?e.querySelectorAll(t):findAll(getDocument(),e)}function getWindow(){return window}function removeElement(e,t){e=resolveTarget(e),t?getWindow().setTimeout(function(){removeElement(e),e=null},t):parentElt(e).removeChild(e)}function asElement(e){return e instanceof Element?e:null}function asHtmlElement(e){return e instanceof HTMLElement?e:null}function asString(e){return typeof e=="string"?e:null}function asParentNode(e){return e instanceof Element||e instanceof Document||e instanceof DocumentFragment?e:null}function addClassToElement(e,t,n){e=asElement(resolveTarget(e)),e&&(n?getWindow().setTimeout(function(){addClassToElement(e,t),e=null},n):e.classList&&e.classList.add(t))}function removeClassFromElement(e,t,n){let r=asElement(resolveTarget(e));r&&(n?getWindow().setTimeout(function(){removeClassFromElement(r,t),r=null},n):r.classList&&(r.classList.remove(t),r.classList.length===0&&r.removeAttribute("class")))}function toggleClassOnElement(e,t){e=resolveTarget(e),e.classList.toggle(t)}function takeClassForElement(e,t){e=resolveTarget(e),forEach(e.parentElement.children,function(n){removeClassFromElement(n,t)}),addClassToElement(asElement(e),t)}function closest(e,t){return e=asElement(resolveTarget(e)),e?e.closest(t):null}function startsWith(e,t){return e.substring(0,t.length)===t}function endsWith(e,t){return e.substring(e.length-t.length)===t}function normalizeSelector(e){let t=e.trim();return startsWith(t,"<")&&endsWith(t,"/>")?t.substring(1,t.length-2):t}function querySelectorAllExt(e,t,n){if(t.indexOf("global ")===0)return querySelectorAllExt(e,t.slice(7),!0);e=resolveTarget(e);let r=[];{let s=0,a=0;for(let l=0;l<t.length;l++){let u=t[l];if(u===","&&s===0){r.push(t.substring(a,l)),a=l+1;continue}u==="<"?s++:u==="/"&&l<t.length-1&&t[l+1]===">"&&s--}a<t.length&&r.push(t.substring(a))}let i=[],o=[];for(;r.length>0;){let s=normalizeSelector(r.shift()),a;s.indexOf("closest ")===0?a=closest(asElement(e),normalizeSelector(s.slice(8))):s.indexOf("find ")===0?a=find(asParentNode(e),normalizeSelector(s.slice(5))):s==="next"||s==="nextElementSibling"?a=asElement(e).nextElementSibling:s.indexOf("next ")===0?a=scanForwardQuery(e,normalizeSelector(s.slice(5)),!!n):s==="previous"||s==="previousElementSibling"?a=asElement(e).previousElementSibling:s.indexOf("previous ")===0?a=scanBackwardsQuery(e,normalizeSelector(s.slice(9)),!!n):s==="document"?a=document:s==="window"?a=window:s==="body"?a=document.body:s==="root"?a=getRootNode(e,!!n):s==="host"?a=e.getRootNode().host:o.push(s),a&&i.push(a)}if(o.length>0){let s=o.join(","),a=asParentNode(getRootNode(e,!!n));i.push(...toArray(a.querySelectorAll(s)))}return i}var scanForwardQuery=function(e,t,n){let r=asParentNode(getRootNode(e,n)).querySelectorAll(t);for(let i=0;i<r.length;i++){let o=r[i];if(o.compareDocumentPosition(e)===Node.DOCUMENT_POSITION_PRECEDING)return o}},scanBackwardsQuery=function(e,t,n){let r=asParentNode(getRootNode(e,n)).querySelectorAll(t);for(let i=r.length-1;i>=0;i--){let o=r[i];if(o.compareDocumentPosition(e)===Node.DOCUMENT_POSITION_FOLLOWING)return o}};function querySelectorExt(e,t){return typeof e!="string"?querySelectorAllExt(e,t)[0]:querySelectorAllExt(getDocument().body,e)[0]}function resolveTarget(e,t){return typeof e=="string"?find(asParentNode(t)||document,e):e}function processEventArgs(e,t,n,r){return isFunction(t)?{target:getDocument().body,event:asString(e),listener:t,options:n}:{target:resolveTarget(e),event:asString(t),listener:n,options:r}}function addEventListenerImpl(e,t,n,r){return ready(function(){let o=processEventArgs(e,t,n,r);o.target.addEventListener(o.event,o.listener,o.options)}),isFunction(t)?t:n}function removeEventListenerImpl(e,t,n){return ready(function(){let r=processEventArgs(e,t,n);r.target.removeEventListener(r.event,r.listener)}),isFunction(t)?t:n}let DUMMY_ELT=getDocument().createElement("output");function findAttributeTargets(e,t){let n=getClosestAttributeValue(e,t);if(n){if(n==="this")return[findThisElement(e,t)];{let r=querySelectorAllExt(e,n);if(/(^|,)(\s*)inherit(\s*)($|,)/.test(n)){let o=asElement(getClosestMatch(e,function(s){return s!==e&&hasAttribute(asElement(s),t)}));o&&r.push(...findAttributeTargets(o,t))}return r.length===0?(logError('The selector "'+n+'" on '+t+" returned no matches!"),[DUMMY_ELT]):r}}}function findThisElement(e,t){return asElement(getClosestMatch(e,function(n){return getAttributeValue(asElement(n),t)!=null}))}function getTarget(e){let t=getClosestAttributeValue(e,"hx-target");return t?t==="this"?findThisElement(e,"hx-target"):querySelectorExt(e,t):getInternalData(e).boosted?getDocument().body:e}function shouldSettleAttribute(e){return htmx.config.attributesToSettle.includes(e)}function cloneAttributes(e,t){forEach(Array.from(e.attributes),function(n){!t.hasAttribute(n.name)&&shouldSettleAttribute(n.name)&&e.removeAttribute(n.name)}),forEach(t.attributes,function(n){shouldSettleAttribute(n.name)&&e.setAttribute(n.name,n.value)})}function isInlineSwap(e,t){let n=getExtensions(t);for(let r=0;r<n.length;r++){let i=n[r];try{if(i.isInlineSwap(e))return!0}catch(o){logError(o)}}return e==="outerHTML"}function oobSwap(e,t,n,r){r=r||getDocument();let i="#"+CSS.escape(getRawAttribute(t,"id")),o="outerHTML";e==="true"||(e.indexOf(":")>0?(o=e.substring(0,e.indexOf(":")),i=e.substring(e.indexOf(":")+1)):o=e),t.removeAttribute("hx-swap-oob"),t.removeAttribute("data-hx-swap-oob");let s=querySelectorAllExt(r,i,!1);return s.length?(forEach(s,function(a){let l,u=t.cloneNode(!0);l=getDocument().createDocumentFragment(),l.appendChild(u),isInlineSwap(o,a)||(l=asParentNode(u));let c={shouldSwap:!0,target:a,fragment:l};triggerEvent(a,"htmx:oobBeforeSwap",c)&&(a=c.target,c.shouldSwap&&(handlePreservedElements(l),swapWithStyle(o,a,a,l,n),restorePreservedElements()),forEach(n.elts,function(f){triggerEvent(f,"htmx:oobAfterSwap",c)}))}),t.parentNode.removeChild(t)):(t.parentNode.removeChild(t),triggerErrorEvent(getDocument().body,"htmx:oobErrorNoTarget",{content:t})),e}function restorePreservedElements(){let e=find("#--htmx-preserve-pantry--");if(e){for(let t of[...e.children]){let n=find("#"+t.id);n.parentNode.moveBefore(t,n),n.remove()}e.remove()}}function handlePreservedElements(e){forEach(findAll(e,"[hx-preserve], [data-hx-preserve]"),function(t){let n=getAttributeValue(t,"id"),r=getDocument().getElementById(n);if(r!=null)if(t.moveBefore){let i=find("#--htmx-preserve-pantry--");i==null&&(getDocument().body.insertAdjacentHTML("afterend","<div id='--htmx-preserve-pantry--'></div>"),i=find("#--htmx-preserve-pantry--")),i.moveBefore(r,null)}else t.parentNode.replaceChild(r,t)})}function handleAttributes(e,t,n){forEach(t.querySelectorAll("[id]"),function(r){let i=getRawAttribute(r,"id");if(i&&i.length>0){let o=i.replace("'","\\'"),s=r.tagName.replace(":","\\:"),a=asParentNode(e),l=a&&a.querySelector(s+"[id='"+o+"']");if(l&&l!==a){let u=r.cloneNode();cloneAttributes(r,l),n.tasks.push(function(){cloneAttributes(r,u)})}}})}function makeAjaxLoadTask(e){return function(){removeClassFromElement(e,htmx.config.addedClass),processNode(asElement(e)),processFocus(asParentNode(e)),triggerEvent(e,"htmx:load")}}function processFocus(e){let t="[autofocus]",n=asHtmlElement(matches(e,t)?e:e.querySelector(t));n?.focus()}function insertNodesBefore(e,t,n,r){for(handleAttributes(e,n,r);n.childNodes.length>0;){let i=n.firstChild;addClassToElement(asElement(i),htmx.config.addedClass),e.insertBefore(i,t),i.nodeType!==Node.TEXT_NODE&&i.nodeType!==Node.COMMENT_NODE&&r.tasks.push(makeAjaxLoadTask(i))}}function stringHash(e,t){let n=0;for(;n<e.length;)t=(t<<5)-t+e.charCodeAt(n++)|0;return t}function attributeHash(e){let t=0;for(let n=0;n<e.attributes.length;n++){let r=e.attributes[n];r.value&&(t=stringHash(r.name,t),t=stringHash(r.value,t))}return t}function deInitOnHandlers(e){let t=getInternalData(e);if(t.onHandlers){for(let n=0;n<t.onHandlers.length;n++){let r=t.onHandlers[n];removeEventListenerImpl(e,r.event,r.listener)}delete t.onHandlers}}function deInitNode(e){let t=getInternalData(e);t.timeout&&clearTimeout(t.timeout),t.listenerInfos&&forEach(t.listenerInfos,function(n){n.on&&removeEventListenerImpl(n.on,n.trigger,n.listener)}),deInitOnHandlers(e),forEach(Object.keys(t),function(n){n!=="firstInitCompleted"&&delete t[n]})}function cleanUpElement(e){triggerEvent(e,"htmx:beforeCleanupElement"),deInitNode(e),forEach(e.children,function(t){cleanUpElement(t)})}function swapOuterHTML(e,t,n){if(e.tagName==="BODY")return swapInnerHTML(e,t,n);let r,i=e.previousSibling,o=parentElt(e);if(o){for(insertNodesBefore(o,e,t,n),i==null?r=o.firstChild:r=i.nextSibling,n.elts=n.elts.filter(function(s){return s!==e});r&&r!==e;)r instanceof Element&&n.elts.push(r),r=r.nextSibling;cleanUpElement(e),e.remove()}}function swapAfterBegin(e,t,n){return insertNodesBefore(e,e.firstChild,t,n)}function swapBeforeBegin(e,t,n){return insertNodesBefore(parentElt(e),e,t,n)}function swapBeforeEnd(e,t,n){return insertNodesBefore(e,null,t,n)}function swapAfterEnd(e,t,n){return insertNodesBefore(parentElt(e),e.nextSibling,t,n)}function swapDelete(e){cleanUpElement(e);let t=parentElt(e);if(t)return t.removeChild(e)}function swapInnerHTML(e,t,n){let r=e.firstChild;if(insertNodesBefore(e,r,t,n),r){for(;r.nextSibling;)cleanUpElement(r.nextSibling),e.removeChild(r.nextSibling);cleanUpElement(r),e.removeChild(r)}}function swapWithStyle(e,t,n,r,i){switch(e){case"none":return;case"outerHTML":swapOuterHTML(n,r,i);return;case"afterbegin":swapAfterBegin(n,r,i);return;case"beforebegin":swapBeforeBegin(n,r,i);return;case"beforeend":swapBeforeEnd(n,r,i);return;case"afterend":swapAfterEnd(n,r,i);return;case"delete":swapDelete(n);return;default:var o=getExtensions(t);for(let s=0;s<o.length;s++){let a=o[s];try{let l=a.handleSwap(e,n,r,i);if(l){if(Array.isArray(l))for(let u=0;u<l.length;u++){let c=l[u];c.nodeType!==Node.TEXT_NODE&&c.nodeType!==Node.COMMENT_NODE&&i.tasks.push(makeAjaxLoadTask(c))}return}}catch(l){logError(l)}}e==="innerHTML"?swapInnerHTML(n,r,i):swapWithStyle(htmx.config.defaultSwapStyle,t,n,r,i)}}function findAndSwapOobElements(e,t,n){var r=findAll(e,"[hx-swap-oob], [data-hx-swap-oob]");return forEach(r,function(i){if(htmx.config.allowNestedOobSwaps||i.parentElement===null){let o=getAttributeValue(i,"hx-swap-oob");o!=null&&oobSwap(o,i,t,n)}else i.removeAttribute("hx-swap-oob"),i.removeAttribute("data-hx-swap-oob")}),r.length>0}function swap(e,t,n,r){r||(r={});let i=null,o=null,s=function(){maybeCall(r.beforeSwapCallback),e=resolveTarget(e);let u=r.contextElement?getRootNode(r.contextElement,!1):getDocument(),c=document.activeElement,f={};f={elt:c,start:c?c.selectionStart:null,end:c?c.selectionEnd:null};let h=makeSettleInfo(e);if(n.swapStyle==="textContent")e.textContent=t;else{let g=makeFragment(t);if(h.title=r.title||g.title,r.historyRequest&&(g=g.querySelector("[hx-history-elt],[data-hx-history-elt]")||g),r.selectOOB){let d=r.selectOOB.split(",");for(let m=0;m<d.length;m++){let y=d[m].split(":",2),b=y[0].trim();b.indexOf("#")===0&&(b=b.substring(1));let w=y[1]||"true",v=g.querySelector("#"+b);v&&oobSwap(w,v,h,u)}}if(findAndSwapOobElements(g,h,u),forEach(findAll(g,"template"),function(d){d.content&&findAndSwapOobElements(d.content,h,u)&&d.remove()}),r.select){let d=getDocument().createDocumentFragment();forEach(g.querySelectorAll(r.select),function(m){d.appendChild(m)}),g=d}handlePreservedElements(g),swapWithStyle(n.swapStyle,r.contextElement,e,g,h),restorePreservedElements()}if(f.elt&&!bodyContains(f.elt)&&getRawAttribute(f.elt,"id")){let g=document.getElementById(getRawAttribute(f.elt,"id")),d={preventScroll:n.focusScroll!==void 0?!n.focusScroll:!htmx.config.defaultFocusScroll};if(g){if(f.start&&g.setSelectionRange)try{g.setSelectionRange(f.start,f.end)}catch{}g.focus(d)}}e.classList.remove(htmx.config.swappingClass),forEach(h.elts,function(g){g.classList&&g.classList.add(htmx.config.settlingClass),triggerEvent(g,"htmx:afterSwap",r.eventInfo)}),maybeCall(r.afterSwapCallback),n.ignoreTitle||handleTitle(h.title);let p=function(){if(forEach(h.tasks,function(g){g.call()}),forEach(h.elts,function(g){g.classList&&g.classList.remove(htmx.config.settlingClass),triggerEvent(g,"htmx:afterSettle",r.eventInfo)}),r.anchor){let g=asElement(resolveTarget("#"+r.anchor));g&&g.scrollIntoView({block:"start",behavior:"auto"})}updateScrollState(h.elts,n),maybeCall(r.afterSettleCallback),maybeCall(i)};n.settleDelay>0?getWindow().setTimeout(p,n.settleDelay):p()},a=htmx.config.globalViewTransitions;n.hasOwnProperty("transition")&&(a=n.transition);let l=r.contextElement||getDocument();if(a&&triggerEvent(l,"htmx:beforeTransition",r.eventInfo)&&typeof Promise<"u"&&document.startViewTransition){let u=new Promise(function(f,h){i=f,o=h}),c=s;s=function(){document.startViewTransition(function(){return c(),u})}}try{n?.swapDelay&&n.swapDelay>0?getWindow().setTimeout(s,n.swapDelay):s()}catch(u){throw triggerErrorEvent(l,"htmx:swapError",r.eventInfo),maybeCall(o),u}}function handleTriggerHeader(e,t,n){let r=e.getResponseHeader(t);if(r.indexOf("{")===0){let i=parseJSON(r);for(let o in i)if(i.hasOwnProperty(o)){let s=i[o];isRawObject(s)?n=s.target!==void 0?s.target:n:s={value:s},triggerEvent(n,o,s)}}else{let i=r.split(",");for(let o=0;o<i.length;o++)triggerEvent(n,i[o].trim(),[])}}let WHITESPACE=/\s/,WHITESPACE_OR_COMMA=/[\s,]/,SYMBOL_START=/[_$a-zA-Z]/,SYMBOL_CONT=/[_$a-zA-Z0-9]/,STRINGISH_START=['"',"'","/"],NOT_WHITESPACE=/[^\s]/,COMBINED_SELECTOR_START=/[{(]/,COMBINED_SELECTOR_END=/[})]/;function tokenizeString(e){let t=[],n=0;for(;n<e.length;){if(SYMBOL_START.exec(e.charAt(n))){for(var r=n;SYMBOL_CONT.exec(e.charAt(n+1));)n++;t.push(e.substring(r,n+1))}else if(STRINGISH_START.indexOf(e.charAt(n))!==-1){let i=e.charAt(n);var r=n;for(n++;n<e.length&&e.charAt(n)!==i;)e.charAt(n)==="\\"&&n++,n++;t.push(e.substring(r,n+1))}else{let i=e.charAt(n);t.push(i)}n++}return t}function isPossibleRelativeReference(e,t,n){return SYMBOL_START.exec(e.charAt(0))&&e!=="true"&&e!=="false"&&e!=="this"&&e!==n&&t!=="."}function maybeGenerateConditional(e,t,n){if(t[0]==="["){t.shift();let r=1,i=" return (function("+n+"){ return (",o=null;for(;t.length>0;){let s=t[0];if(s==="]"){if(r--,r===0){o===null&&(i=i+"true"),t.shift(),i+=")})";try{let a=maybeEval(e,function(){return Function(i)()},function(){return!0});return a.source=i,a}catch(a){return triggerErrorEvent(getDocument().body,"htmx:syntax:error",{error:a,source:i}),null}}}else s==="["&&r++;isPossibleRelativeReference(s,o,n)?i+="(("+n+"."+s+") ? ("+n+"."+s+") : (window."+s+"))":i=i+s,o=t.shift()}}}function consumeUntil(e,t){let n="";for(;e.length>0&&!t.test(e[0]);)n+=e.shift();return n}function consumeCSSSelector(e){let t;return e.length>0&&COMBINED_SELECTOR_START.test(e[0])?(e.shift(),t=consumeUntil(e,COMBINED_SELECTOR_END).trim(),e.shift()):t=consumeUntil(e,WHITESPACE_OR_COMMA),t}let INPUT_SELECTOR="input, textarea, select";function parseAndCacheTrigger(e,t,n){let r=[],i=tokenizeString(t);do{consumeUntil(i,NOT_WHITESPACE);let a=i.length,l=consumeUntil(i,/[,\[\s]/);if(l!=="")if(l==="every"){let u={trigger:"every"};consumeUntil(i,NOT_WHITESPACE),u.pollInterval=parseInterval(consumeUntil(i,/[,\[\s]/)),consumeUntil(i,NOT_WHITESPACE);var o=maybeGenerateConditional(e,i,"event");o&&(u.eventFilter=o),r.push(u)}else{let u={trigger:l};var o=maybeGenerateConditional(e,i,"event");for(o&&(u.eventFilter=o),consumeUntil(i,NOT_WHITESPACE);i.length>0&&i[0]!==",";){let f=i.shift();if(f==="changed")u.changed=!0;else if(f==="once")u.once=!0;else if(f==="consume")u.consume=!0;else if(f==="delay"&&i[0]===":")i.shift(),u.delay=parseInterval(consumeUntil(i,WHITESPACE_OR_COMMA));else if(f==="from"&&i[0]===":"){if(i.shift(),COMBINED_SELECTOR_START.test(i[0]))var s=consumeCSSSelector(i);else{var s=consumeUntil(i,WHITESPACE_OR_COMMA);if(s==="closest"||s==="find"||s==="next"||s==="previous"){i.shift();let p=consumeCSSSelector(i);p.length>0&&(s+=" "+p)}}u.from=s}else f==="target"&&i[0]===":"?(i.shift(),u.target=consumeCSSSelector(i)):f==="throttle"&&i[0]===":"?(i.shift(),u.throttle=parseInterval(consumeUntil(i,WHITESPACE_OR_COMMA))):f==="queue"&&i[0]===":"?(i.shift(),u.queue=consumeUntil(i,WHITESPACE_OR_COMMA)):f==="root"&&i[0]===":"?(i.shift(),u[f]=consumeCSSSelector(i)):f==="threshold"&&i[0]===":"?(i.shift(),u[f]=consumeUntil(i,WHITESPACE_OR_COMMA)):triggerErrorEvent(e,"htmx:syntax:error",{token:i.shift()});consumeUntil(i,NOT_WHITESPACE)}r.push(u)}i.length===a&&triggerErrorEvent(e,"htmx:syntax:error",{token:i.shift()}),consumeUntil(i,NOT_WHITESPACE)}while(i[0]===","&&i.shift());return n&&(n[t]=r),r}function getTriggerSpecs(e){let t=getAttributeValue(e,"hx-trigger"),n=[];if(t){let r=htmx.config.triggerSpecsCache;n=r&&r[t]||parseAndCacheTrigger(e,t,r)}return n.length>0?n:matches(e,"form")?[{trigger:"submit"}]:matches(e,'input[type="button"], input[type="submit"]')?[{trigger:"click"}]:matches(e,INPUT_SELECTOR)?[{trigger:"change"}]:[{trigger:"click"}]}function cancelPolling(e){getInternalData(e).cancelled=!0}function processPolling(e,t,n){let r=getInternalData(e);r.timeout=getWindow().setTimeout(function(){bodyContains(e)&&r.cancelled!==!0&&(maybeFilterEvent(n,e,makeEvent("hx:poll:trigger",{triggerSpec:n,target:e}))||t(e),processPolling(e,t,n))},n.pollInterval)}function isLocalLink(e){return location.hostname===e.hostname&&getRawAttribute(e,"href")&&getRawAttribute(e,"href").indexOf("#")!==0}function eltIsDisabled(e){return closest(e,htmx.config.disableSelector)}function boostElement(e,t,n){if(e instanceof HTMLAnchorElement&&isLocalLink(e)&&(e.target===""||e.target==="_self")||e.tagName==="FORM"&&String(getRawAttribute(e,"method")).toLowerCase()!=="dialog"){t.boosted=!0;let r,i;if(e.tagName==="A")r="get",i=getRawAttribute(e,"href");else{let o=getRawAttribute(e,"method");r=o?o.toLowerCase():"get",i=getRawAttribute(e,"action"),(i==null||i==="")&&(i=location.href),r==="get"&&i.includes("?")&&(i=i.replace(/\?[^#]+/,""))}n.forEach(function(o){addEventListener(e,function(s,a){let l=asElement(s);if(eltIsDisabled(l)){cleanUpElement(l);return}issueAjaxRequest(r,i,l,a)},t,o,!0)})}}function shouldCancel(e,t){if(e.type==="submit"&&t.tagName==="FORM")return!0;if(e.type==="click"){let n=t.closest('input[type="submit"], button');if(n&&n.form&&n.type==="submit")return!0;let r=t.closest("a"),i=/^#.+/;if(r&&r.href&&!i.test(r.getAttribute("href")))return!0}return!1}function ignoreBoostedAnchorCtrlClick(e,t){return getInternalData(e).boosted&&e instanceof HTMLAnchorElement&&t.type==="click"&&(t.ctrlKey||t.metaKey)}function maybeFilterEvent(e,t,n){let r=e.eventFilter;if(r)try{return r.call(t,n)!==!0}catch(i){let o=r.source;return triggerErrorEvent(getDocument().body,"htmx:eventFilter:error",{error:i,source:o}),!0}return!1}function addEventListener(e,t,n,r,i){let o=getInternalData(e),s;r.from?s=querySelectorAllExt(e,r.from):s=[e],r.changed&&("lastValue"in o||(o.lastValue=new WeakMap),s.forEach(function(a){o.lastValue.has(r)||o.lastValue.set(r,new WeakMap),o.lastValue.get(r).set(a,a.value)})),forEach(s,function(a){let l=function(u){if(!bodyContains(e)){a.removeEventListener(r.trigger,l);return}if(ignoreBoostedAnchorCtrlClick(e,u)||((i||shouldCancel(u,a))&&u.preventDefault(),maybeFilterEvent(r,e,u)))return;let c=getInternalData(u);if(c.triggerSpec=r,c.handledFor==null&&(c.handledFor=[]),c.handledFor.indexOf(e)<0){if(c.handledFor.push(e),r.consume&&u.stopPropagation(),r.target&&u.target&&!matches(asElement(u.target),r.target))return;if(r.once){if(o.triggeredOnce)return;o.triggeredOnce=!0}if(r.changed){let f=u.target,h=f.value,p=o.lastValue.get(r);if(p.has(f)&&p.get(f)===h)return;p.set(f,h)}if(o.delayed&&clearTimeout(o.delayed),o.throttle)return;r.throttle>0?o.throttle||(triggerEvent(e,"htmx:trigger"),t(e,u),o.throttle=getWindow().setTimeout(function(){o.throttle=null},r.throttle)):r.delay>0?o.delayed=getWindow().setTimeout(function(){triggerEvent(e,"htmx:trigger"),t(e,u)},r.delay):(triggerEvent(e,"htmx:trigger"),t(e,u))}};n.listenerInfos==null&&(n.listenerInfos=[]),n.listenerInfos.push({trigger:r.trigger,listener:l,on:a}),a.addEventListener(r.trigger,l)})}let windowIsScrolling=!1,scrollHandler=null;function initScrollHandler(){scrollHandler||(scrollHandler=function(){windowIsScrolling=!0},window.addEventListener("scroll",scrollHandler),window.addEventListener("resize",scrollHandler),setInterval(function(){windowIsScrolling&&(windowIsScrolling=!1,forEach(getDocument().querySelectorAll("[hx-trigger*='revealed'],[data-hx-trigger*='revealed']"),function(e){maybeReveal(e)}))},200))}function maybeReveal(e){!hasAttribute(e,"data-hx-revealed")&&isScrolledIntoView(e)&&(e.setAttribute("data-hx-revealed","true"),getInternalData(e).initHash?triggerEvent(e,"revealed"):e.addEventListener("htmx:afterProcessNode",function(){triggerEvent(e,"revealed")},{once:!0}))}function loadImmediately(e,t,n,r){let i=function(){n.loaded||(n.loaded=!0,triggerEvent(e,"htmx:trigger"),t(e))};r>0?getWindow().setTimeout(i,r):i()}function processVerbs(e,t,n){let r=!1;return forEach(VERBS,function(i){if(hasAttribute(e,"hx-"+i)){let o=getAttributeValue(e,"hx-"+i);r=!0,t.path=o,t.verb=i,n.forEach(function(s){addTriggerHandler(e,s,t,function(a,l){let u=asElement(a);if(eltIsDisabled(u)){cleanUpElement(u);return}issueAjaxRequest(i,o,u,l)})})}}),r}function addTriggerHandler(e,t,n,r){if(t.trigger==="revealed")initScrollHandler(),addEventListener(e,r,n,t),maybeReveal(asElement(e));else if(t.trigger==="intersect"){let i={};t.root&&(i.root=querySelectorExt(e,t.root)),t.threshold&&(i.threshold=parseFloat(t.threshold)),new IntersectionObserver(function(s){for(let a=0;a<s.length;a++)if(s[a].isIntersecting){triggerEvent(e,"intersect");break}},i).observe(asElement(e)),addEventListener(asElement(e),r,n,t)}else!n.firstInitCompleted&&t.trigger==="load"?maybeFilterEvent(t,e,makeEvent("load",{elt:e}))||loadImmediately(asElement(e),r,n,t.delay):t.pollInterval>0?(n.polling=!0,processPolling(asElement(e),r,t)):addEventListener(e,r,n,t)}function shouldProcessHxOn(e){let t=asElement(e);if(!t)return!1;let n=t.attributes;for(let r=0;r<n.length;r++){let i=n[r].name;if(startsWith(i,"hx-on:")||startsWith(i,"data-hx-on:")||startsWith(i,"hx-on-")||startsWith(i,"data-hx-on-"))return!0}return!1}let HX_ON_QUERY=new XPathEvaluator().createExpression('.//*[@*[ starts-with(name(), "hx-on:") or starts-with(name(), "data-hx-on:") or starts-with(name(), "hx-on-") or starts-with(name(), "data-hx-on-") ]]');function processHXOnRoot(e,t){shouldProcessHxOn(e)&&t.push(asElement(e));let n=HX_ON_QUERY.evaluate(e),r=null;for(;r=n.iterateNext();)t.push(asElement(r))}function findHxOnWildcardElements(e){let t=[];if(e instanceof DocumentFragment)for(let n of e.childNodes)processHXOnRoot(n,t);else processHXOnRoot(e,t);return t}function findElementsToProcess(e){if(e.querySelectorAll){let n=", [hx-boost] a, [data-hx-boost] a, a[hx-boost], a[data-hx-boost]",r=[];for(let o in extensions){let s=extensions[o];if(s.getSelectors){var t=s.getSelectors();t&&r.push(t)}}return e.querySelectorAll(VERB_SELECTOR+n+", form, [type='submit'], [hx-ext], [data-hx-ext], [hx-trigger], [data-hx-trigger]"+r.flat().map(o=>", "+o).join(""))}else return[]}function maybeSetLastButtonClicked(e){let t=getTargetButton(e.target),n=getRelatedFormData(e);n&&(n.lastButtonClicked=t)}function maybeUnsetLastButtonClicked(e){let t=getRelatedFormData(e);t&&(t.lastButtonClicked=null)}function getTargetButton(e){return closest(asElement(e),"button, input[type='submit']")}function getRelatedForm(e){return e.form||closest(e,"form")}function getRelatedFormData(e){let t=getTargetButton(e.target);if(!t)return;let n=getRelatedForm(t);if(n)return getInternalData(n)}function initButtonTracking(e){e.addEventListener("click",maybeSetLastButtonClicked),e.addEventListener("focusin",maybeSetLastButtonClicked),e.addEventListener("focusout",maybeUnsetLastButtonClicked)}function addHxOnEventHandler(e,t,n){let r=getInternalData(e);Array.isArray(r.onHandlers)||(r.onHandlers=[]);let i,o=function(s){maybeEval(e,function(){eltIsDisabled(e)||(i||(i=new Function("event",n)),i.call(e,s))})};e.addEventListener(t,o),r.onHandlers.push({event:t,listener:o})}function processHxOnWildcard(e){deInitOnHandlers(e);for(let t=0;t<e.attributes.length;t++){let n=e.attributes[t].name,r=e.attributes[t].value;if(startsWith(n,"hx-on")||startsWith(n,"data-hx-on")){let i=n.indexOf("-on")+3,o=n.slice(i,i+1);if(o==="-"||o===":"){let s=n.slice(i+1);startsWith(s,":")?s="htmx"+s:startsWith(s,"-")?s="htmx:"+s.slice(1):startsWith(s,"htmx-")&&(s="htmx:"+s.slice(5)),addHxOnEventHandler(e,s,r)}}}}function initNode(e){triggerEvent(e,"htmx:beforeProcessNode");let t=getInternalData(e),n=getTriggerSpecs(e);processVerbs(e,t,n)||(getClosestAttributeValue(e,"hx-boost")==="true"?boostElement(e,t,n):hasAttribute(e,"hx-trigger")&&n.forEach(function(i){addTriggerHandler(e,i,t,function(){})})),(e.tagName==="FORM"||getRawAttribute(e,"type")==="submit"&&hasAttribute(e,"form"))&&initButtonTracking(e),t.firstInitCompleted=!0,triggerEvent(e,"htmx:afterProcessNode")}function maybeDeInitAndHash(e){if(!(e instanceof Element))return!1;let t=getInternalData(e),n=attributeHash(e);return t.initHash!==n?(deInitNode(e),t.initHash=n,!0):!1}function processNode(e){if(e=resolveTarget(e),eltIsDisabled(e)){cleanUpElement(e);return}let t=[];maybeDeInitAndHash(e)&&t.push(e),forEach(findElementsToProcess(e),function(n){if(eltIsDisabled(n)){cleanUpElement(n);return}maybeDeInitAndHash(n)&&t.push(n)}),forEach(findHxOnWildcardElements(e),processHxOnWildcard),forEach(t,initNode)}function kebabEventName(e){return e.replace(/([a-z0-9])([A-Z])/g,"$1-$2").toLowerCase()}function makeEvent(e,t){return new CustomEvent(e,{bubbles:!0,cancelable:!0,composed:!0,detail:t})}function triggerErrorEvent(e,t,n){triggerEvent(e,t,mergeObjects({error:t},n))}function ignoreEventForLogging(e){return e==="htmx:afterProcessNode"}function withExtensions(e,t,n){forEach(getExtensions(e,[],n),function(r){try{t(r)}catch(i){logError(i)}})}function logError(e){console.error(e)}function triggerEvent(e,t,n){e=resolveTarget(e),n==null&&(n={}),n.elt=e;let r=makeEvent(t,n);htmx.logger&&!ignoreEventForLogging(t)&&htmx.logger(e,t,n),n.error&&(logError(n.error),triggerEvent(e,"htmx:error",{errorInfo:n}));let i=e.dispatchEvent(r),o=kebabEventName(t);if(i&&o!==t){let s=makeEvent(o,r.detail);i=i&&e.dispatchEvent(s)}return withExtensions(asElement(e),function(s){i=i&&s.onEvent(t,r)!==!1&&!r.defaultPrevented}),i}let currentPathForHistory;function setCurrentPathForHistory(e){currentPathForHistory=e,canAccessLocalStorage()&&sessionStorage.setItem("htmx-current-path-for-history",e)}setCurrentPathForHistory(location.pathname+location.search);function getHistoryElement(){return getDocument().querySelector("[hx-history-elt],[data-hx-history-elt]")||getDocument().body}function saveToHistoryCache(e,t){if(!canAccessLocalStorage())return;let n=cleanInnerHtmlForHistory(t),r=getDocument().title,i=window.scrollY;if(htmx.config.historyCacheSize<=0){sessionStorage.removeItem("htmx-history-cache");return}e=normalizePath(e);let o=parseJSON(sessionStorage.getItem("htmx-history-cache"))||[];for(let a=0;a<o.length;a++)if(o[a].url===e){o.splice(a,1);break}let s={url:e,content:n,title:r,scroll:i};for(triggerEvent(getDocument().body,"htmx:historyItemCreated",{item:s,cache:o}),o.push(s);o.length>htmx.config.historyCacheSize;)o.shift();for(;o.length>0;)try{sessionStorage.setItem("htmx-history-cache",JSON.stringify(o));break}catch(a){triggerErrorEvent(getDocument().body,"htmx:historyCacheError",{cause:a,cache:o}),o.shift()}}function getCachedHistory(e){if(!canAccessLocalStorage())return null;e=normalizePath(e);let t=parseJSON(sessionStorage.getItem("htmx-history-cache"))||[];for(let n=0;n<t.length;n++)if(t[n].url===e)return t[n];return null}function cleanInnerHtmlForHistory(e){let t=htmx.config.requestClass,n=e.cloneNode(!0);return forEach(findAll(n,"."+t),function(r){removeClassFromElement(r,t)}),forEach(findAll(n,"[data-disabled-by-htmx]"),function(r){r.removeAttribute("disabled")}),n.innerHTML}function saveCurrentPageToHistory(){let e=getHistoryElement(),t=currentPathForHistory;canAccessLocalStorage()&&(t=sessionStorage.getItem("htmx-current-path-for-history")),t=t||location.pathname+location.search,getDocument().querySelector('[hx-history="false" i],[data-hx-history="false" i]')||(triggerEvent(getDocument().body,"htmx:beforeHistorySave",{path:t,historyElt:e}),saveToHistoryCache(t,e)),htmx.config.historyEnabled&&history.replaceState({htmx:!0},getDocument().title,location.href)}function pushUrlIntoHistory(e){htmx.config.getCacheBusterParam&&(e=e.replace(/org\.htmx\.cache-buster=[^&]*&?/,""),(endsWith(e,"&")||endsWith(e,"?"))&&(e=e.slice(0,-1))),htmx.config.historyEnabled&&history.pushState({htmx:!0},"",e),setCurrentPathForHistory(e)}function replaceUrlInHistory(e){htmx.config.historyEnabled&&history.replaceState({htmx:!0},"",e),setCurrentPathForHistory(e)}function settleImmediately(e){forEach(e,function(t){t.call(void 0)})}function loadHistoryFromServer(e){let t=new XMLHttpRequest,n={swapStyle:"innerHTML",swapDelay:0,settleDelay:0},r={path:e,xhr:t,historyElt:getHistoryElement(),swapSpec:n};t.open("GET",e,!0),htmx.config.historyRestoreAsHxRequest&&t.setRequestHeader("HX-Request","true"),t.setRequestHeader("HX-History-Restore-Request","true"),t.setRequestHeader("HX-Current-URL",location.href),t.onload=function(){this.status>=200&&this.status<400?(r.response=this.response,triggerEvent(getDocument().body,"htmx:historyCacheMissLoad",r),swap(r.historyElt,r.response,n,{contextElement:r.historyElt,historyRequest:!0}),setCurrentPathForHistory(r.path),triggerEvent(getDocument().body,"htmx:historyRestore",{path:e,cacheMiss:!0,serverResponse:r.response})):triggerErrorEvent(getDocument().body,"htmx:historyCacheMissLoadError",r)},triggerEvent(getDocument().body,"htmx:historyCacheMiss",r)&&t.send()}function restoreHistory(e){saveCurrentPageToHistory(),e=e||location.pathname+location.search;let t=getCachedHistory(e);if(t){let n={swapStyle:"innerHTML",swapDelay:0,settleDelay:0,scroll:t.scroll},r={path:e,item:t,historyElt:getHistoryElement(),swapSpec:n};triggerEvent(getDocument().body,"htmx:historyCacheHit",r)&&(swap(r.historyElt,t.content,n,{contextElement:r.historyElt,title:t.title}),setCurrentPathForHistory(r.path),triggerEvent(getDocument().body,"htmx:historyRestore",r))}else htmx.config.refreshOnHistoryMiss?htmx.location.reload(!0):loadHistoryFromServer(e)}function addRequestIndicatorClasses(e){let t=findAttributeTargets(e,"hx-indicator");return t==null&&(t=[e]),forEach(t,function(n){let r=getInternalData(n);r.requestCount=(r.requestCount||0)+1,n.classList.add.call(n.classList,htmx.config.requestClass)}),t}function disableElements(e){let t=findAttributeTargets(e,"hx-disabled-elt");return t==null&&(t=[]),forEach(t,function(n){let r=getInternalData(n);r.requestCount=(r.requestCount||0)+1,n.setAttribute("disabled",""),n.setAttribute("data-disabled-by-htmx","")}),t}function removeRequestIndicators(e,t){forEach(e.concat(t),function(n){let r=getInternalData(n);r.requestCount=(r.requestCount||1)-1}),forEach(e,function(n){getInternalData(n).requestCount===0&&n.classList.remove.call(n.classList,htmx.config.requestClass)}),forEach(t,function(n){getInternalData(n).requestCount===0&&(n.removeAttribute("disabled"),n.removeAttribute("data-disabled-by-htmx"))})}function haveSeenNode(e,t){for(let n=0;n<e.length;n++)if(e[n].isSameNode(t))return!0;return!1}function shouldInclude(e){let t=e;return t.name===""||t.name==null||t.disabled||closest(t,"fieldset[disabled]")||t.type==="button"||t.type==="submit"||t.tagName==="image"||t.tagName==="reset"||t.tagName==="file"?!1:t.type==="checkbox"||t.type==="radio"?t.checked:!0}function addValueToFormData(e,t,n){e!=null&&t!=null&&(Array.isArray(t)?t.forEach(function(r){n.append(e,r)}):n.append(e,t))}function removeValueFromFormData(e,t,n){if(e!=null&&t!=null){let r=n.getAll(e);Array.isArray(t)?r=r.filter(i=>t.indexOf(i)<0):r=r.filter(i=>i!==t),n.delete(e),forEach(r,i=>n.append(e,i))}}function getValueFromInput(e){return e instanceof HTMLSelectElement&&e.multiple?toArray(e.querySelectorAll("option:checked")).map(function(t){return t.value}):e instanceof HTMLInputElement&&e.files?toArray(e.files):e.value}function processInputValue(e,t,n,r,i){if(!(r==null||haveSeenNode(e,r))){if(e.push(r),shouldInclude(r)){let o=getRawAttribute(r,"name");addValueToFormData(o,getValueFromInput(r),t),i&&validateElement(r,n)}r instanceof HTMLFormElement&&(forEach(r.elements,function(o){e.indexOf(o)>=0?removeValueFromFormData(o.name,getValueFromInput(o),t):e.push(o),i&&validateElement(o,n)}),new FormData(r).forEach(function(o,s){o instanceof File&&o.name===""||addValueToFormData(s,o,t)}))}}function validateElement(e,t){let n=e;n.willValidate&&(triggerEvent(n,"htmx:validation:validate"),n.checkValidity()||(triggerEvent(n,"htmx:validation:failed",{message:n.validationMessage,validity:n.validity})&&!t.length&&htmx.config.reportValidityOfForms&&n.reportValidity(),t.push({elt:n,message:n.validationMessage,validity:n.validity})))}function overrideFormData(e,t){for(let n of t.keys())e.delete(n);return t.forEach(function(n,r){e.append(r,n)}),e}function getInputValues(e,t){let n=[],r=new FormData,i=new FormData,o=[],s=getInternalData(e);s.lastButtonClicked&&!bodyContains(s.lastButtonClicked)&&(s.lastButtonClicked=null);let a=e instanceof HTMLFormElement&&e.noValidate!==!0||getAttributeValue(e,"hx-validate")==="true";if(s.lastButtonClicked&&(a=a&&s.lastButtonClicked.formNoValidate!==!0),t!=="get"&&processInputValue(n,i,o,getRelatedForm(e),a),processInputValue(n,r,o,e,a),s.lastButtonClicked||e.tagName==="BUTTON"||e.tagName==="INPUT"&&getRawAttribute(e,"type")==="submit"){let u=s.lastButtonClicked||e,c=getRawAttribute(u,"name");addValueToFormData(c,u.value,i)}let l=findAttributeTargets(e,"hx-include");return forEach(l,function(u){processInputValue(n,r,o,asElement(u),a),matches(u,"form")||forEach(asParentNode(u).querySelectorAll(INPUT_SELECTOR),function(c){processInputValue(n,r,o,c,a)})}),overrideFormData(r,i),{errors:o,formData:r,values:formDataProxy(r)}}function appendParam(e,t,n){e!==""&&(e+="&"),String(n)==="[object Object]"&&(n=JSON.stringify(n));let r=encodeURIComponent(n);return e+=encodeURIComponent(t)+"="+r,e}function urlEncode(e){e=formDataFromObject(e);let t="";return e.forEach(function(n,r){t=appendParam(t,r,n)}),t}function getHeaders(e,t,n){let r={"HX-Request":"true","HX-Trigger":getRawAttribute(e,"id"),"HX-Trigger-Name":getRawAttribute(e,"name"),"HX-Target":getAttributeValue(t,"id"),"HX-Current-URL":location.href};return getValuesForElement(e,"hx-headers",!1,r),n!==void 0&&(r["HX-Prompt"]=n),getInternalData(e).boosted&&(r["HX-Boosted"]="true"),r}function filterValues(e,t){let n=getClosestAttributeValue(t,"hx-params");if(n){if(n==="none")return new FormData;if(n==="*")return e;if(n.indexOf("not ")===0)return forEach(n.slice(4).split(","),function(r){r=r.trim(),e.delete(r)}),e;{let r=new FormData;return forEach(n.split(","),function(i){i=i.trim(),e.has(i)&&e.getAll(i).forEach(function(o){r.append(i,o)})}),r}}else return e}function isAnchorLink(e){return!!getRawAttribute(e,"href")&&getRawAttribute(e,"href").indexOf("#")>=0}function getSwapSpecification(e,t){let n=t||getClosestAttributeValue(e,"hx-swap"),r={swapStyle:getInternalData(e).boosted?"innerHTML":htmx.config.defaultSwapStyle,swapDelay:htmx.config.defaultSwapDelay,settleDelay:htmx.config.defaultSettleDelay};if(htmx.config.scrollIntoViewOnBoost&&getInternalData(e).boosted&&!isAnchorLink(e)&&(r.show="top"),n){let s=splitOnWhitespace(n);if(s.length>0)for(let a=0;a<s.length;a++){let l=s[a];if(l.indexOf("swap:")===0)r.swapDelay=parseInterval(l.slice(5));else if(l.indexOf("settle:")===0)r.settleDelay=parseInterval(l.slice(7));else if(l.indexOf("transition:")===0)r.transition=l.slice(11)==="true";else if(l.indexOf("ignoreTitle:")===0)r.ignoreTitle=l.slice(12)==="true";else if(l.indexOf("scroll:")===0){var i=l.slice(7).split(":");let c=i.pop();var o=i.length>0?i.join(":"):null;r.scroll=c,r.scrollTarget=o}else if(l.indexOf("show:")===0){var i=l.slice(5).split(":");let f=i.pop();var o=i.length>0?i.join(":"):null;r.show=f,r.showTarget=o}else if(l.indexOf("focus-scroll:")===0){let u=l.slice(13);r.focusScroll=u=="true"}else a==0?r.swapStyle=l:logError("Unknown modifier in hx-swap: "+l)}}return r}function usesFormData(e){return getClosestAttributeValue(e,"hx-encoding")==="multipart/form-data"||matches(e,"form")&&getRawAttribute(e,"enctype")==="multipart/form-data"}function encodeParamsForBody(e,t,n){let r=null;return withExtensions(t,function(i){r==null&&(r=i.encodeParameters(e,n,t))}),r??(usesFormData(t)?overrideFormData(new FormData,formDataFromObject(n)):urlEncode(n))}function makeSettleInfo(e){return{tasks:[],elts:[e]}}function updateScrollState(e,t){let n=e[0],r=e[e.length-1];if(t.scroll){var i=null;t.scrollTarget&&(i=asElement(querySelectorExt(n,t.scrollTarget))),t.scroll==="top"&&(n||i)&&(i=i||n,i.scrollTop=0),t.scroll==="bottom"&&(r||i)&&(i=i||r,i.scrollTop=i.scrollHeight),typeof t.scroll=="number"&&getWindow().setTimeout(function(){window.scrollTo(0,t.scroll)},0)}if(t.show){var i=null;if(t.showTarget){let s=t.showTarget;t.showTarget==="window"&&(s="body"),i=asElement(querySelectorExt(n,s))}t.show==="top"&&(n||i)&&(i=i||n,i.scrollIntoView({block:"start",behavior:htmx.config.scrollBehavior})),t.show==="bottom"&&(r||i)&&(i=i||r,i.scrollIntoView({block:"end",behavior:htmx.config.scrollBehavior}))}}function getValuesForElement(e,t,n,r,i){if(r==null&&(r={}),e==null)return r;let o=getAttributeValue(e,t);if(o){let s=o.trim(),a=n;if(s==="unset")return null;s.indexOf("javascript:")===0?(s=s.slice(11),a=!0):s.indexOf("js:")===0&&(s=s.slice(3),a=!0),s.indexOf("{")!==0&&(s="{"+s+"}");let l;a?l=maybeEval(e,function(){return i?Function("event","return ("+s+")").call(e,i):Function("return ("+s+")").call(e)},{}):l=parseJSON(s);for(let u in l)l.hasOwnProperty(u)&&r[u]==null&&(r[u]=l[u])}return getValuesForElement(asElement(parentElt(e)),t,n,r,i)}function maybeEval(e,t,n){return htmx.config.allowEval?t():(triggerErrorEvent(e,"htmx:evalDisallowedError"),n)}function getHXVarsForElement(e,t,n){return getValuesForElement(e,"hx-vars",!0,n,t)}function getHXValsForElement(e,t,n){return getValuesForElement(e,"hx-vals",!1,n,t)}function getExpressionVars(e,t){return mergeObjects(getHXVarsForElement(e,t),getHXValsForElement(e,t))}function safelySetHeaderValue(e,t,n){if(n!==null)try{e.setRequestHeader(t,n)}catch{e.setRequestHeader(t,encodeURIComponent(n)),e.setRequestHeader(t+"-URI-AutoEncoded","true")}}function getPathFromResponse(e){if(e.responseURL)try{let t=new URL(e.responseURL);return t.pathname+t.search}catch{triggerErrorEvent(getDocument().body,"htmx:badResponseUrl",{url:e.responseURL})}}function hasHeader(e,t){return t.test(e.getAllResponseHeaders())}function ajaxHelper(e,t,n){if(e=e.toLowerCase(),n){if(n instanceof Element||typeof n=="string")return issueAjaxRequest(e,t,null,null,{targetOverride:resolveTarget(n)||DUMMY_ELT,returnPromise:!0});{let r=resolveTarget(n.target);return(n.target&&!r||n.source&&!r&&!resolveTarget(n.source))&&(r=DUMMY_ELT),issueAjaxRequest(e,t,resolveTarget(n.source),n.event,{handler:n.handler,headers:n.headers,values:n.values,targetOverride:r,swapOverride:n.swap,select:n.select,returnPromise:!0,push:n.push,replace:n.replace,selectOOB:n.selectOOB})}}else return issueAjaxRequest(e,t,null,null,{returnPromise:!0})}function hierarchyForElt(e){let t=[];for(;e;)t.push(e),e=e.parentElement;return t}function verifyPath(e,t,n){let r=new URL(t,location.protocol!=="about:"?location.href:window.origin),o=(location.protocol!=="about:"?location.origin:window.origin)===r.origin;return htmx.config.selfRequestsOnly&&!o?!1:triggerEvent(e,"htmx:validateUrl",mergeObjects({url:r,sameHost:o},n))}function formDataFromObject(e){if(e instanceof FormData)return e;let t=new FormData;for(let n in e)e.hasOwnProperty(n)&&(e[n]&&typeof e[n].forEach=="function"?e[n].forEach(function(r){t.append(n,r)}):typeof e[n]=="object"&&!(e[n]instanceof Blob)?t.append(n,JSON.stringify(e[n])):t.append(n,e[n]));return t}function formDataArrayProxy(e,t,n){return new Proxy(n,{get:function(r,i){return typeof i=="number"?r[i]:i==="length"?r.length:i==="push"?function(o){r.push(o),e.append(t,o)}:typeof r[i]=="function"?function(){r[i].apply(r,arguments),e.delete(t),r.forEach(function(o){e.append(t,o)})}:r[i]&&r[i].length===1?r[i][0]:r[i]},set:function(r,i,o){return r[i]=o,e.delete(t),r.forEach(function(s){e.append(t,s)}),!0}})}function formDataProxy(e){return new Proxy(e,{get:function(t,n){if(typeof n=="symbol"){let i=Reflect.get(t,n);return typeof i=="function"?function(){return i.apply(e,arguments)}:i}if(n==="toJSON")return()=>Object.fromEntries(e);if(n in t&&typeof t[n]=="function")return function(){return e[n].apply(e,arguments)};let r=e.getAll(n);if(r.length!==0)return r.length===1?r[0]:formDataArrayProxy(t,n,r)},set:function(t,n,r){return typeof n!="string"?!1:(t.delete(n),r&&typeof r.forEach=="function"?r.forEach(function(i){t.append(n,i)}):typeof r=="object"&&!(r instanceof Blob)?t.append(n,JSON.stringify(r)):t.append(n,r),!0)},deleteProperty:function(t,n){return typeof n=="string"&&t.delete(n),!0},ownKeys:function(t){return Reflect.ownKeys(Object.fromEntries(t))},getOwnPropertyDescriptor:function(t,n){return Reflect.getOwnPropertyDescriptor(Object.fromEntries(t),n)}})}function issueAjaxRequest(e,t,n,r,i,o){let s=null,a=null;if(i=i??{},i.returnPromise&&typeof Promise<"u")var l=new Promise(function(E,S){s=E,a=S});n==null&&(n=getDocument().body);let u=i.handler||handleAjaxResponse,c=i.select||null;if(!bodyContains(n))return maybeCall(s),l;let f=i.targetOverride||asElement(getTarget(n));if(f==null||f==DUMMY_ELT)return triggerErrorEvent(n,"htmx:targetError",{target:getClosestAttributeValue(n,"hx-target")}),maybeCall(a),l;let h=getInternalData(n),p=h.lastButtonClicked;if(p){let E=getRawAttribute(p,"formaction");E!=null&&(t=E);let S=getRawAttribute(p,"formmethod");if(S!=null)if(VERBS.includes(S.toLowerCase()))e=S;else return maybeCall(s),l}let g=getClosestAttributeValue(n,"hx-confirm");if(o===void 0&&triggerEvent(n,"htmx:confirm",{target:f,elt:n,path:t,verb:e,triggeringEvent:r,etc:i,issueRequest:function(M){return issueAjaxRequest(e,t,n,r,i,!!M)},question:g})===!1)return maybeCall(s),l;let d=n,m=getClosestAttributeValue(n,"hx-sync"),y=null,b=!1;if(m){let E=m.split(":"),S=E[0].trim();if(S==="this"?d=findThisElement(n,"hx-sync"):d=asElement(querySelectorExt(n,S)),m=(E[1]||"drop").trim(),h=getInternalData(d),m==="drop"&&h.xhr&&h.abortable!==!0)return maybeCall(s),l;if(m==="abort"){if(h.xhr)return maybeCall(s),l;b=!0}else m==="replace"?triggerEvent(d,"htmx:abort"):m.indexOf("queue")===0&&(y=(m.split(" ")[1]||"last").trim())}if(h.xhr)if(h.abortable)triggerEvent(d,"htmx:abort");else{if(y==null){if(r){let E=getInternalData(r);E&&E.triggerSpec&&E.triggerSpec.queue&&(y=E.triggerSpec.queue)}y==null&&(y="last")}return h.queuedRequests==null&&(h.queuedRequests=[]),y==="first"&&h.queuedRequests.length===0?h.queuedRequests.push(function(){issueAjaxRequest(e,t,n,r,i)}):y==="all"?h.queuedRequests.push(function(){issueAjaxRequest(e,t,n,r,i)}):y==="last"&&(h.queuedRequests=[],h.queuedRequests.push(function(){issueAjaxRequest(e,t,n,r,i)})),maybeCall(s),l}let w=new XMLHttpRequest;h.xhr=w,h.abortable=b;let v=function(){h.xhr=null,h.abortable=!1,h.queuedRequests!=null&&h.queuedRequests.length>0&&h.queuedRequests.shift()()},Mt=getClosestAttributeValue(n,"hx-prompt");if(Mt){var Ve=prompt(Mt);if(Ve===null||!triggerEvent(n,"htmx:prompt",{prompt:Ve,target:f}))return maybeCall(s),v(),l}if(g&&!o&&!confirm(g))return maybeCall(s),v(),l;let F=getHeaders(n,f,Ve);e!=="get"&&!usesFormData(n)&&(F["Content-Type"]="application/x-www-form-urlencoded"),i.headers&&(F=mergeObjects(F,i.headers));let Lt=getInputValues(n,e),ye=Lt.errors,Nt=Lt.formData;i.values&&overrideFormData(Nt,formDataFromObject(i.values));let gr=formDataFromObject(getExpressionVars(n,r)),je=overrideFormData(Nt,gr),k=filterValues(je,n);htmx.config.getCacheBusterParam&&e==="get"&&k.set("org.htmx.cache-buster",getRawAttribute(f,"id")||"true"),(t==null||t==="")&&(t=location.href);let ke=getValuesForElement(n,"hx-request"),Ft=getInternalData(n).boosted,Ee=htmx.config.methodsThatUseUrlParams.indexOf(e)>=0,O={boosted:Ft,useUrlParams:Ee,formData:k,parameters:formDataProxy(k),unfilteredFormData:je,unfilteredParameters:formDataProxy(je),headers:F,elt:n,target:f,verb:e,errors:ye,withCredentials:i.credentials||ke.credentials||htmx.config.withCredentials,timeout:i.timeout||ke.timeout||htmx.config.timeout,path:t,triggeringEvent:r};if(!triggerEvent(n,"htmx:configRequest",O))return maybeCall(s),v(),l;if(t=O.path,e=O.verb,F=O.headers,k=formDataFromObject(O.parameters),ye=O.errors,Ee=O.useUrlParams,ye&&ye.length>0)return triggerEvent(n,"htmx:validation:halted",O),maybeCall(s),v(),l;let qt=t.split("#"),mr=qt[0],Ue=qt[1],P=t;if(Ee&&(P=mr,!k.keys().next().done&&(P.indexOf("?")<0?P+="?":P+="&",P+=urlEncode(k),Ue&&(P+="#"+Ue))),!verifyPath(n,P,O))return triggerErrorEvent(n,"htmx:invalidPath",O),maybeCall(a),v(),l;if(w.open(e.toUpperCase(),P,!0),w.overrideMimeType("text/html"),w.withCredentials=O.withCredentials,w.timeout=O.timeout,!ke.noHeaders){for(let E in F)if(F.hasOwnProperty(E)){let S=F[E];safelySetHeaderValue(w,E,S)}}let C={xhr:w,target:f,requestConfig:O,etc:i,boosted:Ft,select:c,pathInfo:{requestPath:t,finalRequestPath:P,responsePath:null,anchor:Ue}};if(w.onload=function(){try{let E=hierarchyForElt(n);if(C.pathInfo.responsePath=getPathFromResponse(w),u(n,C),C.keepIndicators!==!0&&removeRequestIndicators(xe,be),triggerEvent(n,"htmx:afterRequest",C),triggerEvent(n,"htmx:afterOnLoad",C),!bodyContains(n)){let S=null;for(;E.length>0&&S==null;){let M=E.shift();bodyContains(M)&&(S=M)}S&&(triggerEvent(S,"htmx:afterRequest",C),triggerEvent(S,"htmx:afterOnLoad",C))}maybeCall(s)}catch(E){throw triggerErrorEvent(n,"htmx:onLoadError",mergeObjects({error:E},C)),E}finally{v()}},w.onerror=function(){removeRequestIndicators(xe,be),triggerErrorEvent(n,"htmx:afterRequest",C),triggerErrorEvent(n,"htmx:sendError",C),maybeCall(a),v()},w.onabort=function(){removeRequestIndicators(xe,be),triggerErrorEvent(n,"htmx:afterRequest",C),triggerErrorEvent(n,"htmx:sendAbort",C),maybeCall(a),v()},w.ontimeout=function(){removeRequestIndicators(xe,be),triggerErrorEvent(n,"htmx:afterRequest",C),triggerErrorEvent(n,"htmx:timeout",C),maybeCall(a),v()},!triggerEvent(n,"htmx:beforeRequest",C))return maybeCall(s),v(),l;var xe=addRequestIndicatorClasses(n),be=disableElements(n);forEach(["loadstart","loadend","progress","abort"],function(E){forEach([w,w.upload],function(S){S.addEventListener(E,function(M){triggerEvent(n,"htmx:xhr:"+E,{lengthComputable:M.lengthComputable,loaded:M.loaded,total:M.total})})})}),triggerEvent(n,"htmx:beforeSend",C);let pr=Ee?null:encodeParamsForBody(w,n,k);return w.send(pr),l}function determineHistoryUpdates(e,t){let n=t.xhr,r=null,i=null;if(hasHeader(n,/HX-Push:/i)?(r=n.getResponseHeader("HX-Push"),i="push"):hasHeader(n,/HX-Push-Url:/i)?(r=n.getResponseHeader("HX-Push-Url"),i="push"):hasHeader(n,/HX-Replace-Url:/i)&&(r=n.getResponseHeader("HX-Replace-Url"),i="replace"),r)return r==="false"?{}:{type:i,path:r};let o=t.pathInfo.finalRequestPath,s=t.pathInfo.responsePath,a=t.etc.push||getClosestAttributeValue(e,"hx-push-url"),l=t.etc.replace||getClosestAttributeValue(e,"hx-replace-url"),u=getInternalData(e).boosted,c=null,f=null;return a?(c="push",f=a):l?(c="replace",f=l):u&&(c="push",f=s||o),f?f==="false"?{}:(f==="true"&&(f=s||o),t.pathInfo.anchor&&f.indexOf("#")===-1&&(f=f+"#"+t.pathInfo.anchor),{type:c,path:f}):{}}function codeMatches(e,t){var n=new RegExp(e.code);return n.test(t.toString(10))}function resolveResponseHandling(e){for(var t=0;t<htmx.config.responseHandling.length;t++){var n=htmx.config.responseHandling[t];if(codeMatches(n,e.status))return n}return{swap:!1}}function handleTitle(e){if(e){let t=find("title");t?t.textContent=e:window.document.title=e}}function resolveRetarget(e,t){if(t==="this")return e;let n=asElement(querySelectorExt(e,t));if(n==null)throw triggerErrorEvent(e,"htmx:targetError",{target:t}),new Error(`Invalid re-target ${t}`);return n}function handleAjaxResponse(e,t){let n=t.xhr,r=t.target,i=t.etc,o=t.select;if(!triggerEvent(e,"htmx:beforeOnLoad",t))return;if(hasHeader(n,/HX-Trigger:/i)&&handleTriggerHeader(n,"HX-Trigger",e),hasHeader(n,/HX-Location:/i)){let b=n.getResponseHeader("HX-Location");var s={};b.indexOf("{")===0&&(s=parseJSON(b),b=s.path,delete s.path),s.push=s.push||"true",ajaxHelper("get",b,s);return}let a=hasHeader(n,/HX-Refresh:/i)&&n.getResponseHeader("HX-Refresh")==="true";if(hasHeader(n,/HX-Redirect:/i)){t.keepIndicators=!0,htmx.location.href=n.getResponseHeader("HX-Redirect"),a&&htmx.location.reload();return}if(a){t.keepIndicators=!0,htmx.location.reload();return}let l=determineHistoryUpdates(e,t),u=resolveResponseHandling(n),c=u.swap,f=!!u.error,h=htmx.config.ignoreTitle||u.ignoreTitle,p=u.select;u.target&&(t.target=resolveRetarget(e,u.target));var g=i.swapOverride;g==null&&u.swapOverride&&(g=u.swapOverride),hasHeader(n,/HX-Retarget:/i)&&(t.target=resolveRetarget(e,n.getResponseHeader("HX-Retarget"))),hasHeader(n,/HX-Reswap:/i)&&(g=n.getResponseHeader("HX-Reswap"));var d=n.response,m=mergeObjects({shouldSwap:c,serverResponse:d,isError:f,ignoreTitle:h,selectOverride:p,swapOverride:g},t);if(!(u.event&&!triggerEvent(r,u.event,m))&&triggerEvent(r,"htmx:beforeSwap",m)){if(r=m.target,d=m.serverResponse,f=m.isError,h=m.ignoreTitle,p=m.selectOverride,g=m.swapOverride,t.target=r,t.failed=f,t.successful=!f,m.shouldSwap){n.status===286&&cancelPolling(e),withExtensions(e,function(v){d=v.transformResponse(d,n,e)}),l.type&&saveCurrentPageToHistory();var y=getSwapSpecification(e,g);y.hasOwnProperty("ignoreTitle")||(y.ignoreTitle=h),r.classList.add(htmx.config.swappingClass),o&&(p=o),hasHeader(n,/HX-Reselect:/i)&&(p=n.getResponseHeader("HX-Reselect"));let b=i.selectOOB||getClosestAttributeValue(e,"hx-select-oob"),w=getClosestAttributeValue(e,"hx-select");swap(r,d,y,{select:p==="unset"?null:p||w,selectOOB:b,eventInfo:t,anchor:t.pathInfo.anchor,contextElement:e,afterSwapCallback:function(){if(hasHeader(n,/HX-Trigger-After-Swap:/i)){let v=e;bodyContains(e)||(v=getDocument().body),handleTriggerHeader(n,"HX-Trigger-After-Swap",v)}},afterSettleCallback:function(){if(hasHeader(n,/HX-Trigger-After-Settle:/i)){let v=e;bodyContains(e)||(v=getDocument().body),handleTriggerHeader(n,"HX-Trigger-After-Settle",v)}},beforeSwapCallback:function(){l.type&&(triggerEvent(getDocument().body,"htmx:beforeHistoryUpdate",mergeObjects({history:l},t)),l.type==="push"?(pushUrlIntoHistory(l.path),triggerEvent(getDocument().body,"htmx:pushedIntoHistory",{path:l.path})):(replaceUrlInHistory(l.path),triggerEvent(getDocument().body,"htmx:replacedInHistory",{path:l.path})))}})}f&&triggerErrorEvent(e,"htmx:responseError",mergeObjects({error:"Response Status Error Code "+n.status+" from "+t.pathInfo.requestPath},t))}}let extensions={};function extensionBase(){return{init:function(e){return null},getSelectors:function(){return null},onEvent:function(e,t){return!0},transformResponse:function(e,t,n){return e},isInlineSwap:function(e){return!1},handleSwap:function(e,t,n,r){return!1},encodeParameters:function(e,t,n){return null}}}function defineExtension(e,t){t.init&&t.init(internalAPI),extensions[e]=mergeObjects(extensionBase(),t)}function removeExtension(e){delete extensions[e]}function getExtensions(e,t,n){if(t==null&&(t=[]),e==null)return t;n==null&&(n=[]);let r=getAttributeValue(e,"hx-ext");return r&&forEach(r.split(","),function(i){if(i=i.replace(/ /g,""),i.slice(0,7)=="ignore:"){n.push(i.slice(7));return}if(n.indexOf(i)<0){let o=extensions[i];o&&t.indexOf(o)<0&&t.push(o)}}),getExtensions(asElement(parentElt(e)),t,n)}var isReady=!1;getDocument().addEventListener("DOMContentLoaded",function(){isReady=!0});function ready(e){isReady||getDocument().readyState==="complete"?e():getDocument().addEventListener("DOMContentLoaded",e)}function insertIndicatorStyles(){if(htmx.config.includeIndicatorStyles!==!1){let e=htmx.config.inlineStyleNonce?` nonce="${htmx.config.inlineStyleNonce}"`:"",t=htmx.config.indicatorClass,n=htmx.config.requestClass;getDocument().head.insertAdjacentHTML("beforeend",`<style${e}>.${t}{opacity:0;visibility: hidden} .${n} .${t}, .${n}.${t}{opacity:1;visibility: visible;transition: opacity 200ms ease-in}</style>`)}}function getMetaConfig(){let e=getDocument().querySelector('meta[name="htmx-config"]');return e?parseJSON(e.content):null}function mergeMetaConfig(){let e=getMetaConfig();e&&(htmx.config=mergeObjects(htmx.config,e))}return ready(function(){mergeMetaConfig(),insertIndicatorStyles();let e=getDocument().body;processNode(e);let t=getDocument().querySelectorAll("[hx-trigger='restored'],[data-hx-trigger='restored']");e.addEventListener("htmx:abort",function(r){let i=r.detail.elt||r.target,o=getInternalData(i);o&&o.xhr&&o.xhr.abort()});let n=window.onpopstate?window.onpopstate.bind(window):null;window.onpopstate=function(r){r.state&&r.state.htmx?(restoreHistory(),forEach(t,function(i){triggerEvent(i,"htmx:restored",{document:getDocument(),triggerEvent})})):n&&n(r)},getWindow().setTimeout(function(){triggerEvent(e,"htmx:load",{}),e=null},0)}),htmx})(),Bt=yr;var Ke=!1,Je=!1,W=[],Ye=-1,ct=!1;function Er(e){vr(e)}function xr(){ct=!0}function br(){ct=!1,Qt()}function vr(e){W.includes(e)||W.push(e),Qt()}function _r(e){let t=W.indexOf(e);t!==-1&&t>Ye&&W.splice(t,1)}function Qt(){if(!Je&&!Ke){if(ct)return;Ke=!0,queueMicrotask(wr)}}function wr(){Ke=!1,Je=!0;for(let e=0;e<W.length;e++)W[e](),Ye=e;W.length=0,Ye=-1,Je=!1}var ne,Q,re,Zt,Ge=!0;function Ar(e){Ge=!1,e(),Ge=!0}function Sr(e){ne=e.reactive,re=e.release,Q=t=>e.effect(t,{scheduler:n=>{Ge?Er(n):n()}}),Zt=e.raw}function Vt(e){Q=e}function Cr(e){let t=()=>{};return[r=>{let i=Q(r);return e._x_effects||(e._x_effects=new Set,e._x_runEffects=()=>{e._x_effects.forEach(o=>o())}),e._x_effects.add(i),t=()=>{i!==void 0&&(e._x_effects.delete(i),re(i))},i},()=>{t()}]}function en(e,t){let n=!0,r,i,o=Q(()=>{let s=e(),a=JSON.stringify(s);if(!n&&(typeof s=="object"||s!==r)){let l=typeof r=="object"?JSON.parse(i):r;queueMicrotask(()=>{t(s,l)})}r=s,i=a,n=!1});return()=>re(o)}async function Tr(e){xr();try{await e(),await Promise.resolve()}finally{br()}}var tn=[],nn=[],rn=[];function Or(e){rn.push(e)}function ft(e,t){typeof t=="function"?(e._x_cleanups||(e._x_cleanups=[]),e._x_cleanups.push(t)):(t=e,nn.push(t))}function on(e){tn.push(e)}function sn(e,t,n){e._x_attributeCleanups||(e._x_attributeCleanups={}),e._x_attributeCleanups[t]||(e._x_attributeCleanups[t]=[]),e._x_attributeCleanups[t].push(n)}function an(e,t){e._x_attributeCleanups&&Object.entries(e._x_attributeCleanups).forEach(([n,r])=>{(t===void 0||t.includes(n))&&(r.forEach(i=>i()),delete e._x_attributeCleanups[n])})}function Rr(e){for(e._x_effects?.forEach(_r);e._x_cleanups?.length;)e._x_cleanups.pop()()}var dt=new MutationObserver(pt),ht=!1;function gt(){dt.observe(document,{subtree:!0,childList:!0,attributes:!0,attributeOldValue:!0}),ht=!0}function ln(){Hr(),dt.disconnect(),ht=!1}var ae=[];function Hr(){let e=dt.takeRecords();ae.push(()=>e.length>0&&pt(e));let t=ae.length;queueMicrotask(()=>{if(ae.length===t)for(;ae.length>0;)ae.shift()()})}function _(e){if(!ht)return e();ln();let t=e();return gt(),t}var mt=!1,Oe=[];function Ir(){mt=!0}function Dr(){mt=!1,pt(Oe),Oe=[]}function pt(e){if(mt){Oe=Oe.concat(e);return}let t=[],n=new Set,r=new Map,i=new Map;for(let o=0;o<e.length;o++)if(!e[o].target._x_ignoreMutationObserver&&(e[o].type==="childList"&&(e[o].removedNodes.forEach(s=>{s.nodeType===1&&s._x_marker&&n.add(s)}),e[o].addedNodes.forEach(s=>{if(s.nodeType===1){if(n.has(s)){n.delete(s);return}s._x_marker||t.push(s)}})),e[o].type==="attributes")){let s=e[o].target,a=e[o].attributeName,l=e[o].oldValue,u=()=>{r.has(s)||r.set(s,[]),r.get(s).push({name:a,value:s.getAttribute(a)})},c=()=>{i.has(s)||i.set(s,[]),i.get(s).push(a)};s.hasAttribute(a)&&l===null?u():s.hasAttribute(a)?(c(),u()):c()}i.forEach((o,s)=>{an(s,o)}),r.forEach((o,s)=>{tn.forEach(a=>a(s,o))});for(let o of n)t.some(s=>s.contains(o))||nn.forEach(s=>s(o));for(let o of t)o.isConnected&&rn.forEach(s=>s(o));t=null,n=null,r=null,i=null}function un(e){return Y(J(e))}function pe(e,t,n){return e._x_dataStack=[t,...J(n||e)],()=>{e._x_dataStack=e._x_dataStack.filter(r=>r!==t)}}function J(e){return e._x_dataStack?e._x_dataStack:typeof ShadowRoot=="function"&&e instanceof ShadowRoot?J(e.host):e.parentNode?J(e.parentNode):[]}function Y(e){return new Proxy({objects:e},Pr)}function cn(e,t){return e===null||e===Object.prototype?null:Object.prototype.hasOwnProperty.call(e,t)?e:cn(Object.getPrototypeOf(e),t)}var Pr={ownKeys({objects:e}){return Array.from(new Set(e.flatMap(t=>Object.keys(t))))},has({objects:e},t){return t==Symbol.unscopables?!1:e.some(n=>Object.prototype.hasOwnProperty.call(n,t)||Reflect.has(n,t))},get({objects:e},t,n){return t=="toJSON"?Mr:Reflect.get(e.find(r=>Reflect.has(r,t))||{},t,n)},set({objects:e},t,n,r){let i;for(let s of e)if(i=cn(s,t),i)break;i||(i=e[e.length-1]);let o=Object.getOwnPropertyDescriptor(i,t);return o?.set&&o?.get?o.set.call(r,n)||!0:Reflect.set(i,t,n)}};function Mr(){return Reflect.ownKeys(this).reduce((t,n)=>(t[n]=Reflect.get(this,n),t),{})}function yt(e){let t=r=>typeof r=="object"&&!Array.isArray(r)&&r!==null,n=(r,i="")=>{Object.entries(Object.getOwnPropertyDescriptors(r)).forEach(([o,{value:s,enumerable:a}])=>{if(a===!1||s===void 0||typeof s=="object"&&s!==null&&s.__v_skip)return;let l=i===""?o:`${i}.${o}`;typeof s=="object"&&s!==null&&s._x_interceptor?r[o]=s.initialize(e,l,o):t(s)&&s!==r&&!(s instanceof Element)&&n(s,l)})};return n(e)}function fn(e,t=()=>{}){let n={initialValue:void 0,_x_interceptor:!0,initialize(r,i,o){return e(this.initialValue,()=>Lr(r,i),s=>Qe(r,i,s),i,o)}};return t(n),r=>{if(typeof r=="object"&&r!==null&&r._x_interceptor){let i=n.initialize.bind(n);n.initialize=(o,s,a)=>{let l=r.initialize(o,s,a);return n.initialValue=l,i(o,s,a)}}else n.initialValue=r;return n}}function Lr(e,t){return t.split(".").reduce((n,r)=>n[r],e)}function Qe(e,t,n){if(typeof t=="string"&&(t=t.split(".")),t.length===1)e[t[0]]=n;else{if(t.length===0)throw error;return e[t[0]]||(e[t[0]]={}),Qe(e[t[0]],t.slice(1),n)}}var dn={};function H(e,t){dn[e]=t}function he(e,t){let n=Nr(t);return Object.entries(dn).forEach(([r,i])=>{Object.defineProperty(e,`$${r}`,{get(){return i(t,n)},enumerable:!1})}),e}function Nr(e){let[t,n]=xn(e),r={interceptor:fn,...t};return ft(e,n),r}function Fr(e,t,n,...r){try{return n(...r)}catch(i){ge(i,e,t)}}function ge(...e){return hn(...e)}var hn=Br;function qr(e){hn=e}function Br(e,t,n=void 0){e=Object.assign(e??{message:"No error message given."},{el:t,expression:n}),console.warn(`Alpine Expression Error: ${e.message}
+(() => {
+  // node_modules/htmx.org/dist/htmx.esm.js
+  var htmx2 = (function() {
+    "use strict";
+    const htmx = {
+      // Tsc madness here, assigning the functions directly results in an invalid TypeScript output, but reassigning is fine
+      /* Event processing */
+      /** @type {typeof onLoadHelper} */
+      onLoad: null,
+      /** @type {typeof processNode} */
+      process: null,
+      /** @type {typeof addEventListenerImpl} */
+      on: null,
+      /** @type {typeof removeEventListenerImpl} */
+      off: null,
+      /** @type {typeof triggerEvent} */
+      trigger: null,
+      /** @type {typeof ajaxHelper} */
+      ajax: null,
+      /* DOM querying helpers */
+      /** @type {typeof find} */
+      find: null,
+      /** @type {typeof findAll} */
+      findAll: null,
+      /** @type {typeof closest} */
+      closest: null,
+      /**
+       * Returns the input values that would resolve for a given element via the htmx value resolution mechanism
+       *
+       * @see https://htmx.org/api/#values
+       *
+       * @param {Element} elt the element to resolve values on
+       * @param {HttpVerb} type the request type (e.g. **get** or **post**) non-GET's will include the enclosing form of the element. Defaults to **post**
+       * @returns {Object}
+       */
+      values: function(elt, type) {
+        const inputValues = getInputValues(elt, type || "post");
+        return inputValues.values;
+      },
+      /* DOM manipulation helpers */
+      /** @type {typeof removeElement} */
+      remove: null,
+      /** @type {typeof addClassToElement} */
+      addClass: null,
+      /** @type {typeof removeClassFromElement} */
+      removeClass: null,
+      /** @type {typeof toggleClassOnElement} */
+      toggleClass: null,
+      /** @type {typeof takeClassForElement} */
+      takeClass: null,
+      /** @type {typeof swap} */
+      swap: null,
+      /* Extension entrypoints */
+      /** @type {typeof defineExtension} */
+      defineExtension: null,
+      /** @type {typeof removeExtension} */
+      removeExtension: null,
+      /* Debugging */
+      /** @type {typeof logAll} */
+      logAll: null,
+      /** @type {typeof logNone} */
+      logNone: null,
+      /* Debugging */
+      /**
+       * The logger htmx uses to log with
+       *
+       * @see https://htmx.org/api/#logger
+       */
+      logger: null,
+      /**
+       * A property holding the configuration htmx uses at runtime.
+       *
+       * Note that using a [meta tag](https://htmx.org/docs/#config) is the preferred mechanism for setting these properties.
+       *
+       * @see https://htmx.org/api/#config
+       */
+      config: {
+        /**
+         * Whether to use history.
+         * @type boolean
+         * @default true
+         */
+        historyEnabled: true,
+        /**
+         * The number of pages to keep in **sessionStorage** for history support.
+         * @type number
+         * @default 10
+         */
+        historyCacheSize: 10,
+        /**
+         * @type boolean
+         * @default false
+         */
+        refreshOnHistoryMiss: false,
+        /**
+         * The default swap style to use if **[hx-swap](https://htmx.org/attributes/hx-swap)** is omitted.
+         * @type HtmxSwapStyle
+         * @default 'innerHTML'
+         */
+        defaultSwapStyle: "innerHTML",
+        /**
+         * The default delay between receiving a response from the server and doing the swap.
+         * @type number
+         * @default 0
+         */
+        defaultSwapDelay: 0,
+        /**
+         * The default delay between completing the content swap and settling attributes.
+         * @type number
+         * @default 20
+         */
+        defaultSettleDelay: 20,
+        /**
+         * If true, htmx will inject a small amount of CSS into the page to make indicators invisible unless the **htmx-indicator** class is present.
+         * @type boolean
+         * @default true
+         */
+        includeIndicatorStyles: true,
+        /**
+         * The class to place on indicators when a request is in flight.
+         * @type string
+         * @default 'htmx-indicator'
+         */
+        indicatorClass: "htmx-indicator",
+        /**
+         * The class to place on triggering elements when a request is in flight.
+         * @type string
+         * @default 'htmx-request'
+         */
+        requestClass: "htmx-request",
+        /**
+         * The class to temporarily place on elements that htmx has added to the DOM.
+         * @type string
+         * @default 'htmx-added'
+         */
+        addedClass: "htmx-added",
+        /**
+         * The class to place on target elements when htmx is in the settling phase.
+         * @type string
+         * @default 'htmx-settling'
+         */
+        settlingClass: "htmx-settling",
+        /**
+         * The class to place on target elements when htmx is in the swapping phase.
+         * @type string
+         * @default 'htmx-swapping'
+         */
+        swappingClass: "htmx-swapping",
+        /**
+         * Allows the use of eval-like functionality in htmx, to enable **hx-vars**, trigger conditions & script tag evaluation. Can be set to **false** for CSP compatibility.
+         * @type boolean
+         * @default true
+         */
+        allowEval: true,
+        /**
+         * If set to false, disables the interpretation of script tags.
+         * @type boolean
+         * @default true
+         */
+        allowScriptTags: true,
+        /**
+         * If set, the nonce will be added to inline scripts.
+         * @type string
+         * @default ''
+         */
+        inlineScriptNonce: "",
+        /**
+         * If set, the nonce will be added to inline styles.
+         * @type string
+         * @default ''
+         */
+        inlineStyleNonce: "",
+        /**
+         * The attributes to settle during the settling phase.
+         * @type string[]
+         * @default ['class', 'style', 'width', 'height']
+         */
+        attributesToSettle: ["class", "style", "width", "height"],
+        /**
+         * Allow cross-site Access-Control requests using credentials such as cookies, authorization headers or TLS client certificates.
+         * @type boolean
+         * @default false
+         */
+        withCredentials: false,
+        /**
+         * @type number
+         * @default 0
+         */
+        timeout: 0,
+        /**
+         * The default implementation of **getWebSocketReconnectDelay** for reconnecting after unexpected connection loss by the event code **Abnormal Closure**, **Service Restart** or **Try Again Later**.
+         * @type {'full-jitter' | ((retryCount:number) => number)}
+         * @default "full-jitter"
+         */
+        wsReconnectDelay: "full-jitter",
+        /**
+         * The type of binary data being received over the WebSocket connection
+         * @type BinaryType
+         * @default 'blob'
+         */
+        wsBinaryType: "blob",
+        /**
+         * @type string
+         * @default '[hx-disable], [data-hx-disable]'
+         */
+        disableSelector: "[hx-disable], [data-hx-disable]",
+        /**
+         * @type {'auto' | 'instant' | 'smooth'}
+         * @default 'instant'
+         */
+        scrollBehavior: "instant",
+        /**
+         * If the focused element should be scrolled into view.
+         * @type boolean
+         * @default false
+         */
+        defaultFocusScroll: false,
+        /**
+         * If set to true htmx will include a cache-busting parameter in GET requests to avoid caching partial responses by the browser
+         * @type boolean
+         * @default false
+         */
+        getCacheBusterParam: false,
+        /**
+         * If set to true, htmx will use the View Transition API when swapping in new content.
+         * @type boolean
+         * @default false
+         */
+        globalViewTransitions: false,
+        /**
+         * htmx will format requests with these methods by encoding their parameters in the URL, not the request body
+         * @type {(HttpVerb)[]}
+         * @default ['get', 'delete']
+         */
+        methodsThatUseUrlParams: ["get", "delete"],
+        /**
+         * If set to true, disables htmx-based requests to non-origin hosts.
+         * @type boolean
+         * @default false
+         */
+        selfRequestsOnly: true,
+        /**
+         * If set to true htmx will not update the title of the document when a title tag is found in new content
+         * @type boolean
+         * @default false
+         */
+        ignoreTitle: false,
+        /**
+         * Whether the target of a boosted element is scrolled into the viewport.
+         * @type boolean
+         * @default true
+         */
+        scrollIntoViewOnBoost: true,
+        /**
+         * The cache to store evaluated trigger specifications into.
+         * You may define a simple object to use a never-clearing cache, or implement your own system using a [proxy object](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Proxy)
+         * @type {Object|null}
+         * @default null
+         */
+        triggerSpecsCache: null,
+        /** @type boolean */
+        disableInheritance: false,
+        /** @type HtmxResponseHandlingConfig[] */
+        responseHandling: [
+          { code: "204", swap: false },
+          { code: "[23]..", swap: true },
+          { code: "[45]..", swap: false, error: true }
+        ],
+        /**
+         * Whether to process OOB swaps on elements that are nested within the main response element.
+         * @type boolean
+         * @default true
+         */
+        allowNestedOobSwaps: true,
+        /**
+         * Whether to treat history cache miss full page reload requests as a "HX-Request" by returning this response header
+         * This should always be disabled when using HX-Request header to optionally return partial responses
+         * @type boolean
+         * @default true
+         */
+        historyRestoreAsHxRequest: true,
+        /**
+         * Whether to report input validation errors to the end user and update focus to the first input that fails validation.
+         * This should always be enabled as this matches default browser form submit behaviour
+         * @type boolean
+         * @default false
+         */
+        reportValidityOfForms: false
+      },
+      /** @type {typeof parseInterval} */
+      parseInterval: null,
+      /**
+       * proxy of window.location used for page reload functions
+       * @type location
+       */
+      location,
+      /** @type {typeof internalEval} */
+      _: null,
+      version: "2.0.8"
+    };
+    htmx.onLoad = onLoadHelper;
+    htmx.process = processNode;
+    htmx.on = addEventListenerImpl;
+    htmx.off = removeEventListenerImpl;
+    htmx.trigger = triggerEvent;
+    htmx.ajax = ajaxHelper;
+    htmx.find = find;
+    htmx.findAll = findAll;
+    htmx.closest = closest;
+    htmx.remove = removeElement;
+    htmx.addClass = addClassToElement;
+    htmx.removeClass = removeClassFromElement;
+    htmx.toggleClass = toggleClassOnElement;
+    htmx.takeClass = takeClassForElement;
+    htmx.swap = swap;
+    htmx.defineExtension = defineExtension;
+    htmx.removeExtension = removeExtension;
+    htmx.logAll = logAll;
+    htmx.logNone = logNone;
+    htmx.parseInterval = parseInterval;
+    htmx._ = internalEval;
+    const internalAPI = {
+      addTriggerHandler,
+      bodyContains,
+      canAccessLocalStorage,
+      findThisElement,
+      filterValues,
+      swap,
+      hasAttribute,
+      getAttributeValue,
+      getClosestAttributeValue,
+      getClosestMatch,
+      getExpressionVars,
+      getHeaders,
+      getInputValues,
+      getInternalData,
+      getSwapSpecification,
+      getTriggerSpecs,
+      getTarget,
+      makeFragment,
+      mergeObjects,
+      makeSettleInfo,
+      oobSwap,
+      querySelectorExt,
+      settleImmediately,
+      shouldCancel,
+      triggerEvent,
+      triggerErrorEvent,
+      withExtensions
+    };
+    const VERBS = ["get", "post", "put", "delete", "patch"];
+    const VERB_SELECTOR = VERBS.map(function(verb) {
+      return "[hx-" + verb + "], [data-hx-" + verb + "]";
+    }).join(", ");
+    function parseInterval(str2) {
+      if (str2 == void 0) {
+        return void 0;
+      }
+      let interval = NaN;
+      if (str2.slice(-2) == "ms") {
+        interval = parseFloat(str2.slice(0, -2));
+      } else if (str2.slice(-1) == "s") {
+        interval = parseFloat(str2.slice(0, -1)) * 1e3;
+      } else if (str2.slice(-1) == "m") {
+        interval = parseFloat(str2.slice(0, -1)) * 1e3 * 60;
+      } else {
+        interval = parseFloat(str2);
+      }
+      return isNaN(interval) ? void 0 : interval;
+    }
+    function getRawAttribute(elt, name) {
+      return elt instanceof Element && elt.getAttribute(name);
+    }
+    function hasAttribute(elt, qualifiedName) {
+      return !!elt.hasAttribute && (elt.hasAttribute(qualifiedName) || elt.hasAttribute("data-" + qualifiedName));
+    }
+    function getAttributeValue(elt, qualifiedName) {
+      return getRawAttribute(elt, qualifiedName) || getRawAttribute(elt, "data-" + qualifiedName);
+    }
+    function parentElt(elt) {
+      const parent = elt.parentElement;
+      if (!parent && elt.parentNode instanceof ShadowRoot) return elt.parentNode;
+      return parent;
+    }
+    function getDocument() {
+      return document;
+    }
+    function getRootNode(elt, global) {
+      return elt.getRootNode ? elt.getRootNode({ composed: global }) : getDocument();
+    }
+    function getClosestMatch(elt, condition) {
+      while (elt && !condition(elt)) {
+        elt = parentElt(elt);
+      }
+      return elt || null;
+    }
+    function getAttributeValueWithDisinheritance(initialElement, ancestor, attributeName) {
+      const attributeValue = getAttributeValue(ancestor, attributeName);
+      const disinherit = getAttributeValue(ancestor, "hx-disinherit");
+      var inherit = getAttributeValue(ancestor, "hx-inherit");
+      if (initialElement !== ancestor) {
+        if (htmx.config.disableInheritance) {
+          if (inherit && (inherit === "*" || inherit.split(" ").indexOf(attributeName) >= 0)) {
+            return attributeValue;
+          } else {
+            return null;
+          }
+        }
+        if (disinherit && (disinherit === "*" || disinherit.split(" ").indexOf(attributeName) >= 0)) {
+          return "unset";
+        }
+      }
+      return attributeValue;
+    }
+    function getClosestAttributeValue(elt, attributeName) {
+      let closestAttr = null;
+      getClosestMatch(elt, function(e) {
+        return !!(closestAttr = getAttributeValueWithDisinheritance(elt, asElement(e), attributeName));
+      });
+      if (closestAttr !== "unset") {
+        return closestAttr;
+      }
+    }
+    function matches(elt, selector) {
+      return elt instanceof Element && elt.matches(selector);
+    }
+    function getStartTag(str2) {
+      const tagMatcher = /<([a-z][^\/\0>\x20\t\r\n\f]*)/i;
+      const match = tagMatcher.exec(str2);
+      if (match) {
+        return match[1].toLowerCase();
+      } else {
+        return "";
+      }
+    }
+    function parseHTML(resp) {
+      if ("parseHTMLUnsafe" in Document) {
+        return Document.parseHTMLUnsafe(resp);
+      }
+      const parser = new DOMParser();
+      return parser.parseFromString(resp, "text/html");
+    }
+    function takeChildrenFor(fragment, elt) {
+      while (elt.childNodes.length > 0) {
+        fragment.append(elt.childNodes[0]);
+      }
+    }
+    function duplicateScript(script) {
+      const newScript = getDocument().createElement("script");
+      forEach(script.attributes, function(attr) {
+        newScript.setAttribute(attr.name, attr.value);
+      });
+      newScript.textContent = script.textContent;
+      newScript.async = false;
+      if (htmx.config.inlineScriptNonce) {
+        newScript.nonce = htmx.config.inlineScriptNonce;
+      }
+      return newScript;
+    }
+    function isJavaScriptScriptNode(script) {
+      return script.matches("script") && (script.type === "text/javascript" || script.type === "module" || script.type === "");
+    }
+    function normalizeScriptTags(fragment) {
+      Array.from(fragment.querySelectorAll("script")).forEach(
+        /** @param {HTMLScriptElement} script */
+        (script) => {
+          if (isJavaScriptScriptNode(script)) {
+            const newScript = duplicateScript(script);
+            const parent = script.parentNode;
+            try {
+              parent.insertBefore(newScript, script);
+            } catch (e) {
+              logError(e);
+            } finally {
+              script.remove();
+            }
+          }
+        }
+      );
+    }
+    function makeFragment(response) {
+      const responseWithNoHead = response.replace(/<head(\s[^>]*)?>[\s\S]*?<\/head>/i, "");
+      const startTag = getStartTag(responseWithNoHead);
+      let fragment;
+      if (startTag === "html") {
+        fragment = /** @type DocumentFragmentWithTitle */
+        new DocumentFragment();
+        const doc = parseHTML(response);
+        takeChildrenFor(fragment, doc.body);
+        fragment.title = doc.title;
+      } else if (startTag === "body") {
+        fragment = /** @type DocumentFragmentWithTitle */
+        new DocumentFragment();
+        const doc = parseHTML(responseWithNoHead);
+        takeChildrenFor(fragment, doc.body);
+        fragment.title = doc.title;
+      } else {
+        const doc = parseHTML('<body><template class="internal-htmx-wrapper">' + responseWithNoHead + "</template></body>");
+        fragment = /** @type DocumentFragmentWithTitle */
+        doc.querySelector("template").content;
+        fragment.title = doc.title;
+        var titleElement = fragment.querySelector("title");
+        if (titleElement && titleElement.parentNode === fragment) {
+          titleElement.remove();
+          fragment.title = titleElement.innerText;
+        }
+      }
+      if (fragment) {
+        if (htmx.config.allowScriptTags) {
+          normalizeScriptTags(fragment);
+        } else {
+          fragment.querySelectorAll("script").forEach((script) => script.remove());
+        }
+      }
+      return fragment;
+    }
+    function maybeCall(func) {
+      if (func) {
+        func();
+      }
+    }
+    function isType(o, type) {
+      return Object.prototype.toString.call(o) === "[object " + type + "]";
+    }
+    function isFunction(o) {
+      return typeof o === "function";
+    }
+    function isRawObject(o) {
+      return isType(o, "Object");
+    }
+    function getInternalData(elt) {
+      const dataProp = "htmx-internal-data";
+      let data2 = elt[dataProp];
+      if (!data2) {
+        data2 = elt[dataProp] = {};
+      }
+      return data2;
+    }
+    function toArray(arr) {
+      const returnArr = [];
+      if (arr) {
+        for (let i = 0; i < arr.length; i++) {
+          returnArr.push(arr[i]);
+        }
+      }
+      return returnArr;
+    }
+    function forEach(arr, func) {
+      if (arr) {
+        for (let i = 0; i < arr.length; i++) {
+          func(arr[i]);
+        }
+      }
+    }
+    function isScrolledIntoView(el) {
+      const rect = el.getBoundingClientRect();
+      const elemTop = rect.top;
+      const elemBottom = rect.bottom;
+      return elemTop < window.innerHeight && elemBottom >= 0;
+    }
+    function bodyContains(elt) {
+      return elt.getRootNode({ composed: true }) === document;
+    }
+    function splitOnWhitespace(trigger2) {
+      return trigger2.trim().split(/\s+/);
+    }
+    function mergeObjects(obj1, obj2) {
+      for (const key in obj2) {
+        if (obj2.hasOwnProperty(key)) {
+          obj1[key] = obj2[key];
+        }
+      }
+      return obj1;
+    }
+    function parseJSON(jString) {
+      try {
+        return JSON.parse(jString);
+      } catch (error2) {
+        logError(error2);
+        return null;
+      }
+    }
+    function canAccessLocalStorage() {
+      const test = "htmx:sessionStorageTest";
+      try {
+        sessionStorage.setItem(test, test);
+        sessionStorage.removeItem(test);
+        return true;
+      } catch (e) {
+        return false;
+      }
+    }
+    function normalizePath(path) {
+      const url = new URL(path, "http://x");
+      if (url) {
+        path = url.pathname + url.search;
+      }
+      if (path != "/") {
+        path = path.replace(/\/+$/, "");
+      }
+      return path;
+    }
+    function internalEval(str) {
+      return maybeEval(getDocument().body, function() {
+        return eval(str);
+      });
+    }
+    function onLoadHelper(callback) {
+      const value = htmx.on(
+        "htmx:load",
+        /** @param {CustomEvent} evt */
+        function(evt) {
+          callback(evt.detail.elt);
+        }
+      );
+      return value;
+    }
+    function logAll() {
+      htmx.logger = function(elt, event, data2) {
+        if (console) {
+          console.log(event, elt, data2);
+        }
+      };
+    }
+    function logNone() {
+      htmx.logger = null;
+    }
+    function find(eltOrSelector, selector) {
+      if (typeof eltOrSelector !== "string") {
+        return eltOrSelector.querySelector(selector);
+      } else {
+        return find(getDocument(), eltOrSelector);
+      }
+    }
+    function findAll(eltOrSelector, selector) {
+      if (typeof eltOrSelector !== "string") {
+        return eltOrSelector.querySelectorAll(selector);
+      } else {
+        return findAll(getDocument(), eltOrSelector);
+      }
+    }
+    function getWindow() {
+      return window;
+    }
+    function removeElement(elt, delay) {
+      elt = resolveTarget(elt);
+      if (delay) {
+        getWindow().setTimeout(function() {
+          removeElement(elt);
+          elt = null;
+        }, delay);
+      } else {
+        parentElt(elt).removeChild(elt);
+      }
+    }
+    function asElement(elt) {
+      return elt instanceof Element ? elt : null;
+    }
+    function asHtmlElement(elt) {
+      return elt instanceof HTMLElement ? elt : null;
+    }
+    function asString(value) {
+      return typeof value === "string" ? value : null;
+    }
+    function asParentNode(elt) {
+      return elt instanceof Element || elt instanceof Document || elt instanceof DocumentFragment ? elt : null;
+    }
+    function addClassToElement(elt, clazz, delay) {
+      elt = asElement(resolveTarget(elt));
+      if (!elt) {
+        return;
+      }
+      if (delay) {
+        getWindow().setTimeout(function() {
+          addClassToElement(elt, clazz);
+          elt = null;
+        }, delay);
+      } else {
+        elt.classList && elt.classList.add(clazz);
+      }
+    }
+    function removeClassFromElement(node, clazz, delay) {
+      let elt = asElement(resolveTarget(node));
+      if (!elt) {
+        return;
+      }
+      if (delay) {
+        getWindow().setTimeout(function() {
+          removeClassFromElement(elt, clazz);
+          elt = null;
+        }, delay);
+      } else {
+        if (elt.classList) {
+          elt.classList.remove(clazz);
+          if (elt.classList.length === 0) {
+            elt.removeAttribute("class");
+          }
+        }
+      }
+    }
+    function toggleClassOnElement(elt, clazz) {
+      elt = resolveTarget(elt);
+      elt.classList.toggle(clazz);
+    }
+    function takeClassForElement(elt, clazz) {
+      elt = resolveTarget(elt);
+      forEach(elt.parentElement.children, function(child) {
+        removeClassFromElement(child, clazz);
+      });
+      addClassToElement(asElement(elt), clazz);
+    }
+    function closest(elt, selector) {
+      elt = asElement(resolveTarget(elt));
+      if (elt) {
+        return elt.closest(selector);
+      }
+      return null;
+    }
+    function startsWith(str2, prefix2) {
+      return str2.substring(0, prefix2.length) === prefix2;
+    }
+    function endsWith(str2, suffix) {
+      return str2.substring(str2.length - suffix.length) === suffix;
+    }
+    function normalizeSelector(selector) {
+      const trimmedSelector = selector.trim();
+      if (startsWith(trimmedSelector, "<") && endsWith(trimmedSelector, "/>")) {
+        return trimmedSelector.substring(1, trimmedSelector.length - 2);
+      } else {
+        return trimmedSelector;
+      }
+    }
+    function querySelectorAllExt(elt, selector, global) {
+      if (selector.indexOf("global ") === 0) {
+        return querySelectorAllExt(elt, selector.slice(7), true);
+      }
+      elt = resolveTarget(elt);
+      const parts = [];
+      {
+        let chevronsCount = 0;
+        let offset = 0;
+        for (let i = 0; i < selector.length; i++) {
+          const char = selector[i];
+          if (char === "," && chevronsCount === 0) {
+            parts.push(selector.substring(offset, i));
+            offset = i + 1;
+            continue;
+          }
+          if (char === "<") {
+            chevronsCount++;
+          } else if (char === "/" && i < selector.length - 1 && selector[i + 1] === ">") {
+            chevronsCount--;
+          }
+        }
+        if (offset < selector.length) {
+          parts.push(selector.substring(offset));
+        }
+      }
+      const result = [];
+      const unprocessedParts = [];
+      while (parts.length > 0) {
+        const selector2 = normalizeSelector(parts.shift());
+        let item;
+        if (selector2.indexOf("closest ") === 0) {
+          item = closest(asElement(elt), normalizeSelector(selector2.slice(8)));
+        } else if (selector2.indexOf("find ") === 0) {
+          item = find(asParentNode(elt), normalizeSelector(selector2.slice(5)));
+        } else if (selector2 === "next" || selector2 === "nextElementSibling") {
+          item = asElement(elt).nextElementSibling;
+        } else if (selector2.indexOf("next ") === 0) {
+          item = scanForwardQuery(elt, normalizeSelector(selector2.slice(5)), !!global);
+        } else if (selector2 === "previous" || selector2 === "previousElementSibling") {
+          item = asElement(elt).previousElementSibling;
+        } else if (selector2.indexOf("previous ") === 0) {
+          item = scanBackwardsQuery(elt, normalizeSelector(selector2.slice(9)), !!global);
+        } else if (selector2 === "document") {
+          item = document;
+        } else if (selector2 === "window") {
+          item = window;
+        } else if (selector2 === "body") {
+          item = document.body;
+        } else if (selector2 === "root") {
+          item = getRootNode(elt, !!global);
+        } else if (selector2 === "host") {
+          item = /** @type ShadowRoot */
+          elt.getRootNode().host;
+        } else {
+          unprocessedParts.push(selector2);
+        }
+        if (item) {
+          result.push(item);
+        }
+      }
+      if (unprocessedParts.length > 0) {
+        const standardSelector = unprocessedParts.join(",");
+        const rootNode = asParentNode(getRootNode(elt, !!global));
+        result.push(...toArray(rootNode.querySelectorAll(standardSelector)));
+      }
+      return result;
+    }
+    var scanForwardQuery = function(start2, match, global) {
+      const results = asParentNode(getRootNode(start2, global)).querySelectorAll(match);
+      for (let i = 0; i < results.length; i++) {
+        const elt = results[i];
+        if (elt.compareDocumentPosition(start2) === Node.DOCUMENT_POSITION_PRECEDING) {
+          return elt;
+        }
+      }
+    };
+    var scanBackwardsQuery = function(start2, match, global) {
+      const results = asParentNode(getRootNode(start2, global)).querySelectorAll(match);
+      for (let i = results.length - 1; i >= 0; i--) {
+        const elt = results[i];
+        if (elt.compareDocumentPosition(start2) === Node.DOCUMENT_POSITION_FOLLOWING) {
+          return elt;
+        }
+      }
+    };
+    function querySelectorExt(eltOrSelector, selector) {
+      if (typeof eltOrSelector !== "string") {
+        return querySelectorAllExt(eltOrSelector, selector)[0];
+      } else {
+        return querySelectorAllExt(getDocument().body, eltOrSelector)[0];
+      }
+    }
+    function resolveTarget(eltOrSelector, context) {
+      if (typeof eltOrSelector === "string") {
+        return find(asParentNode(context) || document, eltOrSelector);
+      } else {
+        return eltOrSelector;
+      }
+    }
+    function processEventArgs(arg1, arg2, arg3, arg4) {
+      if (isFunction(arg2)) {
+        return {
+          target: getDocument().body,
+          event: asString(arg1),
+          listener: arg2,
+          options: arg3
+        };
+      } else {
+        return {
+          target: resolveTarget(arg1),
+          event: asString(arg2),
+          listener: arg3,
+          options: arg4
+        };
+      }
+    }
+    function addEventListenerImpl(arg1, arg2, arg3, arg4) {
+      ready(function() {
+        const eventArgs = processEventArgs(arg1, arg2, arg3, arg4);
+        eventArgs.target.addEventListener(eventArgs.event, eventArgs.listener, eventArgs.options);
+      });
+      const b = isFunction(arg2);
+      return b ? arg2 : arg3;
+    }
+    function removeEventListenerImpl(arg1, arg2, arg3) {
+      ready(function() {
+        const eventArgs = processEventArgs(arg1, arg2, arg3);
+        eventArgs.target.removeEventListener(eventArgs.event, eventArgs.listener);
+      });
+      return isFunction(arg2) ? arg2 : arg3;
+    }
+    const DUMMY_ELT = getDocument().createElement("output");
+    function findAttributeTargets(elt, attrName) {
+      const attrTarget = getClosestAttributeValue(elt, attrName);
+      if (attrTarget) {
+        if (attrTarget === "this") {
+          return [findThisElement(elt, attrName)];
+        } else {
+          const result = querySelectorAllExt(elt, attrTarget);
+          const shouldInherit = /(^|,)(\s*)inherit(\s*)($|,)/.test(attrTarget);
+          if (shouldInherit) {
+            const eltToInheritFrom = asElement(getClosestMatch(elt, function(parent) {
+              return parent !== elt && hasAttribute(asElement(parent), attrName);
+            }));
+            if (eltToInheritFrom) {
+              result.push(...findAttributeTargets(eltToInheritFrom, attrName));
+            }
+          }
+          if (result.length === 0) {
+            logError('The selector "' + attrTarget + '" on ' + attrName + " returned no matches!");
+            return [DUMMY_ELT];
+          } else {
+            return result;
+          }
+        }
+      }
+    }
+    function findThisElement(elt, attribute) {
+      return asElement(getClosestMatch(elt, function(elt2) {
+        return getAttributeValue(asElement(elt2), attribute) != null;
+      }));
+    }
+    function getTarget(elt) {
+      const targetStr = getClosestAttributeValue(elt, "hx-target");
+      if (targetStr) {
+        if (targetStr === "this") {
+          return findThisElement(elt, "hx-target");
+        } else {
+          return querySelectorExt(elt, targetStr);
+        }
+      } else {
+        const data2 = getInternalData(elt);
+        if (data2.boosted) {
+          return getDocument().body;
+        } else {
+          return elt;
+        }
+      }
+    }
+    function shouldSettleAttribute(name) {
+      return htmx.config.attributesToSettle.includes(name);
+    }
+    function cloneAttributes(mergeTo, mergeFrom) {
+      forEach(Array.from(mergeTo.attributes), function(attr) {
+        if (!mergeFrom.hasAttribute(attr.name) && shouldSettleAttribute(attr.name)) {
+          mergeTo.removeAttribute(attr.name);
+        }
+      });
+      forEach(mergeFrom.attributes, function(attr) {
+        if (shouldSettleAttribute(attr.name)) {
+          mergeTo.setAttribute(attr.name, attr.value);
+        }
+      });
+    }
+    function isInlineSwap(swapStyle, target) {
+      const extensions2 = getExtensions(target);
+      for (let i = 0; i < extensions2.length; i++) {
+        const extension = extensions2[i];
+        try {
+          if (extension.isInlineSwap(swapStyle)) {
+            return true;
+          }
+        } catch (e) {
+          logError(e);
+        }
+      }
+      return swapStyle === "outerHTML";
+    }
+    function oobSwap(oobValue, oobElement, settleInfo, rootNode) {
+      rootNode = rootNode || getDocument();
+      let selector = "#" + CSS.escape(getRawAttribute(oobElement, "id"));
+      let swapStyle = "outerHTML";
+      if (oobValue === "true") {
+      } else if (oobValue.indexOf(":") > 0) {
+        swapStyle = oobValue.substring(0, oobValue.indexOf(":"));
+        selector = oobValue.substring(oobValue.indexOf(":") + 1);
+      } else {
+        swapStyle = oobValue;
+      }
+      oobElement.removeAttribute("hx-swap-oob");
+      oobElement.removeAttribute("data-hx-swap-oob");
+      const targets = querySelectorAllExt(rootNode, selector, false);
+      if (targets.length) {
+        forEach(
+          targets,
+          function(target) {
+            let fragment;
+            const oobElementClone = oobElement.cloneNode(true);
+            fragment = getDocument().createDocumentFragment();
+            fragment.appendChild(oobElementClone);
+            if (!isInlineSwap(swapStyle, target)) {
+              fragment = asParentNode(oobElementClone);
+            }
+            const beforeSwapDetails = { shouldSwap: true, target, fragment };
+            if (!triggerEvent(target, "htmx:oobBeforeSwap", beforeSwapDetails)) return;
+            target = beforeSwapDetails.target;
+            if (beforeSwapDetails.shouldSwap) {
+              handlePreservedElements(fragment);
+              swapWithStyle(swapStyle, target, target, fragment, settleInfo);
+              restorePreservedElements();
+            }
+            forEach(settleInfo.elts, function(elt) {
+              triggerEvent(elt, "htmx:oobAfterSwap", beforeSwapDetails);
+            });
+          }
+        );
+        oobElement.parentNode.removeChild(oobElement);
+      } else {
+        oobElement.parentNode.removeChild(oobElement);
+        triggerErrorEvent(getDocument().body, "htmx:oobErrorNoTarget", { content: oobElement });
+      }
+      return oobValue;
+    }
+    function restorePreservedElements() {
+      const pantry = find("#--htmx-preserve-pantry--");
+      if (pantry) {
+        for (const preservedElt of [...pantry.children]) {
+          const existingElement = find("#" + preservedElt.id);
+          existingElement.parentNode.moveBefore(preservedElt, existingElement);
+          existingElement.remove();
+        }
+        pantry.remove();
+      }
+    }
+    function handlePreservedElements(fragment) {
+      forEach(findAll(fragment, "[hx-preserve], [data-hx-preserve]"), function(preservedElt) {
+        const id = getAttributeValue(preservedElt, "id");
+        const existingElement = getDocument().getElementById(id);
+        if (existingElement != null) {
+          if (preservedElt.moveBefore) {
+            let pantry = find("#--htmx-preserve-pantry--");
+            if (pantry == null) {
+              getDocument().body.insertAdjacentHTML("afterend", "<div id='--htmx-preserve-pantry--'></div>");
+              pantry = find("#--htmx-preserve-pantry--");
+            }
+            pantry.moveBefore(existingElement, null);
+          } else {
+            preservedElt.parentNode.replaceChild(existingElement, preservedElt);
+          }
+        }
+      });
+    }
+    function handleAttributes(parentNode, fragment, settleInfo) {
+      forEach(fragment.querySelectorAll("[id]"), function(newNode) {
+        const id = getRawAttribute(newNode, "id");
+        if (id && id.length > 0) {
+          const normalizedId = id.replace("'", "\\'");
+          const normalizedTag = newNode.tagName.replace(":", "\\:");
+          const parentElt2 = asParentNode(parentNode);
+          const oldNode = parentElt2 && parentElt2.querySelector(normalizedTag + "[id='" + normalizedId + "']");
+          if (oldNode && oldNode !== parentElt2) {
+            const newAttributes = newNode.cloneNode();
+            cloneAttributes(newNode, oldNode);
+            settleInfo.tasks.push(function() {
+              cloneAttributes(newNode, newAttributes);
+            });
+          }
+        }
+      });
+    }
+    function makeAjaxLoadTask(child) {
+      return function() {
+        removeClassFromElement(child, htmx.config.addedClass);
+        processNode(asElement(child));
+        processFocus(asParentNode(child));
+        triggerEvent(child, "htmx:load");
+      };
+    }
+    function processFocus(child) {
+      const autofocus = "[autofocus]";
+      const autoFocusedElt = asHtmlElement(matches(child, autofocus) ? child : child.querySelector(autofocus));
+      if (autoFocusedElt != null) {
+        autoFocusedElt.focus();
+      }
+    }
+    function insertNodesBefore(parentNode, insertBefore, fragment, settleInfo) {
+      handleAttributes(parentNode, fragment, settleInfo);
+      while (fragment.childNodes.length > 0) {
+        const child = fragment.firstChild;
+        addClassToElement(asElement(child), htmx.config.addedClass);
+        parentNode.insertBefore(child, insertBefore);
+        if (child.nodeType !== Node.TEXT_NODE && child.nodeType !== Node.COMMENT_NODE) {
+          settleInfo.tasks.push(makeAjaxLoadTask(child));
+        }
+      }
+    }
+    function stringHash(string, hash) {
+      let char = 0;
+      while (char < string.length) {
+        hash = (hash << 5) - hash + string.charCodeAt(char++) | 0;
+      }
+      return hash;
+    }
+    function attributeHash(elt) {
+      let hash = 0;
+      for (let i = 0; i < elt.attributes.length; i++) {
+        const attribute = elt.attributes[i];
+        if (attribute.value) {
+          hash = stringHash(attribute.name, hash);
+          hash = stringHash(attribute.value, hash);
+        }
+      }
+      return hash;
+    }
+    function deInitOnHandlers(elt) {
+      const internalData = getInternalData(elt);
+      if (internalData.onHandlers) {
+        for (let i = 0; i < internalData.onHandlers.length; i++) {
+          const handlerInfo = internalData.onHandlers[i];
+          removeEventListenerImpl(elt, handlerInfo.event, handlerInfo.listener);
+        }
+        delete internalData.onHandlers;
+      }
+    }
+    function deInitNode(element) {
+      const internalData = getInternalData(element);
+      if (internalData.timeout) {
+        clearTimeout(internalData.timeout);
+      }
+      if (internalData.listenerInfos) {
+        forEach(internalData.listenerInfos, function(info) {
+          if (info.on) {
+            removeEventListenerImpl(info.on, info.trigger, info.listener);
+          }
+        });
+      }
+      deInitOnHandlers(element);
+      forEach(Object.keys(internalData), function(key) {
+        if (key !== "firstInitCompleted") delete internalData[key];
+      });
+    }
+    function cleanUpElement(element) {
+      triggerEvent(element, "htmx:beforeCleanupElement");
+      deInitNode(element);
+      forEach(element.children, function(child) {
+        cleanUpElement(child);
+      });
+    }
+    function swapOuterHTML(target, fragment, settleInfo) {
+      if (target.tagName === "BODY") {
+        return swapInnerHTML(target, fragment, settleInfo);
+      }
+      let newElt;
+      const eltBeforeNewContent = target.previousSibling;
+      const parentNode = parentElt(target);
+      if (!parentNode) {
+        return;
+      }
+      insertNodesBefore(parentNode, target, fragment, settleInfo);
+      if (eltBeforeNewContent == null) {
+        newElt = parentNode.firstChild;
+      } else {
+        newElt = eltBeforeNewContent.nextSibling;
+      }
+      settleInfo.elts = settleInfo.elts.filter(function(e) {
+        return e !== target;
+      });
+      while (newElt && newElt !== target) {
+        if (newElt instanceof Element) {
+          settleInfo.elts.push(newElt);
+        }
+        newElt = newElt.nextSibling;
+      }
+      cleanUpElement(target);
+      target.remove();
+    }
+    function swapAfterBegin(target, fragment, settleInfo) {
+      return insertNodesBefore(target, target.firstChild, fragment, settleInfo);
+    }
+    function swapBeforeBegin(target, fragment, settleInfo) {
+      return insertNodesBefore(parentElt(target), target, fragment, settleInfo);
+    }
+    function swapBeforeEnd(target, fragment, settleInfo) {
+      return insertNodesBefore(target, null, fragment, settleInfo);
+    }
+    function swapAfterEnd(target, fragment, settleInfo) {
+      return insertNodesBefore(parentElt(target), target.nextSibling, fragment, settleInfo);
+    }
+    function swapDelete(target) {
+      cleanUpElement(target);
+      const parent = parentElt(target);
+      if (parent) {
+        return parent.removeChild(target);
+      }
+    }
+    function swapInnerHTML(target, fragment, settleInfo) {
+      const firstChild = target.firstChild;
+      insertNodesBefore(target, firstChild, fragment, settleInfo);
+      if (firstChild) {
+        while (firstChild.nextSibling) {
+          cleanUpElement(firstChild.nextSibling);
+          target.removeChild(firstChild.nextSibling);
+        }
+        cleanUpElement(firstChild);
+        target.removeChild(firstChild);
+      }
+    }
+    function swapWithStyle(swapStyle, elt, target, fragment, settleInfo) {
+      switch (swapStyle) {
+        case "none":
+          return;
+        case "outerHTML":
+          swapOuterHTML(target, fragment, settleInfo);
+          return;
+        case "afterbegin":
+          swapAfterBegin(target, fragment, settleInfo);
+          return;
+        case "beforebegin":
+          swapBeforeBegin(target, fragment, settleInfo);
+          return;
+        case "beforeend":
+          swapBeforeEnd(target, fragment, settleInfo);
+          return;
+        case "afterend":
+          swapAfterEnd(target, fragment, settleInfo);
+          return;
+        case "delete":
+          swapDelete(target);
+          return;
+        default:
+          var extensions2 = getExtensions(elt);
+          for (let i = 0; i < extensions2.length; i++) {
+            const ext = extensions2[i];
+            try {
+              const newElements = ext.handleSwap(swapStyle, target, fragment, settleInfo);
+              if (newElements) {
+                if (Array.isArray(newElements)) {
+                  for (let j = 0; j < newElements.length; j++) {
+                    const child = newElements[j];
+                    if (child.nodeType !== Node.TEXT_NODE && child.nodeType !== Node.COMMENT_NODE) {
+                      settleInfo.tasks.push(makeAjaxLoadTask(child));
+                    }
+                  }
+                }
+                return;
+              }
+            } catch (e) {
+              logError(e);
+            }
+          }
+          if (swapStyle === "innerHTML") {
+            swapInnerHTML(target, fragment, settleInfo);
+          } else {
+            swapWithStyle(htmx.config.defaultSwapStyle, elt, target, fragment, settleInfo);
+          }
+      }
+    }
+    function findAndSwapOobElements(fragment, settleInfo, rootNode) {
+      var oobElts = findAll(fragment, "[hx-swap-oob], [data-hx-swap-oob]");
+      forEach(oobElts, function(oobElement) {
+        if (htmx.config.allowNestedOobSwaps || oobElement.parentElement === null) {
+          const oobValue = getAttributeValue(oobElement, "hx-swap-oob");
+          if (oobValue != null) {
+            oobSwap(oobValue, oobElement, settleInfo, rootNode);
+          }
+        } else {
+          oobElement.removeAttribute("hx-swap-oob");
+          oobElement.removeAttribute("data-hx-swap-oob");
+        }
+      });
+      return oobElts.length > 0;
+    }
+    function swap(target, content, swapSpec, swapOptions) {
+      if (!swapOptions) {
+        swapOptions = {};
+      }
+      let settleResolve = null;
+      let settleReject = null;
+      let doSwap = function() {
+        maybeCall(swapOptions.beforeSwapCallback);
+        target = resolveTarget(target);
+        const rootNode = swapOptions.contextElement ? getRootNode(swapOptions.contextElement, false) : getDocument();
+        const activeElt = document.activeElement;
+        let selectionInfo = {};
+        selectionInfo = {
+          elt: activeElt,
+          // @ts-ignore
+          start: activeElt ? activeElt.selectionStart : null,
+          // @ts-ignore
+          end: activeElt ? activeElt.selectionEnd : null
+        };
+        const settleInfo = makeSettleInfo(target);
+        if (swapSpec.swapStyle === "textContent") {
+          target.textContent = content;
+        } else {
+          let fragment = makeFragment(content);
+          settleInfo.title = swapOptions.title || fragment.title;
+          if (swapOptions.historyRequest) {
+            fragment = fragment.querySelector("[hx-history-elt],[data-hx-history-elt]") || fragment;
+          }
+          if (swapOptions.selectOOB) {
+            const oobSelectValues = swapOptions.selectOOB.split(",");
+            for (let i = 0; i < oobSelectValues.length; i++) {
+              const oobSelectValue = oobSelectValues[i].split(":", 2);
+              let id = oobSelectValue[0].trim();
+              if (id.indexOf("#") === 0) {
+                id = id.substring(1);
+              }
+              const oobValue = oobSelectValue[1] || "true";
+              const oobElement = fragment.querySelector("#" + id);
+              if (oobElement) {
+                oobSwap(oobValue, oobElement, settleInfo, rootNode);
+              }
+            }
+          }
+          findAndSwapOobElements(fragment, settleInfo, rootNode);
+          forEach(
+            findAll(fragment, "template"),
+            /** @param {HTMLTemplateElement} template */
+            function(template) {
+              if (template.content && findAndSwapOobElements(template.content, settleInfo, rootNode)) {
+                template.remove();
+              }
+            }
+          );
+          if (swapOptions.select) {
+            const newFragment = getDocument().createDocumentFragment();
+            forEach(fragment.querySelectorAll(swapOptions.select), function(node) {
+              newFragment.appendChild(node);
+            });
+            fragment = newFragment;
+          }
+          handlePreservedElements(fragment);
+          swapWithStyle(swapSpec.swapStyle, swapOptions.contextElement, target, fragment, settleInfo);
+          restorePreservedElements();
+        }
+        if (selectionInfo.elt && !bodyContains(selectionInfo.elt) && getRawAttribute(selectionInfo.elt, "id")) {
+          const newActiveElt = document.getElementById(getRawAttribute(selectionInfo.elt, "id"));
+          const focusOptions = { preventScroll: swapSpec.focusScroll !== void 0 ? !swapSpec.focusScroll : !htmx.config.defaultFocusScroll };
+          if (newActiveElt) {
+            if (selectionInfo.start && newActiveElt.setSelectionRange) {
+              try {
+                newActiveElt.setSelectionRange(selectionInfo.start, selectionInfo.end);
+              } catch (e) {
+              }
+            }
+            newActiveElt.focus(focusOptions);
+          }
+        }
+        target.classList.remove(htmx.config.swappingClass);
+        forEach(settleInfo.elts, function(elt2) {
+          if (elt2.classList) {
+            elt2.classList.add(htmx.config.settlingClass);
+          }
+          triggerEvent(elt2, "htmx:afterSwap", swapOptions.eventInfo);
+        });
+        maybeCall(swapOptions.afterSwapCallback);
+        if (!swapSpec.ignoreTitle) {
+          handleTitle(settleInfo.title);
+        }
+        const doSettle = function() {
+          forEach(settleInfo.tasks, function(task) {
+            task.call();
+          });
+          forEach(settleInfo.elts, function(elt2) {
+            if (elt2.classList) {
+              elt2.classList.remove(htmx.config.settlingClass);
+            }
+            triggerEvent(elt2, "htmx:afterSettle", swapOptions.eventInfo);
+          });
+          if (swapOptions.anchor) {
+            const anchorTarget = asElement(resolveTarget("#" + swapOptions.anchor));
+            if (anchorTarget) {
+              anchorTarget.scrollIntoView({ block: "start", behavior: "auto" });
+            }
+          }
+          updateScrollState(settleInfo.elts, swapSpec);
+          maybeCall(swapOptions.afterSettleCallback);
+          maybeCall(settleResolve);
+        };
+        if (swapSpec.settleDelay > 0) {
+          getWindow().setTimeout(doSettle, swapSpec.settleDelay);
+        } else {
+          doSettle();
+        }
+      };
+      let shouldTransition = htmx.config.globalViewTransitions;
+      if (swapSpec.hasOwnProperty("transition")) {
+        shouldTransition = swapSpec.transition;
+      }
+      const elt = swapOptions.contextElement || getDocument();
+      if (shouldTransition && triggerEvent(elt, "htmx:beforeTransition", swapOptions.eventInfo) && typeof Promise !== "undefined" && // @ts-ignore experimental feature atm
+      document.startViewTransition) {
+        const settlePromise = new Promise(function(_resolve, _reject) {
+          settleResolve = _resolve;
+          settleReject = _reject;
+        });
+        const innerDoSwap = doSwap;
+        doSwap = function() {
+          document.startViewTransition(function() {
+            innerDoSwap();
+            return settlePromise;
+          });
+        };
+      }
+      try {
+        if (swapSpec?.swapDelay && swapSpec.swapDelay > 0) {
+          getWindow().setTimeout(doSwap, swapSpec.swapDelay);
+        } else {
+          doSwap();
+        }
+      } catch (e) {
+        triggerErrorEvent(elt, "htmx:swapError", swapOptions.eventInfo);
+        maybeCall(settleReject);
+        throw e;
+      }
+    }
+    function handleTriggerHeader(xhr, header, elt) {
+      const triggerBody = xhr.getResponseHeader(header);
+      if (triggerBody.indexOf("{") === 0) {
+        const triggers = parseJSON(triggerBody);
+        for (const eventName in triggers) {
+          if (triggers.hasOwnProperty(eventName)) {
+            let detail = triggers[eventName];
+            if (isRawObject(detail)) {
+              elt = detail.target !== void 0 ? detail.target : elt;
+            } else {
+              detail = { value: detail };
+            }
+            triggerEvent(elt, eventName, detail);
+          }
+        }
+      } else {
+        const eventNames = triggerBody.split(",");
+        for (let i = 0; i < eventNames.length; i++) {
+          triggerEvent(elt, eventNames[i].trim(), []);
+        }
+      }
+    }
+    const WHITESPACE = /\s/;
+    const WHITESPACE_OR_COMMA = /[\s,]/;
+    const SYMBOL_START = /[_$a-zA-Z]/;
+    const SYMBOL_CONT = /[_$a-zA-Z0-9]/;
+    const STRINGISH_START = ['"', "'", "/"];
+    const NOT_WHITESPACE = /[^\s]/;
+    const COMBINED_SELECTOR_START = /[{(]/;
+    const COMBINED_SELECTOR_END = /[})]/;
+    function tokenizeString(str2) {
+      const tokens = [];
+      let position = 0;
+      while (position < str2.length) {
+        if (SYMBOL_START.exec(str2.charAt(position))) {
+          var startPosition = position;
+          while (SYMBOL_CONT.exec(str2.charAt(position + 1))) {
+            position++;
+          }
+          tokens.push(str2.substring(startPosition, position + 1));
+        } else if (STRINGISH_START.indexOf(str2.charAt(position)) !== -1) {
+          const startChar = str2.charAt(position);
+          var startPosition = position;
+          position++;
+          while (position < str2.length && str2.charAt(position) !== startChar) {
+            if (str2.charAt(position) === "\\") {
+              position++;
+            }
+            position++;
+          }
+          tokens.push(str2.substring(startPosition, position + 1));
+        } else {
+          const symbol = str2.charAt(position);
+          tokens.push(symbol);
+        }
+        position++;
+      }
+      return tokens;
+    }
+    function isPossibleRelativeReference(token, last, paramName) {
+      return SYMBOL_START.exec(token.charAt(0)) && token !== "true" && token !== "false" && token !== "this" && token !== paramName && last !== ".";
+    }
+    function maybeGenerateConditional(elt, tokens, paramName) {
+      if (tokens[0] === "[") {
+        tokens.shift();
+        let bracketCount = 1;
+        let conditionalSource = " return (function(" + paramName + "){ return (";
+        let last = null;
+        while (tokens.length > 0) {
+          const token = tokens[0];
+          if (token === "]") {
+            bracketCount--;
+            if (bracketCount === 0) {
+              if (last === null) {
+                conditionalSource = conditionalSource + "true";
+              }
+              tokens.shift();
+              conditionalSource += ")})";
+              try {
+                const conditionFunction = maybeEval(
+                  elt,
+                  function() {
+                    return Function(conditionalSource)();
+                  },
+                  function() {
+                    return true;
+                  }
+                );
+                conditionFunction.source = conditionalSource;
+                return conditionFunction;
+              } catch (e) {
+                triggerErrorEvent(getDocument().body, "htmx:syntax:error", { error: e, source: conditionalSource });
+                return null;
+              }
+            }
+          } else if (token === "[") {
+            bracketCount++;
+          }
+          if (isPossibleRelativeReference(token, last, paramName)) {
+            conditionalSource += "((" + paramName + "." + token + ") ? (" + paramName + "." + token + ") : (window." + token + "))";
+          } else {
+            conditionalSource = conditionalSource + token;
+          }
+          last = tokens.shift();
+        }
+      }
+    }
+    function consumeUntil(tokens, match) {
+      let result = "";
+      while (tokens.length > 0 && !match.test(tokens[0])) {
+        result += tokens.shift();
+      }
+      return result;
+    }
+    function consumeCSSSelector(tokens) {
+      let result;
+      if (tokens.length > 0 && COMBINED_SELECTOR_START.test(tokens[0])) {
+        tokens.shift();
+        result = consumeUntil(tokens, COMBINED_SELECTOR_END).trim();
+        tokens.shift();
+      } else {
+        result = consumeUntil(tokens, WHITESPACE_OR_COMMA);
+      }
+      return result;
+    }
+    const INPUT_SELECTOR = "input, textarea, select";
+    function parseAndCacheTrigger(elt, explicitTrigger, cache) {
+      const triggerSpecs = [];
+      const tokens = tokenizeString(explicitTrigger);
+      do {
+        consumeUntil(tokens, NOT_WHITESPACE);
+        const initialLength = tokens.length;
+        const trigger2 = consumeUntil(tokens, /[,\[\s]/);
+        if (trigger2 !== "") {
+          if (trigger2 === "every") {
+            const every = { trigger: "every" };
+            consumeUntil(tokens, NOT_WHITESPACE);
+            every.pollInterval = parseInterval(consumeUntil(tokens, /[,\[\s]/));
+            consumeUntil(tokens, NOT_WHITESPACE);
+            var eventFilter = maybeGenerateConditional(elt, tokens, "event");
+            if (eventFilter) {
+              every.eventFilter = eventFilter;
+            }
+            triggerSpecs.push(every);
+          } else {
+            const triggerSpec = { trigger: trigger2 };
+            var eventFilter = maybeGenerateConditional(elt, tokens, "event");
+            if (eventFilter) {
+              triggerSpec.eventFilter = eventFilter;
+            }
+            consumeUntil(tokens, NOT_WHITESPACE);
+            while (tokens.length > 0 && tokens[0] !== ",") {
+              const token = tokens.shift();
+              if (token === "changed") {
+                triggerSpec.changed = true;
+              } else if (token === "once") {
+                triggerSpec.once = true;
+              } else if (token === "consume") {
+                triggerSpec.consume = true;
+              } else if (token === "delay" && tokens[0] === ":") {
+                tokens.shift();
+                triggerSpec.delay = parseInterval(consumeUntil(tokens, WHITESPACE_OR_COMMA));
+              } else if (token === "from" && tokens[0] === ":") {
+                tokens.shift();
+                if (COMBINED_SELECTOR_START.test(tokens[0])) {
+                  var from_arg = consumeCSSSelector(tokens);
+                } else {
+                  var from_arg = consumeUntil(tokens, WHITESPACE_OR_COMMA);
+                  if (from_arg === "closest" || from_arg === "find" || from_arg === "next" || from_arg === "previous") {
+                    tokens.shift();
+                    const selector = consumeCSSSelector(tokens);
+                    if (selector.length > 0) {
+                      from_arg += " " + selector;
+                    }
+                  }
+                }
+                triggerSpec.from = from_arg;
+              } else if (token === "target" && tokens[0] === ":") {
+                tokens.shift();
+                triggerSpec.target = consumeCSSSelector(tokens);
+              } else if (token === "throttle" && tokens[0] === ":") {
+                tokens.shift();
+                triggerSpec.throttle = parseInterval(consumeUntil(tokens, WHITESPACE_OR_COMMA));
+              } else if (token === "queue" && tokens[0] === ":") {
+                tokens.shift();
+                triggerSpec.queue = consumeUntil(tokens, WHITESPACE_OR_COMMA);
+              } else if (token === "root" && tokens[0] === ":") {
+                tokens.shift();
+                triggerSpec[token] = consumeCSSSelector(tokens);
+              } else if (token === "threshold" && tokens[0] === ":") {
+                tokens.shift();
+                triggerSpec[token] = consumeUntil(tokens, WHITESPACE_OR_COMMA);
+              } else {
+                triggerErrorEvent(elt, "htmx:syntax:error", { token: tokens.shift() });
+              }
+              consumeUntil(tokens, NOT_WHITESPACE);
+            }
+            triggerSpecs.push(triggerSpec);
+          }
+        }
+        if (tokens.length === initialLength) {
+          triggerErrorEvent(elt, "htmx:syntax:error", { token: tokens.shift() });
+        }
+        consumeUntil(tokens, NOT_WHITESPACE);
+      } while (tokens[0] === "," && tokens.shift());
+      if (cache) {
+        cache[explicitTrigger] = triggerSpecs;
+      }
+      return triggerSpecs;
+    }
+    function getTriggerSpecs(elt) {
+      const explicitTrigger = getAttributeValue(elt, "hx-trigger");
+      let triggerSpecs = [];
+      if (explicitTrigger) {
+        const cache = htmx.config.triggerSpecsCache;
+        triggerSpecs = cache && cache[explicitTrigger] || parseAndCacheTrigger(elt, explicitTrigger, cache);
+      }
+      if (triggerSpecs.length > 0) {
+        return triggerSpecs;
+      } else if (matches(elt, "form")) {
+        return [{ trigger: "submit" }];
+      } else if (matches(elt, 'input[type="button"], input[type="submit"]')) {
+        return [{ trigger: "click" }];
+      } else if (matches(elt, INPUT_SELECTOR)) {
+        return [{ trigger: "change" }];
+      } else {
+        return [{ trigger: "click" }];
+      }
+    }
+    function cancelPolling(elt) {
+      getInternalData(elt).cancelled = true;
+    }
+    function processPolling(elt, handler4, spec) {
+      const nodeData = getInternalData(elt);
+      nodeData.timeout = getWindow().setTimeout(function() {
+        if (bodyContains(elt) && nodeData.cancelled !== true) {
+          if (!maybeFilterEvent(spec, elt, makeEvent("hx:poll:trigger", {
+            triggerSpec: spec,
+            target: elt
+          }))) {
+            handler4(elt);
+          }
+          processPolling(elt, handler4, spec);
+        }
+      }, spec.pollInterval);
+    }
+    function isLocalLink(elt) {
+      return location.hostname === elt.hostname && getRawAttribute(elt, "href") && getRawAttribute(elt, "href").indexOf("#") !== 0;
+    }
+    function eltIsDisabled(elt) {
+      return closest(elt, htmx.config.disableSelector);
+    }
+    function boostElement(elt, nodeData, triggerSpecs) {
+      if (elt instanceof HTMLAnchorElement && isLocalLink(elt) && (elt.target === "" || elt.target === "_self") || elt.tagName === "FORM" && String(getRawAttribute(elt, "method")).toLowerCase() !== "dialog") {
+        nodeData.boosted = true;
+        let verb, path;
+        if (elt.tagName === "A") {
+          verb = /** @type HttpVerb */
+          "get";
+          path = getRawAttribute(elt, "href");
+        } else {
+          const rawAttribute = getRawAttribute(elt, "method");
+          verb = /** @type HttpVerb */
+          rawAttribute ? rawAttribute.toLowerCase() : "get";
+          path = getRawAttribute(elt, "action");
+          if (path == null || path === "") {
+            path = location.href;
+          }
+          if (verb === "get" && path.includes("?")) {
+            path = path.replace(/\?[^#]+/, "");
+          }
+        }
+        triggerSpecs.forEach(function(triggerSpec) {
+          addEventListener(elt, function(node, evt) {
+            const elt2 = asElement(node);
+            if (eltIsDisabled(elt2)) {
+              cleanUpElement(elt2);
+              return;
+            }
+            issueAjaxRequest(verb, path, elt2, evt);
+          }, nodeData, triggerSpec, true);
+        });
+      }
+    }
+    function shouldCancel(evt, elt) {
+      if (evt.type === "submit" && elt.tagName === "FORM") {
+        return true;
+      } else if (evt.type === "click") {
+        const btn = (
+          /** @type {HTMLButtonElement|HTMLInputElement|null} */
+          elt.closest('input[type="submit"], button')
+        );
+        if (btn && btn.form && btn.type === "submit") {
+          return true;
+        }
+        const link = elt.closest("a");
+        const samePageAnchor = /^#.+/;
+        if (link && link.href && !samePageAnchor.test(link.getAttribute("href"))) {
+          return true;
+        }
+      }
+      return false;
+    }
+    function ignoreBoostedAnchorCtrlClick(elt, evt) {
+      return getInternalData(elt).boosted && elt instanceof HTMLAnchorElement && evt.type === "click" && // @ts-ignore this will resolve to undefined for events that don't define those properties, which is fine
+      (evt.ctrlKey || evt.metaKey);
+    }
+    function maybeFilterEvent(triggerSpec, elt, evt) {
+      const eventFilter = triggerSpec.eventFilter;
+      if (eventFilter) {
+        try {
+          return eventFilter.call(elt, evt) !== true;
+        } catch (e) {
+          const source = eventFilter.source;
+          triggerErrorEvent(getDocument().body, "htmx:eventFilter:error", { error: e, source });
+          return true;
+        }
+      }
+      return false;
+    }
+    function addEventListener(elt, handler4, nodeData, triggerSpec, explicitCancel) {
+      const elementData = getInternalData(elt);
+      let eltsToListenOn;
+      if (triggerSpec.from) {
+        eltsToListenOn = querySelectorAllExt(elt, triggerSpec.from);
+      } else {
+        eltsToListenOn = [elt];
+      }
+      if (triggerSpec.changed) {
+        if (!("lastValue" in elementData)) {
+          elementData.lastValue = /* @__PURE__ */ new WeakMap();
+        }
+        eltsToListenOn.forEach(function(eltToListenOn) {
+          if (!elementData.lastValue.has(triggerSpec)) {
+            elementData.lastValue.set(triggerSpec, /* @__PURE__ */ new WeakMap());
+          }
+          elementData.lastValue.get(triggerSpec).set(eltToListenOn, eltToListenOn.value);
+        });
+      }
+      forEach(eltsToListenOn, function(eltToListenOn) {
+        const eventListener = function(evt) {
+          if (!bodyContains(elt)) {
+            eltToListenOn.removeEventListener(triggerSpec.trigger, eventListener);
+            return;
+          }
+          if (ignoreBoostedAnchorCtrlClick(elt, evt)) {
+            return;
+          }
+          if (explicitCancel || shouldCancel(evt, eltToListenOn)) {
+            evt.preventDefault();
+          }
+          if (maybeFilterEvent(triggerSpec, elt, evt)) {
+            return;
+          }
+          const eventData = getInternalData(evt);
+          eventData.triggerSpec = triggerSpec;
+          if (eventData.handledFor == null) {
+            eventData.handledFor = [];
+          }
+          if (eventData.handledFor.indexOf(elt) < 0) {
+            eventData.handledFor.push(elt);
+            if (triggerSpec.consume) {
+              evt.stopPropagation();
+            }
+            if (triggerSpec.target && evt.target) {
+              if (!matches(asElement(evt.target), triggerSpec.target)) {
+                return;
+              }
+            }
+            if (triggerSpec.once) {
+              if (elementData.triggeredOnce) {
+                return;
+              } else {
+                elementData.triggeredOnce = true;
+              }
+            }
+            if (triggerSpec.changed) {
+              const node = evt.target;
+              const value = node.value;
+              const lastValue = elementData.lastValue.get(triggerSpec);
+              if (lastValue.has(node) && lastValue.get(node) === value) {
+                return;
+              }
+              lastValue.set(node, value);
+            }
+            if (elementData.delayed) {
+              clearTimeout(elementData.delayed);
+            }
+            if (elementData.throttle) {
+              return;
+            }
+            if (triggerSpec.throttle > 0) {
+              if (!elementData.throttle) {
+                triggerEvent(elt, "htmx:trigger");
+                handler4(elt, evt);
+                elementData.throttle = getWindow().setTimeout(function() {
+                  elementData.throttle = null;
+                }, triggerSpec.throttle);
+              }
+            } else if (triggerSpec.delay > 0) {
+              elementData.delayed = getWindow().setTimeout(function() {
+                triggerEvent(elt, "htmx:trigger");
+                handler4(elt, evt);
+              }, triggerSpec.delay);
+            } else {
+              triggerEvent(elt, "htmx:trigger");
+              handler4(elt, evt);
+            }
+          }
+        };
+        if (nodeData.listenerInfos == null) {
+          nodeData.listenerInfos = [];
+        }
+        nodeData.listenerInfos.push({
+          trigger: triggerSpec.trigger,
+          listener: eventListener,
+          on: eltToListenOn
+        });
+        eltToListenOn.addEventListener(triggerSpec.trigger, eventListener);
+      });
+    }
+    let windowIsScrolling = false;
+    let scrollHandler = null;
+    function initScrollHandler() {
+      if (!scrollHandler) {
+        scrollHandler = function() {
+          windowIsScrolling = true;
+        };
+        window.addEventListener("scroll", scrollHandler);
+        window.addEventListener("resize", scrollHandler);
+        setInterval(function() {
+          if (windowIsScrolling) {
+            windowIsScrolling = false;
+            forEach(getDocument().querySelectorAll("[hx-trigger*='revealed'],[data-hx-trigger*='revealed']"), function(elt) {
+              maybeReveal(elt);
+            });
+          }
+        }, 200);
+      }
+    }
+    function maybeReveal(elt) {
+      if (!hasAttribute(elt, "data-hx-revealed") && isScrolledIntoView(elt)) {
+        elt.setAttribute("data-hx-revealed", "true");
+        const nodeData = getInternalData(elt);
+        if (nodeData.initHash) {
+          triggerEvent(elt, "revealed");
+        } else {
+          elt.addEventListener("htmx:afterProcessNode", function() {
+            triggerEvent(elt, "revealed");
+          }, { once: true });
+        }
+      }
+    }
+    function loadImmediately(elt, handler4, nodeData, delay) {
+      const load = function() {
+        if (!nodeData.loaded) {
+          nodeData.loaded = true;
+          triggerEvent(elt, "htmx:trigger");
+          handler4(elt);
+        }
+      };
+      if (delay > 0) {
+        getWindow().setTimeout(load, delay);
+      } else {
+        load();
+      }
+    }
+    function processVerbs(elt, nodeData, triggerSpecs) {
+      let explicitAction = false;
+      forEach(VERBS, function(verb) {
+        if (hasAttribute(elt, "hx-" + verb)) {
+          const path = getAttributeValue(elt, "hx-" + verb);
+          explicitAction = true;
+          nodeData.path = path;
+          nodeData.verb = verb;
+          triggerSpecs.forEach(function(triggerSpec) {
+            addTriggerHandler(elt, triggerSpec, nodeData, function(node, evt) {
+              const elt2 = asElement(node);
+              if (eltIsDisabled(elt2)) {
+                cleanUpElement(elt2);
+                return;
+              }
+              issueAjaxRequest(verb, path, elt2, evt);
+            });
+          });
+        }
+      });
+      return explicitAction;
+    }
+    function addTriggerHandler(elt, triggerSpec, nodeData, handler4) {
+      if (triggerSpec.trigger === "revealed") {
+        initScrollHandler();
+        addEventListener(elt, handler4, nodeData, triggerSpec);
+        maybeReveal(asElement(elt));
+      } else if (triggerSpec.trigger === "intersect") {
+        const observerOptions = {};
+        if (triggerSpec.root) {
+          observerOptions.root = querySelectorExt(elt, triggerSpec.root);
+        }
+        if (triggerSpec.threshold) {
+          observerOptions.threshold = parseFloat(triggerSpec.threshold);
+        }
+        const observer2 = new IntersectionObserver(function(entries) {
+          for (let i = 0; i < entries.length; i++) {
+            const entry = entries[i];
+            if (entry.isIntersecting) {
+              triggerEvent(elt, "intersect");
+              break;
+            }
+          }
+        }, observerOptions);
+        observer2.observe(asElement(elt));
+        addEventListener(asElement(elt), handler4, nodeData, triggerSpec);
+      } else if (!nodeData.firstInitCompleted && triggerSpec.trigger === "load") {
+        if (!maybeFilterEvent(triggerSpec, elt, makeEvent("load", { elt }))) {
+          loadImmediately(asElement(elt), handler4, nodeData, triggerSpec.delay);
+        }
+      } else if (triggerSpec.pollInterval > 0) {
+        nodeData.polling = true;
+        processPolling(asElement(elt), handler4, triggerSpec);
+      } else {
+        addEventListener(elt, handler4, nodeData, triggerSpec);
+      }
+    }
+    function shouldProcessHxOn(node) {
+      const elt = asElement(node);
+      if (!elt) {
+        return false;
+      }
+      const attributes = elt.attributes;
+      for (let j = 0; j < attributes.length; j++) {
+        const attrName = attributes[j].name;
+        if (startsWith(attrName, "hx-on:") || startsWith(attrName, "data-hx-on:") || startsWith(attrName, "hx-on-") || startsWith(attrName, "data-hx-on-")) {
+          return true;
+        }
+      }
+      return false;
+    }
+    const HX_ON_QUERY = new XPathEvaluator().createExpression('.//*[@*[ starts-with(name(), "hx-on:") or starts-with(name(), "data-hx-on:") or starts-with(name(), "hx-on-") or starts-with(name(), "data-hx-on-") ]]');
+    function processHXOnRoot(elt, elements) {
+      if (shouldProcessHxOn(elt)) {
+        elements.push(asElement(elt));
+      }
+      const iter = HX_ON_QUERY.evaluate(elt);
+      let node = null;
+      while (node = iter.iterateNext()) elements.push(asElement(node));
+    }
+    function findHxOnWildcardElements(elt) {
+      const elements = [];
+      if (elt instanceof DocumentFragment) {
+        for (const child of elt.childNodes) {
+          processHXOnRoot(child, elements);
+        }
+      } else {
+        processHXOnRoot(elt, elements);
+      }
+      return elements;
+    }
+    function findElementsToProcess(elt) {
+      if (elt.querySelectorAll) {
+        const boostedSelector = ", [hx-boost] a, [data-hx-boost] a, a[hx-boost], a[data-hx-boost]";
+        const extensionSelectors = [];
+        for (const e in extensions) {
+          const extension = extensions[e];
+          if (extension.getSelectors) {
+            var selectors = extension.getSelectors();
+            if (selectors) {
+              extensionSelectors.push(selectors);
+            }
+          }
+        }
+        const results = elt.querySelectorAll(VERB_SELECTOR + boostedSelector + ", form, [type='submit'], [hx-ext], [data-hx-ext], [hx-trigger], [data-hx-trigger]" + extensionSelectors.flat().map((s) => ", " + s).join(""));
+        return results;
+      } else {
+        return [];
+      }
+    }
+    function maybeSetLastButtonClicked(evt) {
+      const elt = getTargetButton(evt.target);
+      const internalData = getRelatedFormData(evt);
+      if (internalData) {
+        internalData.lastButtonClicked = elt;
+      }
+    }
+    function maybeUnsetLastButtonClicked(evt) {
+      const internalData = getRelatedFormData(evt);
+      if (internalData) {
+        internalData.lastButtonClicked = null;
+      }
+    }
+    function getTargetButton(target) {
+      return (
+        /** @type {HTMLButtonElement|HTMLInputElement|null} */
+        closest(asElement(target), "button, input[type='submit']")
+      );
+    }
+    function getRelatedForm(elt) {
+      return elt.form || closest(elt, "form");
+    }
+    function getRelatedFormData(evt) {
+      const elt = getTargetButton(evt.target);
+      if (!elt) {
+        return;
+      }
+      const form = getRelatedForm(elt);
+      if (!form) {
+        return;
+      }
+      return getInternalData(form);
+    }
+    function initButtonTracking(elt) {
+      elt.addEventListener("click", maybeSetLastButtonClicked);
+      elt.addEventListener("focusin", maybeSetLastButtonClicked);
+      elt.addEventListener("focusout", maybeUnsetLastButtonClicked);
+    }
+    function addHxOnEventHandler(elt, eventName, code) {
+      const nodeData = getInternalData(elt);
+      if (!Array.isArray(nodeData.onHandlers)) {
+        nodeData.onHandlers = [];
+      }
+      let func;
+      const listener = function(e) {
+        maybeEval(elt, function() {
+          if (eltIsDisabled(elt)) {
+            return;
+          }
+          if (!func) {
+            func = new Function("event", code);
+          }
+          func.call(elt, e);
+        });
+      };
+      elt.addEventListener(eventName, listener);
+      nodeData.onHandlers.push({ event: eventName, listener });
+    }
+    function processHxOnWildcard(elt) {
+      deInitOnHandlers(elt);
+      for (let i = 0; i < elt.attributes.length; i++) {
+        const name = elt.attributes[i].name;
+        const value = elt.attributes[i].value;
+        if (startsWith(name, "hx-on") || startsWith(name, "data-hx-on")) {
+          const afterOnPosition = name.indexOf("-on") + 3;
+          const nextChar = name.slice(afterOnPosition, afterOnPosition + 1);
+          if (nextChar === "-" || nextChar === ":") {
+            let eventName = name.slice(afterOnPosition + 1);
+            if (startsWith(eventName, ":")) {
+              eventName = "htmx" + eventName;
+            } else if (startsWith(eventName, "-")) {
+              eventName = "htmx:" + eventName.slice(1);
+            } else if (startsWith(eventName, "htmx-")) {
+              eventName = "htmx:" + eventName.slice(5);
+            }
+            addHxOnEventHandler(elt, eventName, value);
+          }
+        }
+      }
+    }
+    function initNode(elt) {
+      triggerEvent(elt, "htmx:beforeProcessNode");
+      const nodeData = getInternalData(elt);
+      const triggerSpecs = getTriggerSpecs(elt);
+      const hasExplicitHttpAction = processVerbs(elt, nodeData, triggerSpecs);
+      if (!hasExplicitHttpAction) {
+        if (getClosestAttributeValue(elt, "hx-boost") === "true") {
+          boostElement(elt, nodeData, triggerSpecs);
+        } else if (hasAttribute(elt, "hx-trigger")) {
+          triggerSpecs.forEach(function(triggerSpec) {
+            addTriggerHandler(elt, triggerSpec, nodeData, function() {
+            });
+          });
+        }
+      }
+      if (elt.tagName === "FORM" || getRawAttribute(elt, "type") === "submit" && hasAttribute(elt, "form")) {
+        initButtonTracking(elt);
+      }
+      nodeData.firstInitCompleted = true;
+      triggerEvent(elt, "htmx:afterProcessNode");
+    }
+    function maybeDeInitAndHash(elt) {
+      if (!(elt instanceof Element)) {
+        return false;
+      }
+      const nodeData = getInternalData(elt);
+      const hash = attributeHash(elt);
+      if (nodeData.initHash !== hash) {
+        deInitNode(elt);
+        nodeData.initHash = hash;
+        return true;
+      }
+      return false;
+    }
+    function processNode(elt) {
+      elt = resolveTarget(elt);
+      if (eltIsDisabled(elt)) {
+        cleanUpElement(elt);
+        return;
+      }
+      const elementsToInit = [];
+      if (maybeDeInitAndHash(elt)) {
+        elementsToInit.push(elt);
+      }
+      forEach(findElementsToProcess(elt), function(child) {
+        if (eltIsDisabled(child)) {
+          cleanUpElement(child);
+          return;
+        }
+        if (maybeDeInitAndHash(child)) {
+          elementsToInit.push(child);
+        }
+      });
+      forEach(findHxOnWildcardElements(elt), processHxOnWildcard);
+      forEach(elementsToInit, initNode);
+    }
+    function kebabEventName(str2) {
+      return str2.replace(/([a-z0-9])([A-Z])/g, "$1-$2").toLowerCase();
+    }
+    function makeEvent(eventName, detail) {
+      return new CustomEvent(eventName, { bubbles: true, cancelable: true, composed: true, detail });
+    }
+    function triggerErrorEvent(elt, eventName, detail) {
+      triggerEvent(elt, eventName, mergeObjects({ error: eventName }, detail));
+    }
+    function ignoreEventForLogging(eventName) {
+      return eventName === "htmx:afterProcessNode";
+    }
+    function withExtensions(elt, toDo, extensionsToIgnore) {
+      forEach(getExtensions(elt, [], extensionsToIgnore), function(extension) {
+        try {
+          toDo(extension);
+        } catch (e) {
+          logError(e);
+        }
+      });
+    }
+    function logError(msg) {
+      console.error(msg);
+    }
+    function triggerEvent(elt, eventName, detail) {
+      elt = resolveTarget(elt);
+      if (detail == null) {
+        detail = {};
+      }
+      detail.elt = elt;
+      const event = makeEvent(eventName, detail);
+      if (htmx.logger && !ignoreEventForLogging(eventName)) {
+        htmx.logger(elt, eventName, detail);
+      }
+      if (detail.error) {
+        logError(detail.error);
+        triggerEvent(elt, "htmx:error", { errorInfo: detail });
+      }
+      let eventResult = elt.dispatchEvent(event);
+      const kebabName = kebabEventName(eventName);
+      if (eventResult && kebabName !== eventName) {
+        const kebabedEvent = makeEvent(kebabName, event.detail);
+        eventResult = eventResult && elt.dispatchEvent(kebabedEvent);
+      }
+      withExtensions(asElement(elt), function(extension) {
+        eventResult = eventResult && (extension.onEvent(eventName, event) !== false && !event.defaultPrevented);
+      });
+      return eventResult;
+    }
+    let currentPathForHistory;
+    function setCurrentPathForHistory(path) {
+      currentPathForHistory = path;
+      if (canAccessLocalStorage()) {
+        sessionStorage.setItem("htmx-current-path-for-history", path);
+      }
+    }
+    setCurrentPathForHistory(location.pathname + location.search);
+    function getHistoryElement() {
+      const historyElt = getDocument().querySelector("[hx-history-elt],[data-hx-history-elt]");
+      return historyElt || getDocument().body;
+    }
+    function saveToHistoryCache(url, rootElt) {
+      if (!canAccessLocalStorage()) {
+        return;
+      }
+      const innerHTML = cleanInnerHtmlForHistory(rootElt);
+      const title = getDocument().title;
+      const scroll = window.scrollY;
+      if (htmx.config.historyCacheSize <= 0) {
+        sessionStorage.removeItem("htmx-history-cache");
+        return;
+      }
+      url = normalizePath(url);
+      const historyCache = parseJSON(sessionStorage.getItem("htmx-history-cache")) || [];
+      for (let i = 0; i < historyCache.length; i++) {
+        if (historyCache[i].url === url) {
+          historyCache.splice(i, 1);
+          break;
+        }
+      }
+      const newHistoryItem = { url, content: innerHTML, title, scroll };
+      triggerEvent(getDocument().body, "htmx:historyItemCreated", { item: newHistoryItem, cache: historyCache });
+      historyCache.push(newHistoryItem);
+      while (historyCache.length > htmx.config.historyCacheSize) {
+        historyCache.shift();
+      }
+      while (historyCache.length > 0) {
+        try {
+          sessionStorage.setItem("htmx-history-cache", JSON.stringify(historyCache));
+          break;
+        } catch (e) {
+          triggerErrorEvent(getDocument().body, "htmx:historyCacheError", { cause: e, cache: historyCache });
+          historyCache.shift();
+        }
+      }
+    }
+    function getCachedHistory(url) {
+      if (!canAccessLocalStorage()) {
+        return null;
+      }
+      url = normalizePath(url);
+      const historyCache = parseJSON(sessionStorage.getItem("htmx-history-cache")) || [];
+      for (let i = 0; i < historyCache.length; i++) {
+        if (historyCache[i].url === url) {
+          return historyCache[i];
+        }
+      }
+      return null;
+    }
+    function cleanInnerHtmlForHistory(elt) {
+      const className = htmx.config.requestClass;
+      const clone2 = (
+        /** @type Element */
+        elt.cloneNode(true)
+      );
+      forEach(findAll(clone2, "." + className), function(child) {
+        removeClassFromElement(child, className);
+      });
+      forEach(findAll(clone2, "[data-disabled-by-htmx]"), function(child) {
+        child.removeAttribute("disabled");
+      });
+      return clone2.innerHTML;
+    }
+    function saveCurrentPageToHistory() {
+      const elt = getHistoryElement();
+      let path = currentPathForHistory;
+      if (canAccessLocalStorage()) {
+        path = sessionStorage.getItem("htmx-current-path-for-history");
+      }
+      path = path || location.pathname + location.search;
+      const disableHistoryCache = getDocument().querySelector('[hx-history="false" i],[data-hx-history="false" i]');
+      if (!disableHistoryCache) {
+        triggerEvent(getDocument().body, "htmx:beforeHistorySave", { path, historyElt: elt });
+        saveToHistoryCache(path, elt);
+      }
+      if (htmx.config.historyEnabled) history.replaceState({ htmx: true }, getDocument().title, location.href);
+    }
+    function pushUrlIntoHistory(path) {
+      if (htmx.config.getCacheBusterParam) {
+        path = path.replace(/org\.htmx\.cache-buster=[^&]*&?/, "");
+        if (endsWith(path, "&") || endsWith(path, "?")) {
+          path = path.slice(0, -1);
+        }
+      }
+      if (htmx.config.historyEnabled) {
+        history.pushState({ htmx: true }, "", path);
+      }
+      setCurrentPathForHistory(path);
+    }
+    function replaceUrlInHistory(path) {
+      if (htmx.config.historyEnabled) history.replaceState({ htmx: true }, "", path);
+      setCurrentPathForHistory(path);
+    }
+    function settleImmediately(tasks) {
+      forEach(tasks, function(task) {
+        task.call(void 0);
+      });
+    }
+    function loadHistoryFromServer(path) {
+      const request = new XMLHttpRequest();
+      const swapSpec = { swapStyle: "innerHTML", swapDelay: 0, settleDelay: 0 };
+      const details = { path, xhr: request, historyElt: getHistoryElement(), swapSpec };
+      request.open("GET", path, true);
+      if (htmx.config.historyRestoreAsHxRequest) {
+        request.setRequestHeader("HX-Request", "true");
+      }
+      request.setRequestHeader("HX-History-Restore-Request", "true");
+      request.setRequestHeader("HX-Current-URL", location.href);
+      request.onload = function() {
+        if (this.status >= 200 && this.status < 400) {
+          details.response = this.response;
+          triggerEvent(getDocument().body, "htmx:historyCacheMissLoad", details);
+          swap(details.historyElt, details.response, swapSpec, {
+            contextElement: details.historyElt,
+            historyRequest: true
+          });
+          setCurrentPathForHistory(details.path);
+          triggerEvent(getDocument().body, "htmx:historyRestore", { path, cacheMiss: true, serverResponse: details.response });
+        } else {
+          triggerErrorEvent(getDocument().body, "htmx:historyCacheMissLoadError", details);
+        }
+      };
+      if (triggerEvent(getDocument().body, "htmx:historyCacheMiss", details)) {
+        request.send();
+      }
+    }
+    function restoreHistory(path) {
+      saveCurrentPageToHistory();
+      path = path || location.pathname + location.search;
+      const cached = getCachedHistory(path);
+      if (cached) {
+        const swapSpec = { swapStyle: "innerHTML", swapDelay: 0, settleDelay: 0, scroll: cached.scroll };
+        const details = { path, item: cached, historyElt: getHistoryElement(), swapSpec };
+        if (triggerEvent(getDocument().body, "htmx:historyCacheHit", details)) {
+          swap(details.historyElt, cached.content, swapSpec, {
+            contextElement: details.historyElt,
+            title: cached.title
+          });
+          setCurrentPathForHistory(details.path);
+          triggerEvent(getDocument().body, "htmx:historyRestore", details);
+        }
+      } else {
+        if (htmx.config.refreshOnHistoryMiss) {
+          htmx.location.reload(true);
+        } else {
+          loadHistoryFromServer(path);
+        }
+      }
+    }
+    function addRequestIndicatorClasses(elt) {
+      let indicators = (
+        /** @type Element[] */
+        findAttributeTargets(elt, "hx-indicator")
+      );
+      if (indicators == null) {
+        indicators = [elt];
+      }
+      forEach(indicators, function(ic) {
+        const internalData = getInternalData(ic);
+        internalData.requestCount = (internalData.requestCount || 0) + 1;
+        ic.classList.add.call(ic.classList, htmx.config.requestClass);
+      });
+      return indicators;
+    }
+    function disableElements(elt) {
+      let disabledElts = (
+        /** @type Element[] */
+        findAttributeTargets(elt, "hx-disabled-elt")
+      );
+      if (disabledElts == null) {
+        disabledElts = [];
+      }
+      forEach(disabledElts, function(disabledElement) {
+        const internalData = getInternalData(disabledElement);
+        internalData.requestCount = (internalData.requestCount || 0) + 1;
+        disabledElement.setAttribute("disabled", "");
+        disabledElement.setAttribute("data-disabled-by-htmx", "");
+      });
+      return disabledElts;
+    }
+    function removeRequestIndicators(indicators, disabled) {
+      forEach(indicators.concat(disabled), function(ele) {
+        const internalData = getInternalData(ele);
+        internalData.requestCount = (internalData.requestCount || 1) - 1;
+      });
+      forEach(indicators, function(ic) {
+        const internalData = getInternalData(ic);
+        if (internalData.requestCount === 0) {
+          ic.classList.remove.call(ic.classList, htmx.config.requestClass);
+        }
+      });
+      forEach(disabled, function(disabledElement) {
+        const internalData = getInternalData(disabledElement);
+        if (internalData.requestCount === 0) {
+          disabledElement.removeAttribute("disabled");
+          disabledElement.removeAttribute("data-disabled-by-htmx");
+        }
+      });
+    }
+    function haveSeenNode(processed, elt) {
+      for (let i = 0; i < processed.length; i++) {
+        const node = processed[i];
+        if (node.isSameNode(elt)) {
+          return true;
+        }
+      }
+      return false;
+    }
+    function shouldInclude(element) {
+      const elt = (
+        /** @type {HTMLInputElement} */
+        element
+      );
+      if (elt.name === "" || elt.name == null || elt.disabled || closest(elt, "fieldset[disabled]")) {
+        return false;
+      }
+      if (elt.type === "button" || elt.type === "submit" || elt.tagName === "image" || elt.tagName === "reset" || elt.tagName === "file") {
+        return false;
+      }
+      if (elt.type === "checkbox" || elt.type === "radio") {
+        return elt.checked;
+      }
+      return true;
+    }
+    function addValueToFormData(name, value, formData) {
+      if (name != null && value != null) {
+        if (Array.isArray(value)) {
+          value.forEach(function(v) {
+            formData.append(name, v);
+          });
+        } else {
+          formData.append(name, value);
+        }
+      }
+    }
+    function removeValueFromFormData(name, value, formData) {
+      if (name != null && value != null) {
+        let values = formData.getAll(name);
+        if (Array.isArray(value)) {
+          values = values.filter((v) => value.indexOf(v) < 0);
+        } else {
+          values = values.filter((v) => v !== value);
+        }
+        formData.delete(name);
+        forEach(values, (v) => formData.append(name, v));
+      }
+    }
+    function getValueFromInput(elt) {
+      if (elt instanceof HTMLSelectElement && elt.multiple) {
+        return toArray(elt.querySelectorAll("option:checked")).map(function(e) {
+          return (
+            /** @type HTMLOptionElement */
+            e.value
+          );
+        });
+      }
+      if (elt instanceof HTMLInputElement && elt.files) {
+        return toArray(elt.files);
+      }
+      return elt.value;
+    }
+    function processInputValue(processed, formData, errors, elt, validate) {
+      if (elt == null || haveSeenNode(processed, elt)) {
+        return;
+      } else {
+        processed.push(elt);
+      }
+      if (shouldInclude(elt)) {
+        const name = getRawAttribute(elt, "name");
+        addValueToFormData(name, getValueFromInput(elt), formData);
+        if (validate) {
+          validateElement(elt, errors);
+        }
+      }
+      if (elt instanceof HTMLFormElement) {
+        forEach(elt.elements, function(input) {
+          if (processed.indexOf(input) >= 0) {
+            removeValueFromFormData(input.name, getValueFromInput(input), formData);
+          } else {
+            processed.push(input);
+          }
+          if (validate) {
+            validateElement(input, errors);
+          }
+        });
+        new FormData(elt).forEach(function(value, name) {
+          if (value instanceof File && value.name === "") {
+            return;
+          }
+          addValueToFormData(name, value, formData);
+        });
+      }
+    }
+    function validateElement(elt, errors) {
+      const element = (
+        /** @type {HTMLElement & ElementInternals} */
+        elt
+      );
+      if (element.willValidate) {
+        triggerEvent(element, "htmx:validation:validate");
+        if (!element.checkValidity()) {
+          if (triggerEvent(element, "htmx:validation:failed", {
+            message: element.validationMessage,
+            validity: element.validity
+          }) && !errors.length && htmx.config.reportValidityOfForms) {
+            element.reportValidity();
+          }
+          errors.push({ elt: element, message: element.validationMessage, validity: element.validity });
+        }
+      }
+    }
+    function overrideFormData(receiver, donor) {
+      for (const key of donor.keys()) {
+        receiver.delete(key);
+      }
+      donor.forEach(function(value, key) {
+        receiver.append(key, value);
+      });
+      return receiver;
+    }
+    function getInputValues(elt, verb) {
+      const processed = [];
+      const formData = new FormData();
+      const priorityFormData = new FormData();
+      const errors = [];
+      const internalData = getInternalData(elt);
+      if (internalData.lastButtonClicked && !bodyContains(internalData.lastButtonClicked)) {
+        internalData.lastButtonClicked = null;
+      }
+      let validate = elt instanceof HTMLFormElement && elt.noValidate !== true || getAttributeValue(elt, "hx-validate") === "true";
+      if (internalData.lastButtonClicked) {
+        validate = validate && internalData.lastButtonClicked.formNoValidate !== true;
+      }
+      if (verb !== "get") {
+        processInputValue(processed, priorityFormData, errors, getRelatedForm(elt), validate);
+      }
+      processInputValue(processed, formData, errors, elt, validate);
+      if (internalData.lastButtonClicked || elt.tagName === "BUTTON" || elt.tagName === "INPUT" && getRawAttribute(elt, "type") === "submit") {
+        const button = internalData.lastButtonClicked || /** @type HTMLInputElement|HTMLButtonElement */
+        elt;
+        const name = getRawAttribute(button, "name");
+        addValueToFormData(name, button.value, priorityFormData);
+      }
+      const includes = findAttributeTargets(elt, "hx-include");
+      forEach(includes, function(node) {
+        processInputValue(processed, formData, errors, asElement(node), validate);
+        if (!matches(node, "form")) {
+          forEach(asParentNode(node).querySelectorAll(INPUT_SELECTOR), function(descendant) {
+            processInputValue(processed, formData, errors, descendant, validate);
+          });
+        }
+      });
+      overrideFormData(formData, priorityFormData);
+      return { errors, formData, values: formDataProxy(formData) };
+    }
+    function appendParam(returnStr, name, realValue) {
+      if (returnStr !== "") {
+        returnStr += "&";
+      }
+      if (String(realValue) === "[object Object]") {
+        realValue = JSON.stringify(realValue);
+      }
+      const s = encodeURIComponent(realValue);
+      returnStr += encodeURIComponent(name) + "=" + s;
+      return returnStr;
+    }
+    function urlEncode(values) {
+      values = formDataFromObject(values);
+      let returnStr = "";
+      values.forEach(function(value, key) {
+        returnStr = appendParam(returnStr, key, value);
+      });
+      return returnStr;
+    }
+    function getHeaders(elt, target, prompt2) {
+      const headers = {
+        "HX-Request": "true",
+        "HX-Trigger": getRawAttribute(elt, "id"),
+        "HX-Trigger-Name": getRawAttribute(elt, "name"),
+        "HX-Target": getAttributeValue(target, "id"),
+        "HX-Current-URL": location.href
+      };
+      getValuesForElement(elt, "hx-headers", false, headers);
+      if (prompt2 !== void 0) {
+        headers["HX-Prompt"] = prompt2;
+      }
+      if (getInternalData(elt).boosted) {
+        headers["HX-Boosted"] = "true";
+      }
+      return headers;
+    }
+    function filterValues(inputValues, elt) {
+      const paramsValue = getClosestAttributeValue(elt, "hx-params");
+      if (paramsValue) {
+        if (paramsValue === "none") {
+          return new FormData();
+        } else if (paramsValue === "*") {
+          return inputValues;
+        } else if (paramsValue.indexOf("not ") === 0) {
+          forEach(paramsValue.slice(4).split(","), function(name) {
+            name = name.trim();
+            inputValues.delete(name);
+          });
+          return inputValues;
+        } else {
+          const newValues = new FormData();
+          forEach(paramsValue.split(","), function(name) {
+            name = name.trim();
+            if (inputValues.has(name)) {
+              inputValues.getAll(name).forEach(function(value) {
+                newValues.append(name, value);
+              });
+            }
+          });
+          return newValues;
+        }
+      } else {
+        return inputValues;
+      }
+    }
+    function isAnchorLink(elt) {
+      return !!getRawAttribute(elt, "href") && getRawAttribute(elt, "href").indexOf("#") >= 0;
+    }
+    function getSwapSpecification(elt, swapInfoOverride) {
+      const swapInfo = swapInfoOverride || getClosestAttributeValue(elt, "hx-swap");
+      const swapSpec = {
+        swapStyle: getInternalData(elt).boosted ? "innerHTML" : htmx.config.defaultSwapStyle,
+        swapDelay: htmx.config.defaultSwapDelay,
+        settleDelay: htmx.config.defaultSettleDelay
+      };
+      if (htmx.config.scrollIntoViewOnBoost && getInternalData(elt).boosted && !isAnchorLink(elt)) {
+        swapSpec.show = "top";
+      }
+      if (swapInfo) {
+        const split = splitOnWhitespace(swapInfo);
+        if (split.length > 0) {
+          for (let i = 0; i < split.length; i++) {
+            const value = split[i];
+            if (value.indexOf("swap:") === 0) {
+              swapSpec.swapDelay = parseInterval(value.slice(5));
+            } else if (value.indexOf("settle:") === 0) {
+              swapSpec.settleDelay = parseInterval(value.slice(7));
+            } else if (value.indexOf("transition:") === 0) {
+              swapSpec.transition = value.slice(11) === "true";
+            } else if (value.indexOf("ignoreTitle:") === 0) {
+              swapSpec.ignoreTitle = value.slice(12) === "true";
+            } else if (value.indexOf("scroll:") === 0) {
+              const scrollSpec = value.slice(7);
+              var splitSpec = scrollSpec.split(":");
+              const scrollVal = splitSpec.pop();
+              var selectorVal = splitSpec.length > 0 ? splitSpec.join(":") : null;
+              swapSpec.scroll = scrollVal;
+              swapSpec.scrollTarget = selectorVal;
+            } else if (value.indexOf("show:") === 0) {
+              const showSpec = value.slice(5);
+              var splitSpec = showSpec.split(":");
+              const showVal = splitSpec.pop();
+              var selectorVal = splitSpec.length > 0 ? splitSpec.join(":") : null;
+              swapSpec.show = showVal;
+              swapSpec.showTarget = selectorVal;
+            } else if (value.indexOf("focus-scroll:") === 0) {
+              const focusScrollVal = value.slice("focus-scroll:".length);
+              swapSpec.focusScroll = focusScrollVal == "true";
+            } else if (i == 0) {
+              swapSpec.swapStyle = value;
+            } else {
+              logError("Unknown modifier in hx-swap: " + value);
+            }
+          }
+        }
+      }
+      return swapSpec;
+    }
+    function usesFormData(elt) {
+      return getClosestAttributeValue(elt, "hx-encoding") === "multipart/form-data" || matches(elt, "form") && getRawAttribute(elt, "enctype") === "multipart/form-data";
+    }
+    function encodeParamsForBody(xhr, elt, filteredParameters) {
+      let encodedParameters = null;
+      withExtensions(elt, function(extension) {
+        if (encodedParameters == null) {
+          encodedParameters = extension.encodeParameters(xhr, filteredParameters, elt);
+        }
+      });
+      if (encodedParameters != null) {
+        return encodedParameters;
+      } else {
+        if (usesFormData(elt)) {
+          return overrideFormData(new FormData(), formDataFromObject(filteredParameters));
+        } else {
+          return urlEncode(filteredParameters);
+        }
+      }
+    }
+    function makeSettleInfo(target) {
+      return { tasks: [], elts: [target] };
+    }
+    function updateScrollState(content, swapSpec) {
+      const first = content[0];
+      const last = content[content.length - 1];
+      if (swapSpec.scroll) {
+        var target = null;
+        if (swapSpec.scrollTarget) {
+          target = asElement(querySelectorExt(first, swapSpec.scrollTarget));
+        }
+        if (swapSpec.scroll === "top" && (first || target)) {
+          target = target || first;
+          target.scrollTop = 0;
+        }
+        if (swapSpec.scroll === "bottom" && (last || target)) {
+          target = target || last;
+          target.scrollTop = target.scrollHeight;
+        }
+        if (typeof swapSpec.scroll === "number") {
+          getWindow().setTimeout(function() {
+            window.scrollTo(
+              0,
+              /** @type number */
+              swapSpec.scroll
+            );
+          }, 0);
+        }
+      }
+      if (swapSpec.show) {
+        var target = null;
+        if (swapSpec.showTarget) {
+          let targetStr = swapSpec.showTarget;
+          if (swapSpec.showTarget === "window") {
+            targetStr = "body";
+          }
+          target = asElement(querySelectorExt(first, targetStr));
+        }
+        if (swapSpec.show === "top" && (first || target)) {
+          target = target || first;
+          target.scrollIntoView({ block: "start", behavior: htmx.config.scrollBehavior });
+        }
+        if (swapSpec.show === "bottom" && (last || target)) {
+          target = target || last;
+          target.scrollIntoView({ block: "end", behavior: htmx.config.scrollBehavior });
+        }
+      }
+    }
+    function getValuesForElement(elt, attr, evalAsDefault, values, event) {
+      if (values == null) {
+        values = {};
+      }
+      if (elt == null) {
+        return values;
+      }
+      const attributeValue = getAttributeValue(elt, attr);
+      if (attributeValue) {
+        let str2 = attributeValue.trim();
+        let evaluateValue = evalAsDefault;
+        if (str2 === "unset") {
+          return null;
+        }
+        if (str2.indexOf("javascript:") === 0) {
+          str2 = str2.slice(11);
+          evaluateValue = true;
+        } else if (str2.indexOf("js:") === 0) {
+          str2 = str2.slice(3);
+          evaluateValue = true;
+        }
+        if (str2.indexOf("{") !== 0) {
+          str2 = "{" + str2 + "}";
+        }
+        let varsValues;
+        if (evaluateValue) {
+          varsValues = maybeEval(elt, function() {
+            if (event) {
+              return Function("event", "return (" + str2 + ")").call(elt, event);
+            } else {
+              return Function("return (" + str2 + ")").call(elt);
+            }
+          }, {});
+        } else {
+          varsValues = parseJSON(str2);
+        }
+        for (const key in varsValues) {
+          if (varsValues.hasOwnProperty(key)) {
+            if (values[key] == null) {
+              values[key] = varsValues[key];
+            }
+          }
+        }
+      }
+      return getValuesForElement(asElement(parentElt(elt)), attr, evalAsDefault, values, event);
+    }
+    function maybeEval(elt, toEval, defaultVal) {
+      if (htmx.config.allowEval) {
+        return toEval();
+      } else {
+        triggerErrorEvent(elt, "htmx:evalDisallowedError");
+        return defaultVal;
+      }
+    }
+    function getHXVarsForElement(elt, event, expressionVars) {
+      return getValuesForElement(elt, "hx-vars", true, expressionVars, event);
+    }
+    function getHXValsForElement(elt, event, expressionVars) {
+      return getValuesForElement(elt, "hx-vals", false, expressionVars, event);
+    }
+    function getExpressionVars(elt, event) {
+      return mergeObjects(getHXVarsForElement(elt, event), getHXValsForElement(elt, event));
+    }
+    function safelySetHeaderValue(xhr, header, headerValue) {
+      if (headerValue !== null) {
+        try {
+          xhr.setRequestHeader(header, headerValue);
+        } catch (e) {
+          xhr.setRequestHeader(header, encodeURIComponent(headerValue));
+          xhr.setRequestHeader(header + "-URI-AutoEncoded", "true");
+        }
+      }
+    }
+    function getPathFromResponse(xhr) {
+      if (xhr.responseURL) {
+        try {
+          const url = new URL(xhr.responseURL);
+          return url.pathname + url.search;
+        } catch (e) {
+          triggerErrorEvent(getDocument().body, "htmx:badResponseUrl", { url: xhr.responseURL });
+        }
+      }
+    }
+    function hasHeader(xhr, regexp) {
+      return regexp.test(xhr.getAllResponseHeaders());
+    }
+    function ajaxHelper(verb, path, context) {
+      verb = /** @type HttpVerb */
+      verb.toLowerCase();
+      if (context) {
+        if (context instanceof Element || typeof context === "string") {
+          return issueAjaxRequest(verb, path, null, null, {
+            targetOverride: resolveTarget(context) || DUMMY_ELT,
+            returnPromise: true
+          });
+        } else {
+          let resolvedTarget = resolveTarget(context.target);
+          if (context.target && !resolvedTarget || context.source && !resolvedTarget && !resolveTarget(context.source)) {
+            resolvedTarget = DUMMY_ELT;
+          }
+          return issueAjaxRequest(
+            verb,
+            path,
+            resolveTarget(context.source),
+            context.event,
+            {
+              handler: context.handler,
+              headers: context.headers,
+              values: context.values,
+              targetOverride: resolvedTarget,
+              swapOverride: context.swap,
+              select: context.select,
+              returnPromise: true,
+              push: context.push,
+              replace: context.replace,
+              selectOOB: context.selectOOB
+            }
+          );
+        }
+      } else {
+        return issueAjaxRequest(verb, path, null, null, {
+          returnPromise: true
+        });
+      }
+    }
+    function hierarchyForElt(elt) {
+      const arr = [];
+      while (elt) {
+        arr.push(elt);
+        elt = elt.parentElement;
+      }
+      return arr;
+    }
+    function verifyPath(elt, path, requestConfig) {
+      const url = new URL(path, location.protocol !== "about:" ? location.href : window.origin);
+      const origin = location.protocol !== "about:" ? location.origin : window.origin;
+      const sameHost = origin === url.origin;
+      if (htmx.config.selfRequestsOnly) {
+        if (!sameHost) {
+          return false;
+        }
+      }
+      return triggerEvent(elt, "htmx:validateUrl", mergeObjects({ url, sameHost }, requestConfig));
+    }
+    function formDataFromObject(obj) {
+      if (obj instanceof FormData) return obj;
+      const formData = new FormData();
+      for (const key in obj) {
+        if (obj.hasOwnProperty(key)) {
+          if (obj[key] && typeof obj[key].forEach === "function") {
+            obj[key].forEach(function(v) {
+              formData.append(key, v);
+            });
+          } else if (typeof obj[key] === "object" && !(obj[key] instanceof Blob)) {
+            formData.append(key, JSON.stringify(obj[key]));
+          } else {
+            formData.append(key, obj[key]);
+          }
+        }
+      }
+      return formData;
+    }
+    function formDataArrayProxy(formData, name, array) {
+      return new Proxy(array, {
+        get: function(target, key) {
+          if (typeof key === "number") return target[key];
+          if (key === "length") return target.length;
+          if (key === "push") {
+            return function(value) {
+              target.push(value);
+              formData.append(name, value);
+            };
+          }
+          if (typeof target[key] === "function") {
+            return function() {
+              target[key].apply(target, arguments);
+              formData.delete(name);
+              target.forEach(function(v) {
+                formData.append(name, v);
+              });
+            };
+          }
+          if (target[key] && target[key].length === 1) {
+            return target[key][0];
+          } else {
+            return target[key];
+          }
+        },
+        set: function(target, index, value) {
+          target[index] = value;
+          formData.delete(name);
+          target.forEach(function(v) {
+            formData.append(name, v);
+          });
+          return true;
+        }
+      });
+    }
+    function formDataProxy(formData) {
+      return new Proxy(formData, {
+        get: function(target, name) {
+          if (typeof name === "symbol") {
+            const result = Reflect.get(target, name);
+            if (typeof result === "function") {
+              return function() {
+                return result.apply(formData, arguments);
+              };
+            } else {
+              return result;
+            }
+          }
+          if (name === "toJSON") {
+            return () => Object.fromEntries(formData);
+          }
+          if (name in target) {
+            if (typeof target[name] === "function") {
+              return function() {
+                return formData[name].apply(formData, arguments);
+              };
+            }
+          }
+          const array = formData.getAll(name);
+          if (array.length === 0) {
+            return void 0;
+          } else if (array.length === 1) {
+            return array[0];
+          } else {
+            return formDataArrayProxy(target, name, array);
+          }
+        },
+        set: function(target, name, value) {
+          if (typeof name !== "string") {
+            return false;
+          }
+          target.delete(name);
+          if (value && typeof value.forEach === "function") {
+            value.forEach(function(v) {
+              target.append(name, v);
+            });
+          } else if (typeof value === "object" && !(value instanceof Blob)) {
+            target.append(name, JSON.stringify(value));
+          } else {
+            target.append(name, value);
+          }
+          return true;
+        },
+        deleteProperty: function(target, name) {
+          if (typeof name === "string") {
+            target.delete(name);
+          }
+          return true;
+        },
+        // Support Object.assign call from proxy
+        ownKeys: function(target) {
+          return Reflect.ownKeys(Object.fromEntries(target));
+        },
+        getOwnPropertyDescriptor: function(target, prop) {
+          return Reflect.getOwnPropertyDescriptor(Object.fromEntries(target), prop);
+        }
+      });
+    }
+    function issueAjaxRequest(verb, path, elt, event, etc, confirmed) {
+      let resolve = null;
+      let reject = null;
+      etc = etc != null ? etc : {};
+      if (etc.returnPromise && typeof Promise !== "undefined") {
+        var promise = new Promise(function(_resolve, _reject) {
+          resolve = _resolve;
+          reject = _reject;
+        });
+      }
+      if (elt == null) {
+        elt = getDocument().body;
+      }
+      const responseHandler = etc.handler || handleAjaxResponse;
+      const select = etc.select || null;
+      if (!bodyContains(elt)) {
+        maybeCall(resolve);
+        return promise;
+      }
+      const target = etc.targetOverride || asElement(getTarget(elt));
+      if (target == null || target == DUMMY_ELT) {
+        triggerErrorEvent(elt, "htmx:targetError", { target: getClosestAttributeValue(elt, "hx-target") });
+        maybeCall(reject);
+        return promise;
+      }
+      let eltData = getInternalData(elt);
+      const submitter = eltData.lastButtonClicked;
+      if (submitter) {
+        const buttonPath = getRawAttribute(submitter, "formaction");
+        if (buttonPath != null) {
+          path = buttonPath;
+        }
+        const buttonVerb = getRawAttribute(submitter, "formmethod");
+        if (buttonVerb != null) {
+          if (VERBS.includes(buttonVerb.toLowerCase())) {
+            verb = /** @type HttpVerb */
+            buttonVerb;
+          } else {
+            maybeCall(resolve);
+            return promise;
+          }
+        }
+      }
+      const confirmQuestion = getClosestAttributeValue(elt, "hx-confirm");
+      if (confirmed === void 0) {
+        const issueRequest = function(skipConfirmation) {
+          return issueAjaxRequest(verb, path, elt, event, etc, !!skipConfirmation);
+        };
+        const confirmDetails = { target, elt, path, verb, triggeringEvent: event, etc, issueRequest, question: confirmQuestion };
+        if (triggerEvent(elt, "htmx:confirm", confirmDetails) === false) {
+          maybeCall(resolve);
+          return promise;
+        }
+      }
+      let syncElt = elt;
+      let syncStrategy = getClosestAttributeValue(elt, "hx-sync");
+      let queueStrategy = null;
+      let abortable = false;
+      if (syncStrategy) {
+        const syncStrings = syncStrategy.split(":");
+        const selector = syncStrings[0].trim();
+        if (selector === "this") {
+          syncElt = findThisElement(elt, "hx-sync");
+        } else {
+          syncElt = asElement(querySelectorExt(elt, selector));
+        }
+        syncStrategy = (syncStrings[1] || "drop").trim();
+        eltData = getInternalData(syncElt);
+        if (syncStrategy === "drop" && eltData.xhr && eltData.abortable !== true) {
+          maybeCall(resolve);
+          return promise;
+        } else if (syncStrategy === "abort") {
+          if (eltData.xhr) {
+            maybeCall(resolve);
+            return promise;
+          } else {
+            abortable = true;
+          }
+        } else if (syncStrategy === "replace") {
+          triggerEvent(syncElt, "htmx:abort");
+        } else if (syncStrategy.indexOf("queue") === 0) {
+          const queueStrArray = syncStrategy.split(" ");
+          queueStrategy = (queueStrArray[1] || "last").trim();
+        }
+      }
+      if (eltData.xhr) {
+        if (eltData.abortable) {
+          triggerEvent(syncElt, "htmx:abort");
+        } else {
+          if (queueStrategy == null) {
+            if (event) {
+              const eventData = getInternalData(event);
+              if (eventData && eventData.triggerSpec && eventData.triggerSpec.queue) {
+                queueStrategy = eventData.triggerSpec.queue;
+              }
+            }
+            if (queueStrategy == null) {
+              queueStrategy = "last";
+            }
+          }
+          if (eltData.queuedRequests == null) {
+            eltData.queuedRequests = [];
+          }
+          if (queueStrategy === "first" && eltData.queuedRequests.length === 0) {
+            eltData.queuedRequests.push(function() {
+              issueAjaxRequest(verb, path, elt, event, etc);
+            });
+          } else if (queueStrategy === "all") {
+            eltData.queuedRequests.push(function() {
+              issueAjaxRequest(verb, path, elt, event, etc);
+            });
+          } else if (queueStrategy === "last") {
+            eltData.queuedRequests = [];
+            eltData.queuedRequests.push(function() {
+              issueAjaxRequest(verb, path, elt, event, etc);
+            });
+          }
+          maybeCall(resolve);
+          return promise;
+        }
+      }
+      const xhr = new XMLHttpRequest();
+      eltData.xhr = xhr;
+      eltData.abortable = abortable;
+      const endRequestLock = function() {
+        eltData.xhr = null;
+        eltData.abortable = false;
+        if (eltData.queuedRequests != null && eltData.queuedRequests.length > 0) {
+          const queuedRequest = eltData.queuedRequests.shift();
+          queuedRequest();
+        }
+      };
+      const promptQuestion = getClosestAttributeValue(elt, "hx-prompt");
+      if (promptQuestion) {
+        var promptResponse = prompt(promptQuestion);
+        if (promptResponse === null || !triggerEvent(elt, "htmx:prompt", { prompt: promptResponse, target })) {
+          maybeCall(resolve);
+          endRequestLock();
+          return promise;
+        }
+      }
+      if (confirmQuestion && !confirmed) {
+        if (!confirm(confirmQuestion)) {
+          maybeCall(resolve);
+          endRequestLock();
+          return promise;
+        }
+      }
+      let headers = getHeaders(elt, target, promptResponse);
+      if (verb !== "get" && !usesFormData(elt)) {
+        headers["Content-Type"] = "application/x-www-form-urlencoded";
+      }
+      if (etc.headers) {
+        headers = mergeObjects(headers, etc.headers);
+      }
+      const results = getInputValues(elt, verb);
+      let errors = results.errors;
+      const rawFormData = results.formData;
+      if (etc.values) {
+        overrideFormData(rawFormData, formDataFromObject(etc.values));
+      }
+      const expressionVars = formDataFromObject(getExpressionVars(elt, event));
+      const allFormData = overrideFormData(rawFormData, expressionVars);
+      let filteredFormData = filterValues(allFormData, elt);
+      if (htmx.config.getCacheBusterParam && verb === "get") {
+        filteredFormData.set("org.htmx.cache-buster", getRawAttribute(target, "id") || "true");
+      }
+      if (path == null || path === "") {
+        path = location.href;
+      }
+      const requestAttrValues = getValuesForElement(elt, "hx-request");
+      const eltIsBoosted = getInternalData(elt).boosted;
+      let useUrlParams = htmx.config.methodsThatUseUrlParams.indexOf(verb) >= 0;
+      const requestConfig = {
+        boosted: eltIsBoosted,
+        useUrlParams,
+        formData: filteredFormData,
+        parameters: formDataProxy(filteredFormData),
+        unfilteredFormData: allFormData,
+        unfilteredParameters: formDataProxy(allFormData),
+        headers,
+        elt,
+        target,
+        verb,
+        errors,
+        withCredentials: etc.credentials || requestAttrValues.credentials || htmx.config.withCredentials,
+        timeout: etc.timeout || requestAttrValues.timeout || htmx.config.timeout,
+        path,
+        triggeringEvent: event
+      };
+      if (!triggerEvent(elt, "htmx:configRequest", requestConfig)) {
+        maybeCall(resolve);
+        endRequestLock();
+        return promise;
+      }
+      path = requestConfig.path;
+      verb = requestConfig.verb;
+      headers = requestConfig.headers;
+      filteredFormData = formDataFromObject(requestConfig.parameters);
+      errors = requestConfig.errors;
+      useUrlParams = requestConfig.useUrlParams;
+      if (errors && errors.length > 0) {
+        triggerEvent(elt, "htmx:validation:halted", requestConfig);
+        maybeCall(resolve);
+        endRequestLock();
+        return promise;
+      }
+      const splitPath = path.split("#");
+      const pathNoAnchor = splitPath[0];
+      const anchor = splitPath[1];
+      let finalPath = path;
+      if (useUrlParams) {
+        finalPath = pathNoAnchor;
+        const hasValues = !filteredFormData.keys().next().done;
+        if (hasValues) {
+          if (finalPath.indexOf("?") < 0) {
+            finalPath += "?";
+          } else {
+            finalPath += "&";
+          }
+          finalPath += urlEncode(filteredFormData);
+          if (anchor) {
+            finalPath += "#" + anchor;
+          }
+        }
+      }
+      if (!verifyPath(elt, finalPath, requestConfig)) {
+        triggerErrorEvent(elt, "htmx:invalidPath", requestConfig);
+        maybeCall(reject);
+        endRequestLock();
+        return promise;
+      }
+      xhr.open(verb.toUpperCase(), finalPath, true);
+      xhr.overrideMimeType("text/html");
+      xhr.withCredentials = requestConfig.withCredentials;
+      xhr.timeout = requestConfig.timeout;
+      if (requestAttrValues.noHeaders) {
+      } else {
+        for (const header in headers) {
+          if (headers.hasOwnProperty(header)) {
+            const headerValue = headers[header];
+            safelySetHeaderValue(xhr, header, headerValue);
+          }
+        }
+      }
+      const responseInfo = {
+        xhr,
+        target,
+        requestConfig,
+        etc,
+        boosted: eltIsBoosted,
+        select,
+        pathInfo: {
+          requestPath: path,
+          finalRequestPath: finalPath,
+          responsePath: null,
+          anchor
+        }
+      };
+      xhr.onload = function() {
+        try {
+          const hierarchy = hierarchyForElt(elt);
+          responseInfo.pathInfo.responsePath = getPathFromResponse(xhr);
+          responseHandler(elt, responseInfo);
+          if (responseInfo.keepIndicators !== true) {
+            removeRequestIndicators(indicators, disableElts);
+          }
+          triggerEvent(elt, "htmx:afterRequest", responseInfo);
+          triggerEvent(elt, "htmx:afterOnLoad", responseInfo);
+          if (!bodyContains(elt)) {
+            let secondaryTriggerElt = null;
+            while (hierarchy.length > 0 && secondaryTriggerElt == null) {
+              const parentEltInHierarchy = hierarchy.shift();
+              if (bodyContains(parentEltInHierarchy)) {
+                secondaryTriggerElt = parentEltInHierarchy;
+              }
+            }
+            if (secondaryTriggerElt) {
+              triggerEvent(secondaryTriggerElt, "htmx:afterRequest", responseInfo);
+              triggerEvent(secondaryTriggerElt, "htmx:afterOnLoad", responseInfo);
+            }
+          }
+          maybeCall(resolve);
+        } catch (e) {
+          triggerErrorEvent(elt, "htmx:onLoadError", mergeObjects({ error: e }, responseInfo));
+          throw e;
+        } finally {
+          endRequestLock();
+        }
+      };
+      xhr.onerror = function() {
+        removeRequestIndicators(indicators, disableElts);
+        triggerErrorEvent(elt, "htmx:afterRequest", responseInfo);
+        triggerErrorEvent(elt, "htmx:sendError", responseInfo);
+        maybeCall(reject);
+        endRequestLock();
+      };
+      xhr.onabort = function() {
+        removeRequestIndicators(indicators, disableElts);
+        triggerErrorEvent(elt, "htmx:afterRequest", responseInfo);
+        triggerErrorEvent(elt, "htmx:sendAbort", responseInfo);
+        maybeCall(reject);
+        endRequestLock();
+      };
+      xhr.ontimeout = function() {
+        removeRequestIndicators(indicators, disableElts);
+        triggerErrorEvent(elt, "htmx:afterRequest", responseInfo);
+        triggerErrorEvent(elt, "htmx:timeout", responseInfo);
+        maybeCall(reject);
+        endRequestLock();
+      };
+      if (!triggerEvent(elt, "htmx:beforeRequest", responseInfo)) {
+        maybeCall(resolve);
+        endRequestLock();
+        return promise;
+      }
+      var indicators = addRequestIndicatorClasses(elt);
+      var disableElts = disableElements(elt);
+      forEach(["loadstart", "loadend", "progress", "abort"], function(eventName) {
+        forEach([xhr, xhr.upload], function(target2) {
+          target2.addEventListener(eventName, function(event2) {
+            triggerEvent(elt, "htmx:xhr:" + eventName, {
+              lengthComputable: event2.lengthComputable,
+              loaded: event2.loaded,
+              total: event2.total
+            });
+          });
+        });
+      });
+      triggerEvent(elt, "htmx:beforeSend", responseInfo);
+      const params = useUrlParams ? null : encodeParamsForBody(xhr, elt, filteredFormData);
+      xhr.send(params);
+      return promise;
+    }
+    function determineHistoryUpdates(elt, responseInfo) {
+      const xhr = responseInfo.xhr;
+      let pathFromHeaders = null;
+      let typeFromHeaders = null;
+      if (hasHeader(xhr, /HX-Push:/i)) {
+        pathFromHeaders = xhr.getResponseHeader("HX-Push");
+        typeFromHeaders = "push";
+      } else if (hasHeader(xhr, /HX-Push-Url:/i)) {
+        pathFromHeaders = xhr.getResponseHeader("HX-Push-Url");
+        typeFromHeaders = "push";
+      } else if (hasHeader(xhr, /HX-Replace-Url:/i)) {
+        pathFromHeaders = xhr.getResponseHeader("HX-Replace-Url");
+        typeFromHeaders = "replace";
+      }
+      if (pathFromHeaders) {
+        if (pathFromHeaders === "false") {
+          return {};
+        } else {
+          return {
+            type: typeFromHeaders,
+            path: pathFromHeaders
+          };
+        }
+      }
+      const requestPath = responseInfo.pathInfo.finalRequestPath;
+      const responsePath = responseInfo.pathInfo.responsePath;
+      const pushUrl = responseInfo.etc.push || getClosestAttributeValue(elt, "hx-push-url");
+      const replaceUrl = responseInfo.etc.replace || getClosestAttributeValue(elt, "hx-replace-url");
+      const elementIsBoosted = getInternalData(elt).boosted;
+      let saveType = null;
+      let path = null;
+      if (pushUrl) {
+        saveType = "push";
+        path = pushUrl;
+      } else if (replaceUrl) {
+        saveType = "replace";
+        path = replaceUrl;
+      } else if (elementIsBoosted) {
+        saveType = "push";
+        path = responsePath || requestPath;
+      }
+      if (path) {
+        if (path === "false") {
+          return {};
+        }
+        if (path === "true") {
+          path = responsePath || requestPath;
+        }
+        if (responseInfo.pathInfo.anchor && path.indexOf("#") === -1) {
+          path = path + "#" + responseInfo.pathInfo.anchor;
+        }
+        return {
+          type: saveType,
+          path
+        };
+      } else {
+        return {};
+      }
+    }
+    function codeMatches(responseHandlingConfig, status) {
+      var regExp = new RegExp(responseHandlingConfig.code);
+      return regExp.test(status.toString(10));
+    }
+    function resolveResponseHandling(xhr) {
+      for (var i = 0; i < htmx.config.responseHandling.length; i++) {
+        var responseHandlingElement = htmx.config.responseHandling[i];
+        if (codeMatches(responseHandlingElement, xhr.status)) {
+          return responseHandlingElement;
+        }
+      }
+      return {
+        swap: false
+      };
+    }
+    function handleTitle(title) {
+      if (title) {
+        const titleElt = find("title");
+        if (titleElt) {
+          titleElt.textContent = title;
+        } else {
+          window.document.title = title;
+        }
+      }
+    }
+    function resolveRetarget(elt, target) {
+      if (target === "this") {
+        return elt;
+      }
+      const resolvedTarget = asElement(querySelectorExt(elt, target));
+      if (resolvedTarget == null) {
+        triggerErrorEvent(elt, "htmx:targetError", { target });
+        throw new Error(`Invalid re-target ${target}`);
+      }
+      return resolvedTarget;
+    }
+    function handleAjaxResponse(elt, responseInfo) {
+      const xhr = responseInfo.xhr;
+      let target = responseInfo.target;
+      const etc = responseInfo.etc;
+      const responseInfoSelect = responseInfo.select;
+      if (!triggerEvent(elt, "htmx:beforeOnLoad", responseInfo)) return;
+      if (hasHeader(xhr, /HX-Trigger:/i)) {
+        handleTriggerHeader(xhr, "HX-Trigger", elt);
+      }
+      if (hasHeader(xhr, /HX-Location:/i)) {
+        let redirectPath = xhr.getResponseHeader("HX-Location");
+        var redirectSwapSpec = {};
+        if (redirectPath.indexOf("{") === 0) {
+          redirectSwapSpec = parseJSON(redirectPath);
+          redirectPath = redirectSwapSpec.path;
+          delete redirectSwapSpec.path;
+        }
+        redirectSwapSpec.push = redirectSwapSpec.push || "true";
+        ajaxHelper("get", redirectPath, redirectSwapSpec);
+        return;
+      }
+      const shouldRefresh = hasHeader(xhr, /HX-Refresh:/i) && xhr.getResponseHeader("HX-Refresh") === "true";
+      if (hasHeader(xhr, /HX-Redirect:/i)) {
+        responseInfo.keepIndicators = true;
+        htmx.location.href = xhr.getResponseHeader("HX-Redirect");
+        shouldRefresh && htmx.location.reload();
+        return;
+      }
+      if (shouldRefresh) {
+        responseInfo.keepIndicators = true;
+        htmx.location.reload();
+        return;
+      }
+      const historyUpdate = determineHistoryUpdates(elt, responseInfo);
+      const responseHandling = resolveResponseHandling(xhr);
+      const shouldSwap = responseHandling.swap;
+      let isError = !!responseHandling.error;
+      let ignoreTitle = htmx.config.ignoreTitle || responseHandling.ignoreTitle;
+      let selectOverride = responseHandling.select;
+      if (responseHandling.target) {
+        responseInfo.target = resolveRetarget(elt, responseHandling.target);
+      }
+      var swapOverride = etc.swapOverride;
+      if (swapOverride == null && responseHandling.swapOverride) {
+        swapOverride = responseHandling.swapOverride;
+      }
+      if (hasHeader(xhr, /HX-Retarget:/i)) {
+        responseInfo.target = resolveRetarget(elt, xhr.getResponseHeader("HX-Retarget"));
+      }
+      if (hasHeader(xhr, /HX-Reswap:/i)) {
+        swapOverride = xhr.getResponseHeader("HX-Reswap");
+      }
+      var serverResponse = xhr.response;
+      var beforeSwapDetails = mergeObjects({
+        shouldSwap,
+        serverResponse,
+        isError,
+        ignoreTitle,
+        selectOverride,
+        swapOverride
+      }, responseInfo);
+      if (responseHandling.event && !triggerEvent(target, responseHandling.event, beforeSwapDetails)) return;
+      if (!triggerEvent(target, "htmx:beforeSwap", beforeSwapDetails)) return;
+      target = beforeSwapDetails.target;
+      serverResponse = beforeSwapDetails.serverResponse;
+      isError = beforeSwapDetails.isError;
+      ignoreTitle = beforeSwapDetails.ignoreTitle;
+      selectOverride = beforeSwapDetails.selectOverride;
+      swapOverride = beforeSwapDetails.swapOverride;
+      responseInfo.target = target;
+      responseInfo.failed = isError;
+      responseInfo.successful = !isError;
+      if (beforeSwapDetails.shouldSwap) {
+        if (xhr.status === 286) {
+          cancelPolling(elt);
+        }
+        withExtensions(elt, function(extension) {
+          serverResponse = extension.transformResponse(serverResponse, xhr, elt);
+        });
+        if (historyUpdate.type) {
+          saveCurrentPageToHistory();
+        }
+        var swapSpec = getSwapSpecification(elt, swapOverride);
+        if (!swapSpec.hasOwnProperty("ignoreTitle")) {
+          swapSpec.ignoreTitle = ignoreTitle;
+        }
+        target.classList.add(htmx.config.swappingClass);
+        if (responseInfoSelect) {
+          selectOverride = responseInfoSelect;
+        }
+        if (hasHeader(xhr, /HX-Reselect:/i)) {
+          selectOverride = xhr.getResponseHeader("HX-Reselect");
+        }
+        const selectOOB = etc.selectOOB || getClosestAttributeValue(elt, "hx-select-oob");
+        const select = getClosestAttributeValue(elt, "hx-select");
+        swap(target, serverResponse, swapSpec, {
+          select: selectOverride === "unset" ? null : selectOverride || select,
+          selectOOB,
+          eventInfo: responseInfo,
+          anchor: responseInfo.pathInfo.anchor,
+          contextElement: elt,
+          afterSwapCallback: function() {
+            if (hasHeader(xhr, /HX-Trigger-After-Swap:/i)) {
+              let finalElt = elt;
+              if (!bodyContains(elt)) {
+                finalElt = getDocument().body;
+              }
+              handleTriggerHeader(xhr, "HX-Trigger-After-Swap", finalElt);
+            }
+          },
+          afterSettleCallback: function() {
+            if (hasHeader(xhr, /HX-Trigger-After-Settle:/i)) {
+              let finalElt = elt;
+              if (!bodyContains(elt)) {
+                finalElt = getDocument().body;
+              }
+              handleTriggerHeader(xhr, "HX-Trigger-After-Settle", finalElt);
+            }
+          },
+          beforeSwapCallback: function() {
+            if (historyUpdate.type) {
+              triggerEvent(getDocument().body, "htmx:beforeHistoryUpdate", mergeObjects({ history: historyUpdate }, responseInfo));
+              if (historyUpdate.type === "push") {
+                pushUrlIntoHistory(historyUpdate.path);
+                triggerEvent(getDocument().body, "htmx:pushedIntoHistory", { path: historyUpdate.path });
+              } else {
+                replaceUrlInHistory(historyUpdate.path);
+                triggerEvent(getDocument().body, "htmx:replacedInHistory", { path: historyUpdate.path });
+              }
+            }
+          }
+        });
+      }
+      if (isError) {
+        triggerErrorEvent(elt, "htmx:responseError", mergeObjects({ error: "Response Status Error Code " + xhr.status + " from " + responseInfo.pathInfo.requestPath }, responseInfo));
+      }
+    }
+    const extensions = {};
+    function extensionBase() {
+      return {
+        init: function(api) {
+          return null;
+        },
+        getSelectors: function() {
+          return null;
+        },
+        onEvent: function(name, evt) {
+          return true;
+        },
+        transformResponse: function(text, xhr, elt) {
+          return text;
+        },
+        isInlineSwap: function(swapStyle) {
+          return false;
+        },
+        handleSwap: function(swapStyle, target, fragment, settleInfo) {
+          return false;
+        },
+        encodeParameters: function(xhr, parameters, elt) {
+          return null;
+        }
+      };
+    }
+    function defineExtension(name, extension) {
+      if (extension.init) {
+        extension.init(internalAPI);
+      }
+      extensions[name] = mergeObjects(extensionBase(), extension);
+    }
+    function removeExtension(name) {
+      delete extensions[name];
+    }
+    function getExtensions(elt, extensionsToReturn, extensionsToIgnore) {
+      if (extensionsToReturn == void 0) {
+        extensionsToReturn = [];
+      }
+      if (elt == void 0) {
+        return extensionsToReturn;
+      }
+      if (extensionsToIgnore == void 0) {
+        extensionsToIgnore = [];
+      }
+      const extensionsForElement = getAttributeValue(elt, "hx-ext");
+      if (extensionsForElement) {
+        forEach(extensionsForElement.split(","), function(extensionName) {
+          extensionName = extensionName.replace(/ /g, "");
+          if (extensionName.slice(0, 7) == "ignore:") {
+            extensionsToIgnore.push(extensionName.slice(7));
+            return;
+          }
+          if (extensionsToIgnore.indexOf(extensionName) < 0) {
+            const extension = extensions[extensionName];
+            if (extension && extensionsToReturn.indexOf(extension) < 0) {
+              extensionsToReturn.push(extension);
+            }
+          }
+        });
+      }
+      return getExtensions(asElement(parentElt(elt)), extensionsToReturn, extensionsToIgnore);
+    }
+    var isReady = false;
+    getDocument().addEventListener("DOMContentLoaded", function() {
+      isReady = true;
+    });
+    function ready(fn) {
+      if (isReady || getDocument().readyState === "complete") {
+        fn();
+      } else {
+        getDocument().addEventListener("DOMContentLoaded", fn);
+      }
+    }
+    function insertIndicatorStyles() {
+      if (htmx.config.includeIndicatorStyles !== false) {
+        const nonceAttribute = htmx.config.inlineStyleNonce ? ` nonce="${htmx.config.inlineStyleNonce}"` : "";
+        const indicator = htmx.config.indicatorClass;
+        const request = htmx.config.requestClass;
+        getDocument().head.insertAdjacentHTML(
+          "beforeend",
+          `<style${nonceAttribute}>.${indicator}{opacity:0;visibility: hidden} .${request} .${indicator}, .${request}.${indicator}{opacity:1;visibility: visible;transition: opacity 200ms ease-in}</style>`
+        );
+      }
+    }
+    function getMetaConfig() {
+      const element = getDocument().querySelector('meta[name="htmx-config"]');
+      if (element) {
+        return parseJSON(element.content);
+      } else {
+        return null;
+      }
+    }
+    function mergeMetaConfig() {
+      const metaConfig = getMetaConfig();
+      if (metaConfig) {
+        htmx.config = mergeObjects(htmx.config, metaConfig);
+      }
+    }
+    ready(function() {
+      mergeMetaConfig();
+      insertIndicatorStyles();
+      let body = getDocument().body;
+      processNode(body);
+      const restoredElts = getDocument().querySelectorAll(
+        "[hx-trigger='restored'],[data-hx-trigger='restored']"
+      );
+      body.addEventListener("htmx:abort", function(evt) {
+        const target = (
+          /** @type {CustomEvent} */
+          evt.detail.elt || evt.target
+        );
+        const internalData = getInternalData(target);
+        if (internalData && internalData.xhr) {
+          internalData.xhr.abort();
+        }
+      });
+      const originalPopstate = window.onpopstate ? window.onpopstate.bind(window) : null;
+      window.onpopstate = function(event) {
+        if (event.state && event.state.htmx) {
+          restoreHistory();
+          forEach(restoredElts, function(elt) {
+            triggerEvent(elt, "htmx:restored", {
+              document: getDocument(),
+              triggerEvent
+            });
+          });
+        } else {
+          if (originalPopstate) {
+            originalPopstate(event);
+          }
+        }
+      };
+      getWindow().setTimeout(function() {
+        triggerEvent(body, "htmx:load", {});
+        body = null;
+      }, 0);
+    });
+    return htmx;
+  })();
+  var htmx_esm_default = htmx2;
 
-${n?'Expression: "'+n+`"
+  // node_modules/alpinejs/dist/module.esm.js
+  var flushPending = false;
+  var flushing = false;
+  var queue = [];
+  var lastFlushedIndex = -1;
+  var transactionActive = false;
+  function scheduler(callback) {
+    queueJob(callback);
+  }
+  function startTransaction() {
+    transactionActive = true;
+  }
+  function commitTransaction() {
+    transactionActive = false;
+    queueFlush();
+  }
+  function queueJob(job) {
+    if (!queue.includes(job))
+      queue.push(job);
+    queueFlush();
+  }
+  function dequeueJob(job) {
+    let index = queue.indexOf(job);
+    if (index !== -1 && index > lastFlushedIndex)
+      queue.splice(index, 1);
+  }
+  function queueFlush() {
+    if (!flushing && !flushPending) {
+      if (transactionActive)
+        return;
+      flushPending = true;
+      queueMicrotask(flushJobs);
+    }
+  }
+  function flushJobs() {
+    flushPending = false;
+    flushing = true;
+    for (let i = 0; i < queue.length; i++) {
+      queue[i]();
+      lastFlushedIndex = i;
+    }
+    queue.length = 0;
+    lastFlushedIndex = -1;
+    flushing = false;
+  }
+  var reactive;
+  var effect;
+  var release;
+  var raw;
+  var shouldSchedule = true;
+  function disableEffectScheduling(callback) {
+    shouldSchedule = false;
+    callback();
+    shouldSchedule = true;
+  }
+  function setReactivityEngine(engine) {
+    reactive = engine.reactive;
+    release = engine.release;
+    effect = (callback) => engine.effect(callback, { scheduler: (task) => {
+      if (shouldSchedule) {
+        scheduler(task);
+      } else {
+        task();
+      }
+    } });
+    raw = engine.raw;
+  }
+  function overrideEffect(override) {
+    effect = override;
+  }
+  function elementBoundEffect(el) {
+    let cleanup2 = () => {
+    };
+    let wrappedEffect = (callback) => {
+      let effectReference = effect(callback);
+      if (!el._x_effects) {
+        el._x_effects = /* @__PURE__ */ new Set();
+        el._x_runEffects = () => {
+          el._x_effects.forEach((i) => i());
+        };
+      }
+      el._x_effects.add(effectReference);
+      cleanup2 = () => {
+        if (effectReference === void 0)
+          return;
+        el._x_effects.delete(effectReference);
+        release(effectReference);
+      };
+      return effectReference;
+    };
+    return [wrappedEffect, () => {
+      cleanup2();
+    }];
+  }
+  function watch(getter, callback) {
+    let firstTime = true;
+    let oldValue;
+    let oldValueJSON;
+    let effectReference = effect(() => {
+      let value = getter();
+      let newJSON = JSON.stringify(value);
+      if (!firstTime) {
+        if (typeof value === "object" || value !== oldValue) {
+          let previousValue = typeof oldValue === "object" ? JSON.parse(oldValueJSON) : oldValue;
+          queueMicrotask(() => {
+            callback(value, previousValue);
+          });
+        }
+      }
+      oldValue = value;
+      oldValueJSON = newJSON;
+      firstTime = false;
+    });
+    return () => release(effectReference);
+  }
+  async function transaction(callback) {
+    startTransaction();
+    try {
+      await callback();
+      await Promise.resolve();
+    } finally {
+      commitTransaction();
+    }
+  }
+  var onAttributeAddeds = [];
+  var onElRemoveds = [];
+  var onElAddeds = [];
+  function onElAdded(callback) {
+    onElAddeds.push(callback);
+  }
+  function onElRemoved(el, callback) {
+    if (typeof callback === "function") {
+      if (!el._x_cleanups)
+        el._x_cleanups = [];
+      el._x_cleanups.push(callback);
+    } else {
+      callback = el;
+      onElRemoveds.push(callback);
+    }
+  }
+  function onAttributesAdded(callback) {
+    onAttributeAddeds.push(callback);
+  }
+  function onAttributeRemoved(el, name, callback) {
+    if (!el._x_attributeCleanups)
+      el._x_attributeCleanups = {};
+    if (!el._x_attributeCleanups[name])
+      el._x_attributeCleanups[name] = [];
+    el._x_attributeCleanups[name].push(callback);
+  }
+  function cleanupAttributes(el, names) {
+    if (!el._x_attributeCleanups)
+      return;
+    Object.entries(el._x_attributeCleanups).forEach(([name, value]) => {
+      if (names === void 0 || names.includes(name)) {
+        value.forEach((i) => i());
+        delete el._x_attributeCleanups[name];
+      }
+    });
+  }
+  function cleanupElement(el) {
+    el._x_effects?.forEach(dequeueJob);
+    while (el._x_cleanups?.length)
+      el._x_cleanups.pop()();
+  }
+  var observer = new MutationObserver(onMutate);
+  var currentlyObserving = false;
+  function startObservingMutations() {
+    observer.observe(document, { subtree: true, childList: true, attributes: true, attributeOldValue: true });
+    currentlyObserving = true;
+  }
+  function stopObservingMutations() {
+    flushObserver();
+    observer.disconnect();
+    currentlyObserving = false;
+  }
+  var queuedMutations = [];
+  function flushObserver() {
+    let records = observer.takeRecords();
+    queuedMutations.push(() => records.length > 0 && onMutate(records));
+    let queueLengthWhenTriggered = queuedMutations.length;
+    queueMicrotask(() => {
+      if (queuedMutations.length === queueLengthWhenTriggered) {
+        while (queuedMutations.length > 0)
+          queuedMutations.shift()();
+      }
+    });
+  }
+  function mutateDom(callback) {
+    if (!currentlyObserving)
+      return callback();
+    stopObservingMutations();
+    let result = callback();
+    startObservingMutations();
+    return result;
+  }
+  var isCollecting = false;
+  var deferredMutations = [];
+  function deferMutations() {
+    isCollecting = true;
+  }
+  function flushAndStopDeferringMutations() {
+    isCollecting = false;
+    onMutate(deferredMutations);
+    deferredMutations = [];
+  }
+  function onMutate(mutations) {
+    if (isCollecting) {
+      deferredMutations = deferredMutations.concat(mutations);
+      return;
+    }
+    let addedNodes = [];
+    let removedNodes = /* @__PURE__ */ new Set();
+    let addedAttributes = /* @__PURE__ */ new Map();
+    let removedAttributes = /* @__PURE__ */ new Map();
+    for (let i = 0; i < mutations.length; i++) {
+      if (mutations[i].target._x_ignoreMutationObserver)
+        continue;
+      if (mutations[i].type === "childList") {
+        mutations[i].removedNodes.forEach((node) => {
+          if (node.nodeType !== 1)
+            return;
+          if (!node._x_marker)
+            return;
+          removedNodes.add(node);
+        });
+        mutations[i].addedNodes.forEach((node) => {
+          if (node.nodeType !== 1)
+            return;
+          if (removedNodes.has(node)) {
+            removedNodes.delete(node);
+            return;
+          }
+          if (node._x_marker)
+            return;
+          addedNodes.push(node);
+        });
+      }
+      if (mutations[i].type === "attributes") {
+        let el = mutations[i].target;
+        let name = mutations[i].attributeName;
+        let oldValue = mutations[i].oldValue;
+        let add2 = () => {
+          if (!addedAttributes.has(el))
+            addedAttributes.set(el, []);
+          addedAttributes.get(el).push({ name, value: el.getAttribute(name) });
+        };
+        let remove = () => {
+          if (!removedAttributes.has(el))
+            removedAttributes.set(el, []);
+          removedAttributes.get(el).push(name);
+        };
+        if (el.hasAttribute(name) && oldValue === null) {
+          add2();
+        } else if (el.hasAttribute(name)) {
+          remove();
+          add2();
+        } else {
+          remove();
+        }
+      }
+    }
+    removedAttributes.forEach((attrs, el) => {
+      cleanupAttributes(el, attrs);
+    });
+    addedAttributes.forEach((attrs, el) => {
+      onAttributeAddeds.forEach((i) => i(el, attrs));
+    });
+    for (let node of removedNodes) {
+      if (addedNodes.some((i) => i.contains(node)))
+        continue;
+      onElRemoveds.forEach((i) => i(node));
+    }
+    for (let node of addedNodes) {
+      if (!node.isConnected)
+        continue;
+      onElAddeds.forEach((i) => i(node));
+    }
+    addedNodes = null;
+    removedNodes = null;
+    addedAttributes = null;
+    removedAttributes = null;
+  }
+  function scope(node) {
+    return mergeProxies(closestDataStack(node));
+  }
+  function addScopeToNode(node, data2, referenceNode) {
+    node._x_dataStack = [data2, ...closestDataStack(referenceNode || node)];
+    return () => {
+      node._x_dataStack = node._x_dataStack.filter((i) => i !== data2);
+    };
+  }
+  function closestDataStack(node) {
+    if (node._x_dataStack)
+      return node._x_dataStack;
+    if (typeof ShadowRoot === "function" && node instanceof ShadowRoot) {
+      return closestDataStack(node.host);
+    }
+    if (!node.parentNode) {
+      return [];
+    }
+    return closestDataStack(node.parentNode);
+  }
+  function mergeProxies(objects) {
+    return new Proxy({ objects }, mergeProxyTrap);
+  }
+  function keyInPrototypeChain(obj, key) {
+    if (obj === null || obj === Object.prototype)
+      return null;
+    if (Object.prototype.hasOwnProperty.call(obj, key))
+      return obj;
+    return keyInPrototypeChain(Object.getPrototypeOf(obj), key);
+  }
+  var mergeProxyTrap = {
+    ownKeys({ objects }) {
+      return Array.from(
+        new Set(objects.flatMap((i) => Object.keys(i)))
+      );
+    },
+    has({ objects }, name) {
+      if (name == Symbol.unscopables)
+        return false;
+      return objects.some(
+        (obj) => Object.prototype.hasOwnProperty.call(obj, name) || Reflect.has(obj, name)
+      );
+    },
+    get({ objects }, name, thisProxy) {
+      if (name == "toJSON")
+        return collapseProxies;
+      return Reflect.get(
+        objects.find(
+          (obj) => Reflect.has(obj, name)
+        ) || {},
+        name,
+        thisProxy
+      );
+    },
+    set({ objects }, name, value, thisProxy) {
+      let target;
+      for (const obj of objects) {
+        target = keyInPrototypeChain(obj, name);
+        if (target)
+          break;
+      }
+      if (!target)
+        target = objects[objects.length - 1];
+      const descriptor = Object.getOwnPropertyDescriptor(target, name);
+      if (descriptor?.set && descriptor?.get)
+        return descriptor.set.call(thisProxy, value) || true;
+      return Reflect.set(target, name, value);
+    }
+  };
+  function collapseProxies() {
+    let keys = Reflect.ownKeys(this);
+    return keys.reduce((acc, key) => {
+      acc[key] = Reflect.get(this, key);
+      return acc;
+    }, {});
+  }
+  function initInterceptors(data2) {
+    let isObject3 = (val) => typeof val === "object" && !Array.isArray(val) && val !== null;
+    let recurse = (obj, basePath = "") => {
+      Object.entries(Object.getOwnPropertyDescriptors(obj)).forEach(([key, { value, enumerable }]) => {
+        if (enumerable === false || value === void 0)
+          return;
+        if (typeof value === "object" && value !== null && value.__v_skip)
+          return;
+        let path = basePath === "" ? key : `${basePath}.${key}`;
+        if (typeof value === "object" && value !== null && value._x_interceptor) {
+          obj[key] = value.initialize(data2, path, key);
+        } else {
+          if (isObject3(value) && value !== obj && !(value instanceof Element)) {
+            recurse(value, path);
+          }
+        }
+      });
+    };
+    return recurse(data2);
+  }
+  function interceptor(callback, mutateObj = () => {
+  }) {
+    let obj = {
+      initialValue: void 0,
+      _x_interceptor: true,
+      initialize(data2, path, key) {
+        return callback(this.initialValue, () => get(data2, path), (value) => set(data2, path, value), path, key);
+      }
+    };
+    mutateObj(obj);
+    return (initialValue) => {
+      if (typeof initialValue === "object" && initialValue !== null && initialValue._x_interceptor) {
+        let initialize = obj.initialize.bind(obj);
+        obj.initialize = (data2, path, key) => {
+          let innerValue = initialValue.initialize(data2, path, key);
+          obj.initialValue = innerValue;
+          return initialize(data2, path, key);
+        };
+      } else {
+        obj.initialValue = initialValue;
+      }
+      return obj;
+    };
+  }
+  function get(obj, path) {
+    return path.split(".").reduce((carry, segment) => carry[segment], obj);
+  }
+  function set(obj, path, value) {
+    if (typeof path === "string")
+      path = path.split(".");
+    if (path.length === 1)
+      obj[path[0]] = value;
+    else if (path.length === 0)
+      throw error;
+    else {
+      if (obj[path[0]])
+        return set(obj[path[0]], path.slice(1), value);
+      else {
+        obj[path[0]] = {};
+        return set(obj[path[0]], path.slice(1), value);
+      }
+    }
+  }
+  var magics = {};
+  function magic(name, callback) {
+    magics[name] = callback;
+  }
+  function injectMagics(obj, el) {
+    let memoizedUtilities = getUtilities(el);
+    Object.entries(magics).forEach(([name, callback]) => {
+      Object.defineProperty(obj, `$${name}`, {
+        get() {
+          return callback(el, memoizedUtilities);
+        },
+        enumerable: false
+      });
+    });
+    return obj;
+  }
+  function getUtilities(el) {
+    let [utilities, cleanup2] = getElementBoundUtilities(el);
+    let utils = { interceptor, ...utilities };
+    onElRemoved(el, cleanup2);
+    return utils;
+  }
+  function tryCatch(el, expression, callback, ...args) {
+    try {
+      return callback(...args);
+    } catch (e) {
+      handleError(e, el, expression);
+    }
+  }
+  function handleError(...args) {
+    return errorHandler(...args);
+  }
+  var errorHandler = normalErrorHandler;
+  function setErrorHandler(handler4) {
+    errorHandler = handler4;
+  }
+  function normalErrorHandler(error2, el, expression = void 0) {
+    error2 = Object.assign(
+      error2 ?? { message: "No error message given." },
+      { el, expression }
+    );
+    console.warn(`Alpine Expression Error: ${error2.message}
 
-`:""}`,t),setTimeout(()=>{throw e},0)}var ee=!0;function gn(e){let t=ee;ee=!1;let n=e();return ee=t,n}function X(e,t,n={}){let r;return T(e,t)(i=>r=i,n),r}function T(...e){return mn(...e)}var mn=()=>{};function Vr(e){mn=e}var pn;function jr(e){pn=e}function kr(e,t){let n={};he(n,e);let r=[n,...J(e)],i=typeof t=="function"?Ur(r,t):Wr(r,t,e);return Fr.bind(null,e,t,i)}function Ur(e,t){return(n=()=>{},{scope:r={},params:i=[],context:o}={})=>{if(!ee){me(n,t,Y([r,...e]),i);return}let s=t.apply(Y([r,...e]),i);me(n,s)}}var $e={};function $r(e,t){if($e[e])return $e[e];let n=Object.getPrototypeOf(async function(){}).constructor,r=/^[\n\s]*if.*\(.*\)/.test(e.trim())||/^(let|const)\s/.test(e.trim())?`(async()=>{ ${e} })()`:e,o=(()=>{try{let s=new n(["__self","scope"],`with (scope) { __self.result = ${r} }; __self.finished = true; return __self.result;`);return Object.defineProperty(s,"name",{value:`[Alpine] ${e}`}),s}catch(s){return ge(s,t,e),Promise.resolve()}})();return $e[e]=o,o}function Wr(e,t,n){let r=$r(t,n);return(i=()=>{},{scope:o={},params:s=[],context:a}={})=>{r.result=void 0,r.finished=!1;let l=Y([o,...e]);if(typeof r=="function"){let u=r.call(a,r,l).catch(c=>ge(c,n,t));r.finished?(me(i,r.result,l,s,n),r.result=void 0):u.then(c=>{me(i,c,l,s,n)}).catch(c=>ge(c,n,t)).finally(()=>r.result=void 0)}}}function me(e,t,n,r,i){if(ee&&typeof t=="function"){let o=t.apply(n,r);o instanceof Promise?o.then(s=>me(e,s,n,r)).catch(s=>ge(s,i,t)):e(o)}else typeof t=="object"&&t instanceof Promise?t.then(o=>e(o)):e(t)}function Xr(...e){return pn(...e)}function zr(e,t,n={}){let r={};he(r,e);let i=[r,...J(e)],o=Y([n.scope??{},...i]),s=n.params??[];if(t.includes("await")){let a=Object.getPrototypeOf(async function(){}).constructor,l=/^[\n\s]*if.*\(.*\)/.test(t.trim())||/^(let|const)\s/.test(t.trim())?`(async()=>{ ${t} })()`:t;return new a(["scope"],`with (scope) { let __result = ${l}; return __result }`).call(n.context,o)}else{let a=/^[\n\s]*if.*\(.*\)/.test(t.trim())||/^(let|const)\s/.test(t.trim())?`(()=>{ ${t} })()`:t,u=new Function(["scope"],`with (scope) { let __result = ${a}; return __result }`).call(n.context,o);return typeof u=="function"&&ee?u.apply(o,s):u}}var Et="x-";function ie(e=""){return Et+e}function Kr(e){Et=e}var Re={};function A(e,t){return Re[e]=t,{before(n){if(!Re[n]){console.warn(String.raw`Cannot find directive \`${n}\`. \`${e}\` will use the default order of execution`);return}let r=$.indexOf(n);$.splice(r>=0?r:$.indexOf("DEFAULT"),0,e)}}}function Jr(e){return Object.keys(Re).includes(e)}function xt(e,t,n){if(t=Array.from(t),e._x_virtualDirectives){let o=Object.entries(e._x_virtualDirectives).map(([a,l])=>({name:a,value:l})),s=yn(o);o=o.map(a=>s.find(l=>l.name===a.name)?{name:`x-bind:${a.name}`,value:`"${a.value}"`}:a),t=t.concat(o)}let r={};return t.map(_n((o,s)=>r[o]=s)).filter(An).map(Qr(r,n)).sort(Zr).map(o=>Gr(e,o))}function yn(e){return Array.from(e).map(_n()).filter(t=>!An(t))}var Ze=!1,ce=new Map,En=Symbol();function Yr(e){Ze=!0;let t=Symbol();En=t,ce.set(t,[]);let n=()=>{for(;ce.get(t).length;)ce.get(t).shift()();ce.delete(t)},r=()=>{Ze=!1,n()};e(n),r()}function xn(e){let t=[],n=a=>t.push(a),[r,i]=Cr(e);return t.push(i),[{Alpine:se,effect:r,cleanup:n,evaluateLater:T.bind(T,e),evaluate:X.bind(X,e)},()=>t.forEach(a=>a())]}function Gr(e,t){let n=()=>{},r=Re[t.type]||n,[i,o]=xn(e);sn(e,t.original,o);let s=()=>{e._x_ignore||e._x_ignoreSelf||(r.inline&&r.inline(e,t,i),r=r.bind(r,e,t,i),Ze?ce.get(En).push(r):r())};return s.runCleanups=o,s}var bn=(e,t)=>({name:n,value:r})=>(n.startsWith(e)&&(n=n.replace(e,t)),{name:n,value:r}),vn=e=>e;function _n(e=()=>{}){return({name:t,value:n})=>{let{name:r,value:i}=wn.reduce((o,s)=>s(o),{name:t,value:n});return r!==t&&e(r,t),{name:r,value:i}}}var wn=[];function bt(e){wn.push(e)}function An({name:e}){return Sn().test(e)}var Sn=()=>new RegExp(`^${Et}([^:^.]+)\\b`);function Qr(e,t){return({name:n,value:r})=>{n===r&&(r="");let i=n.match(Sn()),o=n.match(/:([a-zA-Z0-9\-_:]+)/),s=n.match(/\.[^.\]]+(?=[^\]]*$)/g)||[],a=t||e[n]||n;return{type:i?i[1]:null,value:o?o[1]:null,modifiers:s.map(l=>l.replace(".","")),expression:r,original:a}}}var et="DEFAULT",$=["ignore","ref","data","id","anchor","bind","init","for","model","modelable","transition","show","if",et,"teleport"];function Zr(e,t){let n=$.indexOf(e.type)===-1?et:e.type,r=$.indexOf(t.type)===-1?et:t.type;return $.indexOf(n)-$.indexOf(r)}function fe(e,t,n={},r={}){return e.dispatchEvent(new CustomEvent(t,{detail:n,bubbles:!0,composed:!0,cancelable:!0,...r}))}function G(e,t){if(typeof ShadowRoot=="function"&&e instanceof ShadowRoot){Array.from(e.children).forEach(i=>G(i,t));return}let n=!1;if(t(e,()=>n=!0),n)return;let r=e.firstElementChild;for(;r;)G(r,t,!1),r=r.nextElementSibling}function D(e,...t){console.warn(`Alpine Warning: ${e}`,...t)}var jt=!1;function ei(){jt&&D("Alpine has already been initialized on this page. Calling Alpine.start() more than once can cause problems."),jt=!0,document.body||D("Unable to initialize. Trying to load Alpine before `<body>` is available. Did you forget to add `defer` in Alpine's `<script>` tag?"),fe(document,"alpine:init"),fe(document,"alpine:initializing"),gt(),Or(t=>N(t,G)),ft(t=>oe(t)),on((t,n)=>{xt(t,n).forEach(r=>r())});let e=t=>!De(t.parentElement,!0);Array.from(document.querySelectorAll(On().join(","))).filter(e).forEach(t=>{N(t)}),fe(document,"alpine:initialized"),setTimeout(()=>{ii()})}var vt=[],Cn=[];function Tn(){return vt.map(e=>e())}function On(){return vt.concat(Cn).map(e=>e())}function Rn(e){vt.push(e)}function Hn(e){Cn.push(e)}function De(e,t=!1){return L(e,n=>{if((t?On():Tn()).some(i=>n.matches(i)))return!0})}function L(e,t){if(e){if(t(e))return e;if(e._x_teleportBack)return L(e._x_teleportBack,t);if(e.parentNode instanceof ShadowRoot)return L(e.parentNode.host,t);if(e.parentElement)return L(e.parentElement,t)}}function ti(e){return Tn().some(t=>e.matches(t))}var In=[];function ni(e){In.push(e)}var ri=1;function N(e,t=G,n=()=>{}){L(e,r=>r._x_ignore)||Yr(()=>{t(e,(r,i)=>{r._x_marker||(n(r,i),In.forEach(o=>o(r,i)),xt(r,r.attributes).forEach(o=>o()),r._x_ignore||(r._x_marker=ri++),r._x_ignore&&i())})})}function oe(e,t=G){t(e,n=>{Rr(n),an(n),delete n._x_marker})}function ii(){[["ui","dialog",["[x-dialog], [x-popover]"]],["anchor","anchor",["[x-anchor]"]],["sort","sort",["[x-sort]"]]].forEach(([t,n,r])=>{Jr(n)||r.some(i=>{if(document.querySelector(i))return D(`found "${i}", but missing ${t} plugin`),!0})})}var tt=[],_t=!1;function wt(e=()=>{}){return queueMicrotask(()=>{_t||setTimeout(()=>{nt()})}),new Promise(t=>{tt.push(()=>{e(),t()})})}function nt(){for(_t=!1;tt.length;)tt.shift()()}function oi(){_t=!0}function At(e,t){return Array.isArray(t)?kt(e,t.join(" ")):typeof t=="object"&&t!==null?si(e,t):typeof t=="function"?At(e,t()):kt(e,t)}function rt(e){return e.split(/\s/).filter(Boolean)}function kt(e,t){let n=i=>rt(i).filter(o=>!e.classList.contains(o)).filter(Boolean),r=i=>(e.classList.add(...i),()=>{e.classList.remove(...i)});return t=t===!0?t="":t||"",r(n(t))}function si(e,t){let n=Object.entries(t).flatMap(([s,a])=>a?rt(s):!1).filter(Boolean),r=Object.entries(t).flatMap(([s,a])=>a?!1:rt(s)).filter(Boolean),i=[],o=[];return r.forEach(s=>{e.classList.contains(s)&&(e.classList.remove(s),o.push(s))}),n.forEach(s=>{e.classList.contains(s)||(e.classList.add(s),i.push(s))}),()=>{o.forEach(s=>e.classList.add(s)),i.forEach(s=>e.classList.remove(s))}}function Pe(e,t){return typeof t=="object"&&t!==null?ai(e,t):li(e,t)}function ai(e,t){let n={};return Object.entries(t).forEach(([r,i])=>{n[r]=e.style[r],r.startsWith("--")||(r=ui(r)),e.style.setProperty(r,i)}),setTimeout(()=>{e.style.length===0&&e.removeAttribute("style")}),()=>{Pe(e,n)}}function li(e,t){let n=e.getAttribute("style",t);return e.setAttribute("style",t),()=>{e.setAttribute("style",n||"")}}function ui(e){return e.replace(/([a-z])([A-Z])/g,"$1-$2").toLowerCase()}function it(e,t=()=>{}){let n=!1;return function(){n?t.apply(this,arguments):(n=!0,e.apply(this,arguments))}}A("transition",(e,{value:t,modifiers:n,expression:r},{evaluate:i})=>{typeof r=="function"&&(r=i(r)),r!==!1&&(!r||typeof r=="boolean"?fi(e,n,t):ci(e,r,t))});function ci(e,t,n){Dn(e,At,""),{enter:i=>{e._x_transition.enter.during=i},"enter-start":i=>{e._x_transition.enter.start=i},"enter-end":i=>{e._x_transition.enter.end=i},leave:i=>{e._x_transition.leave.during=i},"leave-start":i=>{e._x_transition.leave.start=i},"leave-end":i=>{e._x_transition.leave.end=i}}[n](t)}function fi(e,t,n){Dn(e,Pe);let r=!t.includes("in")&&!t.includes("out")&&!n,i=r||t.includes("in")||["enter"].includes(n),o=r||t.includes("out")||["leave"].includes(n);t.includes("in")&&!r&&(t=t.filter((y,b)=>b<t.indexOf("out"))),t.includes("out")&&!r&&(t=t.filter((y,b)=>b>t.indexOf("out")));let s=!t.includes("opacity")&&!t.includes("scale"),a=s||t.includes("opacity"),l=s||t.includes("scale"),u=a?0:1,c=l?le(t,"scale",95)/100:1,f=le(t,"delay",0)/1e3,h=le(t,"origin","center"),p="opacity, transform",g=le(t,"duration",150)/1e3,d=le(t,"duration",75)/1e3,m="cubic-bezier(0.4, 0.0, 0.2, 1)";i&&(e._x_transition.enter.during={transformOrigin:h,transitionDelay:`${f}s`,transitionProperty:p,transitionDuration:`${g}s`,transitionTimingFunction:m},e._x_transition.enter.start={opacity:u,transform:`scale(${c})`},e._x_transition.enter.end={opacity:1,transform:"scale(1)"}),o&&(e._x_transition.leave.during={transformOrigin:h,transitionDelay:`${f}s`,transitionProperty:p,transitionDuration:`${d}s`,transitionTimingFunction:m},e._x_transition.leave.start={opacity:1,transform:"scale(1)"},e._x_transition.leave.end={opacity:u,transform:`scale(${c})`})}function Dn(e,t,n={}){e._x_transition||(e._x_transition={enter:{during:n,start:n,end:n},leave:{during:n,start:n,end:n},in(r=()=>{},i=()=>{}){ot(e,t,{during:this.enter.during,start:this.enter.start,end:this.enter.end},r,i)},out(r=()=>{},i=()=>{}){ot(e,t,{during:this.leave.during,start:this.leave.start,end:this.leave.end},r,i)}})}window.Element.prototype._x_toggleAndCascadeWithTransitions=function(e,t,n,r){let i=document.visibilityState==="visible"?requestAnimationFrame:setTimeout,o=()=>i(n);if(t){e._x_transition&&(e._x_transition.enter||e._x_transition.leave)?e._x_transition.enter&&(Object.entries(e._x_transition.enter.during).length||Object.entries(e._x_transition.enter.start).length||Object.entries(e._x_transition.enter.end).length)?e._x_transition.in(n):o():e._x_transition?e._x_transition.in(n):o();return}e._x_hidePromise=e._x_transition?new Promise((s,a)=>{e._x_transition.out(()=>{},()=>s(r)),e._x_transitioning&&e._x_transitioning.beforeCancel(()=>a({isFromCancelledTransition:!0}))}):Promise.resolve(r),queueMicrotask(()=>{let s=Pn(e);s?(s._x_hideChildren||(s._x_hideChildren=[]),s._x_hideChildren.push(e)):i(()=>{let a=l=>{let u=Promise.all([l._x_hidePromise,...(l._x_hideChildren||[]).map(a)]).then(([c])=>c?.());return delete l._x_hidePromise,delete l._x_hideChildren,u};a(e).catch(l=>{if(!l.isFromCancelledTransition)throw l})})})};function Pn(e){let t=e.parentNode;if(t)return t._x_hidePromise?t:Pn(t)}function ot(e,t,{during:n,start:r,end:i}={},o=()=>{},s=()=>{}){if(e._x_transitioning&&e._x_transitioning.cancel(),Object.keys(n).length===0&&Object.keys(r).length===0&&Object.keys(i).length===0){o(),s();return}let a,l,u;di(e,{start(){a=t(e,r)},during(){l=t(e,n)},before:o,end(){a(),u=t(e,i)},after:s,cleanup(){l(),u()}})}function di(e,t){let n,r,i,o=it(()=>{_(()=>{n=!0,r||t.before(),i||(t.end(),nt()),t.after(),e.isConnected&&t.cleanup(),delete e._x_transitioning})});e._x_transitioning={beforeCancels:[],beforeCancel(s){this.beforeCancels.push(s)},cancel:it(function(){for(;this.beforeCancels.length;)this.beforeCancels.shift()();o()}),finish:o},_(()=>{t.start(),t.during()}),oi(),requestAnimationFrame(()=>{if(n)return;let s=Number(getComputedStyle(e).transitionDuration.replace(/,.*/,"").replace("s",""))*1e3,a=Number(getComputedStyle(e).transitionDelay.replace(/,.*/,"").replace("s",""))*1e3;s===0&&(s=Number(getComputedStyle(e).animationDuration.replace("s",""))*1e3),_(()=>{t.before()}),r=!0,requestAnimationFrame(()=>{n||(_(()=>{t.end()}),nt(),setTimeout(e._x_transitioning.finish,s+a),i=!0)})})}function le(e,t,n){if(e.indexOf(t)===-1)return n;let r=e[e.indexOf(t)+1];if(!r||t==="scale"&&isNaN(r))return n;if(t==="duration"||t==="delay"){let i=r.match(/([0-9]+)ms/);if(i)return i[1]}return t==="origin"&&["top","right","left","center","bottom"].includes(e[e.indexOf(t)+2])?[r,e[e.indexOf(t)+2]].join(" "):r}var B=!1;function j(e,t=()=>{}){return(...n)=>B?t(...n):e(...n)}function hi(e){return(...t)=>B&&e(...t)}var Mn=[];function Me(e){Mn.push(e)}function gi(e,t){Mn.forEach(n=>n(e,t)),B=!0,Ln(()=>{N(t,(n,r)=>{r(n,()=>{})})}),B=!1}var st=!1;function mi(e,t){t._x_dataStack||(t._x_dataStack=e._x_dataStack),B=!0,st=!0,Ln(()=>{pi(t)}),B=!1,st=!1}function pi(e){let t=!1;N(e,(r,i)=>{G(r,(o,s)=>{if(t&&ti(o))return s();t=!0,i(o,s)})})}function Ln(e){let t=Q;Vt((n,r)=>{let i=t(n);return re(i),()=>{}}),e(),Vt(t)}function Nn(e,t,n,r=[]){switch(e._x_bindings||(e._x_bindings=ne({})),e._x_bindings[t]=n,t=r.includes("camel")?Ai(t):t,t){case"value":yi(e,n);break;case"style":xi(e,n);break;case"class":Ei(e,n);break;case"selected":case"checked":bi(e,t,n);break;default:Fn(e,t,n);break}}function yi(e,t){if(St(e))e.attributes.value===void 0&&(e.value=t);else if(He(e))Number.isInteger(t)?e.value=t:!Array.isArray(t)&&typeof t!="boolean"&&![null,void 0].includes(t)?e.value=String(t):Array.isArray(t)?e.checked=t.some(n=>Si(n,e.value)):e.checked=!!t;else if(e.tagName==="SELECT")wi(e,t);else{if(e.value===t)return;e.value=t===void 0?"":t}}function Ei(e,t){e._x_undoAddedClasses&&e._x_undoAddedClasses(),e._x_undoAddedClasses=At(e,t)}function xi(e,t){e._x_undoAddedStyles&&e._x_undoAddedStyles(),e._x_undoAddedStyles=Pe(e,t)}function bi(e,t,n){Fn(e,t,n),_i(e,t,n)}function Fn(e,t,n){[null,void 0,!1].includes(n)&&Ti(t)?e.removeAttribute(t):(qn(t)&&(n=t),vi(e,t,n))}function vi(e,t,n){e.getAttribute(t)!=n&&e.setAttribute(t,n)}function _i(e,t,n){e[t]!==n&&(e[t]=n)}function wi(e,t){let n=[].concat(t).map(r=>r+"");Array.from(e.options).forEach(r=>{r.selected=n.includes(r.value)})}function Ai(e){return e.toLowerCase().replace(/-(\w)/g,(t,n)=>n.toUpperCase())}function Si(e,t){return e==t}function Te(e){return[1,"1","true","on","yes",!0].includes(e)?!0:[0,"0","false","off","no",!1].includes(e)?!1:e?!!e:null}var Ci=new Set(["allowfullscreen","async","autofocus","autoplay","checked","controls","default","defer","disabled","formnovalidate","inert","ismap","itemscope","loop","multiple","muted","nomodule","novalidate","open","playsinline","readonly","required","reversed","selected","shadowrootclonable","shadowrootdelegatesfocus","shadowrootserializable"]);function qn(e){return Ci.has(e)}function Ti(e){return!["aria-pressed","aria-checked","aria-expanded","aria-selected"].includes(e)}function Oi(e,t,n){return e._x_bindings&&e._x_bindings[t]!==void 0?e._x_bindings[t]:Bn(e,t,n)}function Ri(e,t,n,r=!0){if(e._x_bindings&&e._x_bindings[t]!==void 0)return e._x_bindings[t];if(e._x_inlineBindings&&e._x_inlineBindings[t]!==void 0){let i=e._x_inlineBindings[t];return i.extract=r,gn(()=>X(e,i.expression))}return Bn(e,t,n)}function Bn(e,t,n){let r=e.getAttribute(t);return r===null?typeof n=="function"?n():n:r===""?!0:qn(t)?!![t,"true"].includes(r):r}function He(e){return e.type==="checkbox"||e.localName==="ui-checkbox"||e.localName==="ui-switch"}function St(e){return e.type==="radio"||e.localName==="ui-radio"}function Vn(e,t){let n;return function(){let r=this,i=arguments,o=function(){n=null,e.apply(r,i)};clearTimeout(n),n=setTimeout(o,t)}}function jn(e,t){let n;return function(){let r=this,i=arguments;n||(e.apply(r,i),n=!0,setTimeout(()=>n=!1,t))}}function kn({get:e,set:t},{get:n,set:r}){let i=!0,o,s,a=Q(()=>{let l=e(),u=n();if(i)r(We(l)),i=!1;else{let c=JSON.stringify(l),f=JSON.stringify(u);c!==o?r(We(l)):c!==f&&t(We(u))}o=JSON.stringify(e()),s=JSON.stringify(n())});return()=>{re(a)}}function We(e){return typeof e=="object"?JSON.parse(JSON.stringify(e)):e}function Hi(e){(Array.isArray(e)?e:[e]).forEach(n=>n(se))}var U={},Ut=!1;function Ii(e,t){if(Ut||(U=ne(U),Ut=!0),t===void 0)return U[e];U[e]=t,yt(U[e]),typeof t=="object"&&t!==null&&t.hasOwnProperty("init")&&typeof t.init=="function"&&U[e].init()}function Di(){return U}var Un={};function Pi(e,t){let n=typeof t!="function"?()=>t:t;return e instanceof Element?$n(e,n()):(Un[e]=n,()=>{})}function Mi(e){return Object.entries(Un).forEach(([t,n])=>{Object.defineProperty(e,t,{get(){return(...r)=>n(...r)}})}),e}function $n(e,t,n){let r=[];for(;r.length;)r.pop()();let i=Object.entries(t).map(([s,a])=>({name:s,value:a})),o=yn(i);return i=i.map(s=>o.find(a=>a.name===s.name)?{name:`x-bind:${s.name}`,value:`"${s.value}"`}:s),xt(e,i,n).map(s=>{r.push(s.runCleanups),s()}),()=>{for(;r.length;)r.pop()()}}var Wn={};function Li(e,t){Wn[e]=t}function Ni(e,t){return Object.entries(Wn).forEach(([n,r])=>{Object.defineProperty(e,n,{get(){return(...i)=>r.bind(t)(...i)},enumerable:!1})}),e}var Fi={get reactive(){return ne},get release(){return re},get effect(){return Q},get raw(){return Zt},get transaction(){return Tr},version:"3.15.11",flushAndStopDeferringMutations:Dr,dontAutoEvaluateFunctions:gn,disableEffectScheduling:Ar,startObservingMutations:gt,stopObservingMutations:ln,setReactivityEngine:Sr,onAttributeRemoved:sn,onAttributesAdded:on,closestDataStack:J,skipDuringClone:j,onlyDuringClone:hi,addRootSelector:Rn,addInitSelector:Hn,setErrorHandler:qr,interceptClone:Me,addScopeToNode:pe,deferMutations:Ir,mapAttributes:bt,evaluateLater:T,interceptInit:ni,initInterceptors:yt,injectMagics:he,setEvaluator:Vr,setRawEvaluator:jr,mergeProxies:Y,extractProp:Ri,findClosest:L,onElRemoved:ft,closestRoot:De,destroyTree:oe,interceptor:fn,transition:ot,setStyles:Pe,mutateDom:_,directive:A,entangle:kn,throttle:jn,debounce:Vn,evaluate:X,evaluateRaw:Xr,initTree:N,nextTick:wt,prefixed:ie,prefix:Kr,plugin:Hi,magic:H,store:Ii,start:ei,clone:mi,cloneNode:gi,bound:Oi,$data:un,watch:en,walk:G,data:Li,bind:Pi},se=Fi;function Xn(e,t){let n=Object.create(null),r=e.split(",");for(let i=0;i<r.length;i++)n[r[i]]=!0;return t?i=>!!n[i.toLowerCase()]:i=>!!n[i]}var qi="itemscope,allowfullscreen,formnovalidate,ismap,nomodule,novalidate,readonly",Uo=Xn(qi+",async,autofocus,autoplay,controls,default,defer,disabled,hidden,loop,open,required,reversed,scoped,seamless,checked,muted,multiple,selected"),Bi=Object.freeze({}),$o=Object.freeze([]),Vi=Object.prototype.hasOwnProperty,Le=(e,t)=>Vi.call(e,t),z=Array.isArray,de=e=>zn(e)==="[object Map]",ji=e=>typeof e=="string",Ct=e=>typeof e=="symbol",Ne=e=>e!==null&&typeof e=="object",ki=Object.prototype.toString,zn=e=>ki.call(e),Kn=e=>zn(e).slice(8,-1),Tt=e=>ji(e)&&e!=="NaN"&&e[0]!=="-"&&""+parseInt(e,10)===e,Fe=e=>{let t=Object.create(null);return n=>t[n]||(t[n]=e(n))},Ui=/-(\w)/g,Wo=Fe(e=>e.replace(Ui,(t,n)=>n?n.toUpperCase():"")),$i=/\B([A-Z])/g,Xo=Fe(e=>e.replace($i,"-$1").toLowerCase()),Jn=Fe(e=>e.charAt(0).toUpperCase()+e.slice(1)),zo=Fe(e=>e?`on${Jn(e)}`:""),Yn=(e,t)=>e!==t&&(e===e||t===t),at=new WeakMap,ue=[],I,K=Symbol("iterate"),lt=Symbol("Map key iterate");function Wi(e){return e&&e._isEffect===!0}function Xi(e,t=Bi){Wi(e)&&(e=e.raw);let n=Ji(e,t);return t.lazy||n(),n}function zi(e){e.active&&(Gn(e),e.options.onStop&&e.options.onStop(),e.active=!1)}var Ki=0;function Ji(e,t){let n=function(){if(!n.active)return e();if(!ue.includes(n)){Gn(n);try{return Gi(),ue.push(n),I=n,e()}finally{ue.pop(),Qn(),I=ue[ue.length-1]}}};return n.id=Ki++,n.allowRecurse=!!t.allowRecurse,n._isEffect=!0,n.active=!0,n.raw=e,n.deps=[],n.options=t,n}function Gn(e){let{deps:t}=e;if(t.length){for(let n=0;n<t.length;n++)t[n].delete(e);t.length=0}}var te=!0,Ot=[];function Yi(){Ot.push(te),te=!1}function Gi(){Ot.push(te),te=!0}function Qn(){let e=Ot.pop();te=e===void 0?!0:e}function R(e,t,n){if(!te||I===void 0)return;let r=at.get(e);r||at.set(e,r=new Map);let i=r.get(n);i||r.set(n,i=new Set),i.has(I)||(i.add(I),I.deps.push(i),I.options.onTrack&&I.options.onTrack({effect:I,target:e,type:t,key:n}))}function V(e,t,n,r,i,o){let s=at.get(e);if(!s)return;let a=new Set,l=c=>{c&&c.forEach(f=>{(f!==I||f.allowRecurse)&&a.add(f)})};if(t==="clear")s.forEach(l);else if(n==="length"&&z(e))s.forEach((c,f)=>{(f==="length"||f>=r)&&l(c)});else switch(n!==void 0&&l(s.get(n)),t){case"add":z(e)?Tt(n)&&l(s.get("length")):(l(s.get(K)),de(e)&&l(s.get(lt)));break;case"delete":z(e)||(l(s.get(K)),de(e)&&l(s.get(lt)));break;case"set":de(e)&&l(s.get(K));break}let u=c=>{c.options.onTrigger&&c.options.onTrigger({effect:c,target:e,key:n,type:t,newValue:r,oldValue:i,oldTarget:o}),c.options.scheduler?c.options.scheduler(c):c()};a.forEach(u)}var Qi=Xn("__proto__,__v_isRef,__isVue"),Zn=new Set(Object.getOwnPropertyNames(Symbol).map(e=>Symbol[e]).filter(Ct)),Zi=er(),eo=er(!0),$t=to();function to(){let e={};return["includes","indexOf","lastIndexOf"].forEach(t=>{e[t]=function(...n){let r=x(this);for(let o=0,s=this.length;o<s;o++)R(r,"get",o+"");let i=r[t](...n);return i===-1||i===!1?r[t](...n.map(x)):i}}),["push","pop","shift","unshift","splice"].forEach(t=>{e[t]=function(...n){Yi();let r=x(this)[t].apply(this,n);return Qn(),r}}),e}function er(e=!1,t=!1){return function(r,i,o){if(i==="__v_isReactive")return!e;if(i==="__v_isReadonly")return e;if(i==="__v_raw"&&o===(e?t?Eo:ir:t?yo:rr).get(r))return r;let s=z(r);if(!e&&s&&Le($t,i))return Reflect.get($t,i,o);let a=Reflect.get(r,i,o);return(Ct(i)?Zn.has(i):Qi(i))||(e||R(r,"get",i),t)?a:ut(a)?!s||!Tt(i)?a.value:a:Ne(a)?e?or(a):Dt(a):a}}var no=ro();function ro(e=!1){return function(n,r,i,o){let s=n[r];if(!e&&(i=x(i),s=x(s),!z(n)&&ut(s)&&!ut(i)))return s.value=i,!0;let a=z(n)&&Tt(r)?Number(r)<n.length:Le(n,r),l=Reflect.set(n,r,i,o);return n===x(o)&&(a?Yn(i,s)&&V(n,"set",r,i,s):V(n,"add",r,i)),l}}function io(e,t){let n=Le(e,t),r=e[t],i=Reflect.deleteProperty(e,t);return i&&n&&V(e,"delete",t,void 0,r),i}function oo(e,t){let n=Reflect.has(e,t);return(!Ct(t)||!Zn.has(t))&&R(e,"has",t),n}function so(e){return R(e,"iterate",z(e)?"length":K),Reflect.ownKeys(e)}var ao={get:Zi,set:no,deleteProperty:io,has:oo,ownKeys:so},lo={get:eo,set(e,t){return console.warn(`Set operation on key "${String(t)}" failed: target is readonly.`,e),!0},deleteProperty(e,t){return console.warn(`Delete operation on key "${String(t)}" failed: target is readonly.`,e),!0}},Rt=e=>Ne(e)?Dt(e):e,Ht=e=>Ne(e)?or(e):e,It=e=>e,qe=e=>Reflect.getPrototypeOf(e);function ve(e,t,n=!1,r=!1){e=e.__v_raw;let i=x(e),o=x(t);t!==o&&!n&&R(i,"get",t),!n&&R(i,"get",o);let{has:s}=qe(i),a=r?It:n?Ht:Rt;if(s.call(i,t))return a(e.get(t));if(s.call(i,o))return a(e.get(o));e!==i&&e.get(t)}function _e(e,t=!1){let n=this.__v_raw,r=x(n),i=x(e);return e!==i&&!t&&R(r,"has",e),!t&&R(r,"has",i),e===i?n.has(e):n.has(e)||n.has(i)}function we(e,t=!1){return e=e.__v_raw,!t&&R(x(e),"iterate",K),Reflect.get(e,"size",e)}function Wt(e){e=x(e);let t=x(this);return qe(t).has.call(t,e)||(t.add(e),V(t,"add",e,e)),this}function Xt(e,t){t=x(t);let n=x(this),{has:r,get:i}=qe(n),o=r.call(n,e);o?nr(n,r,e):(e=x(e),o=r.call(n,e));let s=i.call(n,e);return n.set(e,t),o?Yn(t,s)&&V(n,"set",e,t,s):V(n,"add",e,t),this}function zt(e){let t=x(this),{has:n,get:r}=qe(t),i=n.call(t,e);i?nr(t,n,e):(e=x(e),i=n.call(t,e));let o=r?r.call(t,e):void 0,s=t.delete(e);return i&&V(t,"delete",e,void 0,o),s}function Kt(){let e=x(this),t=e.size!==0,n=de(e)?new Map(e):new Set(e),r=e.clear();return t&&V(e,"clear",void 0,void 0,n),r}function Ae(e,t){return function(r,i){let o=this,s=o.__v_raw,a=x(s),l=t?It:e?Ht:Rt;return!e&&R(a,"iterate",K),s.forEach((u,c)=>r.call(i,l(u),l(c),o))}}function Se(e,t,n){return function(...r){let i=this.__v_raw,o=x(i),s=de(o),a=e==="entries"||e===Symbol.iterator&&s,l=e==="keys"&&s,u=i[e](...r),c=n?It:t?Ht:Rt;return!t&&R(o,"iterate",l?lt:K),{next(){let{value:f,done:h}=u.next();return h?{value:f,done:h}:{value:a?[c(f[0]),c(f[1])]:c(f),done:h}},[Symbol.iterator](){return this}}}}function q(e){return function(...t){{let n=t[0]?`on key "${t[0]}" `:"";console.warn(`${Jn(e)} operation ${n}failed: target is readonly.`,x(this))}return e==="delete"?!1:this}}function uo(){let e={get(o){return ve(this,o)},get size(){return we(this)},has:_e,add:Wt,set:Xt,delete:zt,clear:Kt,forEach:Ae(!1,!1)},t={get(o){return ve(this,o,!1,!0)},get size(){return we(this)},has:_e,add:Wt,set:Xt,delete:zt,clear:Kt,forEach:Ae(!1,!0)},n={get(o){return ve(this,o,!0)},get size(){return we(this,!0)},has(o){return _e.call(this,o,!0)},add:q("add"),set:q("set"),delete:q("delete"),clear:q("clear"),forEach:Ae(!0,!1)},r={get(o){return ve(this,o,!0,!0)},get size(){return we(this,!0)},has(o){return _e.call(this,o,!0)},add:q("add"),set:q("set"),delete:q("delete"),clear:q("clear"),forEach:Ae(!0,!0)};return["keys","values","entries",Symbol.iterator].forEach(o=>{e[o]=Se(o,!1,!1),n[o]=Se(o,!0,!1),t[o]=Se(o,!1,!0),r[o]=Se(o,!0,!0)}),[e,n,t,r]}var[co,fo,ho,go]=uo();function tr(e,t){let n=t?e?go:ho:e?fo:co;return(r,i,o)=>i==="__v_isReactive"?!e:i==="__v_isReadonly"?e:i==="__v_raw"?r:Reflect.get(Le(n,i)&&i in r?n:r,i,o)}var mo={get:tr(!1,!1)},po={get:tr(!0,!1)};function nr(e,t,n){let r=x(n);if(r!==n&&t.call(e,r)){let i=Kn(e);console.warn(`Reactive ${i} contains both the raw and reactive versions of the same object${i==="Map"?" as keys":""}, which can lead to inconsistencies. Avoid differentiating between the raw and reactive versions of an object and only use the reactive version if possible.`)}}var rr=new WeakMap,yo=new WeakMap,ir=new WeakMap,Eo=new WeakMap;function xo(e){switch(e){case"Object":case"Array":return 1;case"Map":case"Set":case"WeakMap":case"WeakSet":return 2;default:return 0}}function bo(e){return e.__v_skip||!Object.isExtensible(e)?0:xo(Kn(e))}function Dt(e){return e&&e.__v_isReadonly?e:sr(e,!1,ao,mo,rr)}function or(e){return sr(e,!0,lo,po,ir)}function sr(e,t,n,r,i){if(!Ne(e))return console.warn(`value cannot be made reactive: ${String(e)}`),e;if(e.__v_raw&&!(t&&e.__v_isReactive))return e;let o=i.get(e);if(o)return o;let s=bo(e);if(s===0)return e;let a=new Proxy(e,s===2?r:n);return i.set(e,a),a}function x(e){return e&&x(e.__v_raw)||e}function ut(e){return!!(e&&e.__v_isRef===!0)}H("nextTick",()=>wt);H("dispatch",e=>fe.bind(fe,e));H("watch",(e,{evaluateLater:t,cleanup:n})=>(r,i)=>{let o=t(r),a=en(()=>{let l;return o(u=>l=u),l},i);n(a)});H("store",Di);H("data",e=>un(e));H("root",e=>De(e));H("refs",e=>(e._x_refs_proxy||(e._x_refs_proxy=Y(vo(e))),e._x_refs_proxy));function vo(e){let t=[];return L(e,n=>{n._x_refs&&t.push(n._x_refs)}),t}var Xe={};function ar(e){return Xe[e]||(Xe[e]=0),++Xe[e]}function _o(e,t){return L(e,n=>{if(n._x_ids&&n._x_ids[t])return!0})}function wo(e,t){e._x_ids||(e._x_ids={}),e._x_ids[t]||(e._x_ids[t]=ar(t))}H("id",(e,{cleanup:t})=>(n,r=null)=>{let i=`${n}${r?`-${r}`:""}`;return Ao(e,i,t,()=>{let o=_o(e,n),s=o?o._x_ids[n]:ar(n);return r?`${n}-${s}-${r}`:`${n}-${s}`})});Me((e,t)=>{e._x_id&&(t._x_id=e._x_id)});function Ao(e,t,n,r){if(e._x_id||(e._x_id={}),e._x_id[t])return e._x_id[t];let i=r();return e._x_id[t]=i,n(()=>{delete e._x_id[t]}),i}H("el",e=>e);lr("Focus","focus","focus");lr("Persist","persist","persist");function lr(e,t,n){H(t,r=>D(`You can't use [$${t}] without first installing the "${e}" plugin here: https://alpinejs.dev/plugins/${n}`,r))}A("modelable",(e,{expression:t},{effect:n,evaluateLater:r,cleanup:i})=>{let o=r(t),s=()=>{let c;return o(f=>c=f),c},a=r(`${t} = __placeholder`),l=c=>a(()=>{},{scope:{__placeholder:c}}),u=s();l(u),queueMicrotask(()=>{if(!e._x_model)return;e._x_removeModelListeners.default();let c=e._x_model.get,f=e._x_model.setWithModifiers,h=kn({get(){return c()},set(p){f(p)}},{get(){return s()},set(p){l(p)}});i(h)})});A("teleport",(e,{modifiers:t,expression:n},{cleanup:r})=>{e.tagName.toLowerCase()!=="template"&&D("x-teleport can only be used on a <template> tag",e);let i=Jt(n),o=e.content.cloneNode(!0).firstElementChild;e._x_teleport=o,o._x_teleportBack=e,e.setAttribute("data-teleport-template",!0),o.setAttribute("data-teleport-target",!0),e._x_forwardEvents&&e._x_forwardEvents.forEach(a=>{o.addEventListener(a,l=>{l.stopPropagation(),e.dispatchEvent(new l.constructor(l.type,l))})}),pe(o,{},e);let s=(a,l,u)=>{u.includes("prepend")?l.parentNode.insertBefore(a,l):u.includes("append")?l.parentNode.insertBefore(a,l.nextSibling):l.appendChild(a)};_(()=>{s(o,i,t),j(()=>{N(o)})()}),e._x_teleportPutBack=()=>{let a=Jt(n);_(()=>{s(e._x_teleport,a,t)})},r(()=>_(()=>{o.remove(),oe(o)}))});var So=document.createElement("div");function Jt(e){let t=j(()=>document.querySelector(e),()=>So)();return t||D(`Cannot find x-teleport element for selector: "${e}"`),t}var ur=()=>{};ur.inline=(e,{modifiers:t},{cleanup:n})=>{t.includes("self")?e._x_ignoreSelf=!0:e._x_ignore=!0,n(()=>{t.includes("self")?delete e._x_ignoreSelf:delete e._x_ignore})};A("ignore",ur);A("effect",j((e,{expression:t},{effect:n})=>{n(T(e,t))}));function Z(e,t,n,r){let i=e,o=l=>r(l),s={},a=(l,u)=>c=>u(l,c);return n.includes("dot")&&(t=Co(t)),n.includes("camel")&&(t=To(t)),n.includes("capture")&&(s.capture=!0),n.includes("window")&&(i=window),n.includes("document")&&(i=document),n.includes("passive")&&(s.passive=n[n.indexOf("passive")+1]!=="false"),o=cr(n,o),n.includes("prevent")&&(o=a(o,(l,u)=>{u.preventDefault(),l(u)})),n.includes("stop")&&(o=a(o,(l,u)=>{u.stopPropagation(),l(u)})),n.includes("once")&&(o=a(o,(l,u)=>{l(u),i.removeEventListener(t,o,s)})),(n.includes("away")||n.includes("outside"))&&(i=document,o=a(o,(l,u)=>{e.contains(u.target)||u.target.isConnected!==!1&&(e.offsetWidth<1&&e.offsetHeight<1||e._x_isShown!==!1&&l(u))})),n.includes("self")&&(o=a(o,(l,u)=>{u.target===e&&l(u)})),t==="submit"&&(o=a(o,(l,u)=>{u.target._x_pendingModelUpdates&&u.target._x_pendingModelUpdates.forEach(c=>c()),l(u)})),(Ro(t)||fr(t))&&(o=a(o,(l,u)=>{Ho(u,n)||l(u)})),i.addEventListener(t,o,s),()=>{i.removeEventListener(t,o,s)}}function cr(e,t){if(e.includes("debounce")){let n=e[e.indexOf("debounce")+1]||"invalid-wait",r=Ie(n.split("ms")[0])?Number(n.split("ms")[0]):250;t=Vn(t,r)}if(e.includes("throttle")){let n=e[e.indexOf("throttle")+1]||"invalid-wait",r=Ie(n.split("ms")[0])?Number(n.split("ms")[0]):250;t=jn(t,r)}return t}function Co(e){return e.replace(/-/g,".")}function To(e){return e.toLowerCase().replace(/-(\w)/g,(t,n)=>n.toUpperCase())}function Ie(e){return!Array.isArray(e)&&!isNaN(e)}function Oo(e){return[" ","_"].includes(e)?e:e.replace(/([a-z])([A-Z])/g,"$1-$2").replace(/[_\s]/,"-").toLowerCase()}function Ro(e){return["keydown","keyup"].includes(e)}function fr(e){return["contextmenu","click","mouse"].some(t=>e.includes(t))}function Ho(e,t){let n=t.filter(o=>!["window","document","prevent","stop","once","capture","self","away","outside","passive","preserve-scroll","blur","change","lazy"].includes(o));if(n.includes("debounce")){let o=n.indexOf("debounce");n.splice(o,Ie((n[o+1]||"invalid-wait").split("ms")[0])?2:1)}if(n.includes("throttle")){let o=n.indexOf("throttle");n.splice(o,Ie((n[o+1]||"invalid-wait").split("ms")[0])?2:1)}if(n.length===0||n.length===1&&Yt(e.key).includes(n[0]))return!1;let i=["ctrl","shift","alt","meta","cmd","super"].filter(o=>n.includes(o));return n=n.filter(o=>!i.includes(o)),!(i.length>0&&i.filter(s=>((s==="cmd"||s==="super")&&(s="meta"),e[`${s}Key`])).length===i.length&&(fr(e.type)||Yt(e.key).includes(n[0])))}function Yt(e){if(!e)return[];e=Oo(e);let t={ctrl:"control",slash:"/",space:" ",spacebar:" ",cmd:"meta",esc:"escape",up:"arrow-up",down:"arrow-down",left:"arrow-left",right:"arrow-right",period:".",comma:",",equal:"=",minus:"-",underscore:"_"};return t[e]=e,Object.keys(t).map(n=>{if(t[n]===e)return n}).filter(n=>n)}A("model",(e,{modifiers:t,expression:n},{effect:r,cleanup:i})=>{let o=e;t.includes("parent")&&(o=L(e,d=>d!==e));let s=T(o,n),a;typeof n=="string"?a=T(o,`${n} = __placeholder`):typeof n=="function"&&typeof n()=="string"?a=T(o,`${n()} = __placeholder`):a=()=>{};let l=()=>{let d;return s(m=>d=m),Gt(d)?d.get():d},u=d=>{let m;s(y=>m=y),Gt(m)?m.set(d):a(()=>{},{scope:{__placeholder:d}})};typeof n=="string"&&e.type==="radio"&&_(()=>{e.hasAttribute("name")||e.setAttribute("name",n)});let c=t.includes("change")||t.includes("lazy"),f=t.includes("blur"),h=t.includes("enter"),p=c||f||h,g;if(B)g=()=>{};else if(p){let d=[],m=y=>u(Ce(e,t,y,l()));if(c&&d.push(Z(e,"change",t,m)),f&&(d.push(Z(e,"blur",t,m)),e.form)){let y=e.form,b=()=>m({target:e});y._x_pendingModelUpdates||(y._x_pendingModelUpdates=[]),y._x_pendingModelUpdates.push(b),i(()=>{y._x_pendingModelUpdates&&y._x_pendingModelUpdates.splice(y._x_pendingModelUpdates.indexOf(b),1)})}h&&d.push(Z(e,"keydown",t,y=>{y.key==="Enter"&&m(y)})),g=()=>d.forEach(y=>y())}else{let d=e.tagName.toLowerCase()==="select"||["checkbox","radio"].includes(e.type)?"change":"input";g=Z(e,d,t,m=>{u(Ce(e,t,m,l()))})}if(t.includes("fill")&&([void 0,null,""].includes(l())||He(e)&&Array.isArray(l())||e.tagName.toLowerCase()==="select"&&e.multiple)&&u(Ce(e,t,{target:e},l())),e._x_removeModelListeners||(e._x_removeModelListeners={}),e._x_removeModelListeners.default=g,i(()=>e._x_removeModelListeners.default()),e.form){let d=Z(e.form,"reset",[],m=>{wt(()=>e._x_model&&e._x_model.set(Ce(e,t,{target:e},l())))});i(()=>d())}e._x_model={get(){return l()},set(d){u(d)},setWithModifiers:cr(t,u)},e._x_forceModelUpdate=d=>{d===void 0&&typeof n=="string"&&n.match(/\./)&&(d=""),_(()=>{He(e)?Array.isArray(d)?e.checked=d.some(m=>m==e.value):e.checked=!!d:St(e)?typeof d=="boolean"?e.checked=Te(e.value)===d:e.checked=e.value==d:Nn(e,"value",d)})},r(()=>{let d=l();t.includes("unintrusive")&&document.activeElement.isSameNode(e)||e._x_forceModelUpdate(d)})});function Ce(e,t,n,r){return _(()=>{if(n instanceof CustomEvent&&n.detail!==void 0)return n.detail!==null&&n.detail!==void 0?n.detail:n.target.value;if(He(e))if(Array.isArray(r)){let i=null;return t.includes("number")?i=ze(n.target.value):t.includes("boolean")?i=Te(n.target.value):i=n.target.value,n.target.checked?r.includes(i)?r:r.concat([i]):r.filter(o=>!Io(o,i))}else return n.target.checked;else{if(e.tagName.toLowerCase()==="select"&&e.multiple)return t.includes("number")?Array.from(n.target.selectedOptions).map(i=>{let o=i.value||i.text;return ze(o)}):t.includes("boolean")?Array.from(n.target.selectedOptions).map(i=>{let o=i.value||i.text;return Te(o)}):Array.from(n.target.selectedOptions).map(i=>i.value||i.text);{let i;return St(e)?n.target.checked?i=n.target.value:i=r:i=n.target.value,t.includes("number")?ze(i):t.includes("boolean")?Te(i):t.includes("trim")?i.trim():i}}})}function ze(e){let t=e?parseFloat(e):null;return Do(t)?t:e}function Io(e,t){return e==t}function Do(e){return!Array.isArray(e)&&!isNaN(e)}function Gt(e){return e!==null&&typeof e=="object"&&typeof e.get=="function"&&typeof e.set=="function"}A("cloak",e=>queueMicrotask(()=>_(()=>e.removeAttribute(ie("cloak")))));Hn(()=>`[${ie("init")}]`);A("init",j((e,{expression:t},{evaluate:n})=>typeof t=="string"?!!t.trim()&&n(t,{},!1):n(t,{},!1)));A("text",(e,{expression:t},{effect:n,evaluateLater:r})=>{let i=r(t);n(()=>{i(o=>{_(()=>{e.textContent=o})})})});A("html",(e,{expression:t},{effect:n,evaluateLater:r})=>{let i=r(t);n(()=>{i(o=>{_(()=>{e.innerHTML=o??"",e._x_ignoreSelf=!0,N(e),delete e._x_ignoreSelf})})})});bt(bn(":",vn(ie("bind:"))));var dr=(e,{value:t,modifiers:n,expression:r,original:i},{effect:o,cleanup:s})=>{if(!t){let l={};Mi(l),T(e,r)(c=>{$n(e,c,i)},{scope:l});return}if(t==="key")return Po(e,r);if(e._x_inlineBindings&&e._x_inlineBindings[t]&&e._x_inlineBindings[t].extract)return;let a=T(e,r);o(()=>a(l=>{l===void 0&&typeof r=="string"&&r.match(/\./)&&(l=""),_(()=>Nn(e,t,l,n))})),s(()=>{e._x_undoAddedClasses&&e._x_undoAddedClasses(),e._x_undoAddedStyles&&e._x_undoAddedStyles()})};dr.inline=(e,{value:t,modifiers:n,expression:r})=>{t&&(e._x_inlineBindings||(e._x_inlineBindings={}),e._x_inlineBindings[t]={expression:r,extract:!1})};A("bind",dr);function Po(e,t){e._x_keyExpression=t}Rn(()=>`[${ie("data")}]`);A("data",(e,{expression:t},{cleanup:n})=>{if(Mo(e))return;t=t===""?"{}":t;let r={};he(r,e);let i={};Ni(i,r);let o=X(e,t,{scope:i});(o===void 0||o===!0)&&(o={}),he(o,e);let s=ne(o);yt(s);let a=pe(e,s);s.init&&X(e,s.init),n(()=>{s.destroy&&X(e,s.destroy),a()})});Me((e,t)=>{e._x_dataStack&&(t._x_dataStack=e._x_dataStack,t.setAttribute("data-has-alpine-state",!0))});function Mo(e){return B?st?!0:e.hasAttribute("data-has-alpine-state"):!1}A("show",(e,{modifiers:t,expression:n},{effect:r})=>{let i=T(e,n);e._x_doHide||(e._x_doHide=()=>{_(()=>{e.style.setProperty("display","none",t.includes("important")?"important":void 0)})}),e._x_doShow||(e._x_doShow=()=>{_(()=>{e.style.length===1&&e.style.display==="none"?e.removeAttribute("style"):e.style.removeProperty("display")})});let o=()=>{e._x_doHide(),e._x_isShown=!1},s=()=>{e._x_doShow(),e._x_isShown=!0},a=()=>setTimeout(s),l=it(f=>f?s():o(),f=>{typeof e._x_toggleAndCascadeWithTransitions=="function"?e._x_toggleAndCascadeWithTransitions(e,f,s,o):f?a():o()}),u,c=!0;r(()=>i(f=>{!c&&f===u||(t.includes("immediate")&&(f?a():o()),l(f),u=f,c=!1)}))});A("for",(e,{expression:t},{effect:n,cleanup:r})=>{let i=Fo(t),o=T(e,i.items),s=T(e,e._x_keyExpression||"index");e._x_lookup=new Map,n(()=>No(e,i,o,s)),r(()=>{e._x_lookup.forEach(a=>_(()=>{oe(a),a.remove()})),delete e._x_lookup})});function Lo(e){return t=>{Object.entries(t).forEach(([n,r])=>{e[n]=r})}}function No(e,t,n,r){n(i=>{Bo(i)&&(i=Array.from({length:i},(u,c)=>c+1)),i===void 0&&(i=[]),i instanceof Set&&(i=Array.from(i)),i instanceof Map&&(i=Array.from(i));let o=e._x_lookup,s=new Map;e._x_lookup=s;let a=Vo(i),l=Object.entries(i).map(([u,c])=>{a||(u=parseInt(u));let f=qo(t,c,u,i),h;return r(p=>{typeof p=="object"&&D("x-for key cannot be an object, it must be a string or an integer",e),o.has(p)&&(s.set(p,o.get(p)),o.delete(p)),h=p},{scope:{index:u,...f}}),[h,f]});_(()=>{o.forEach(f=>{oe(f),f.remove()});let u=new Set,c=e;l.forEach(([f,h])=>{if(s.has(f)){let d=s.get(f);d._x_refreshXForScope(h),c.nextElementSibling!==d&&(c.nextElementSibling&&d.replaceWith(c.nextElementSibling),c.after(d)),c=d,d._x_currentIfEl&&(d.nextElementSibling!==d._x_currentIfEl&&c.after(d._x_currentIfEl),c=d._x_currentIfEl);return}e.content.children.length>1&&D("x-for templates require a single root element, additional elements will be ignored.",e);let p=document.importNode(e.content,!0).firstElementChild,g=ne(h);pe(p,g,e),p._x_refreshXForScope=Lo(g),s.set(f,p),u.add(p),c.after(p),c=p}),j(()=>u.forEach(f=>N(f)))()})})}function Fo(e){let t=/,([^,\}\]]*)(?:,([^,\}\]]*))?$/,n=/^\s*\(|\)\s*$/g,r=/([\s\S]*?)\s+(?:in|of)\s+([\s\S]*)/,i=e.match(r);if(!i)return;let o={};o.items=i[2].trim();let s=i[1].replace(n,"").trim(),a=s.match(t);return a?(o.item=s.replace(t,"").trim(),o.index=a[1].trim(),a[2]&&(o.collection=a[2].trim())):o.item=s,o}function qo(e,t,n,r){let i={};return/^\[.*\]$/.test(e.item)&&Array.isArray(t)?e.item.replace("[","").replace("]","").split(",").map(s=>s.trim()).forEach((s,a)=>{i[s]=t[a]}):/^\{.*\}$/.test(e.item)&&!Array.isArray(t)&&typeof t=="object"?e.item.replace("{","").replace("}","").split(",").map(s=>s.trim()).forEach(s=>{i[s]=t[s]}):i[e.item]=t,e.index&&(i[e.index]=n),e.collection&&(i[e.collection]=r),i}function Bo(e){return!Array.isArray(e)&&!isNaN(e)}function Vo(e){return typeof e=="object"&&!Array.isArray(e)}function hr(){}hr.inline=(e,{expression:t},{cleanup:n})=>{let r=De(e);r&&(r._x_refs||(r._x_refs={}),r._x_refs[t]=e,n(()=>delete r._x_refs[t]))};A("ref",hr);A("if",(e,{expression:t},{effect:n,cleanup:r})=>{e.tagName.toLowerCase()!=="template"&&D("x-if can only be used on a <template> tag",e);let i=T(e,t),o=()=>{if(e._x_currentIfEl)return e._x_currentIfEl;let a=e.content.cloneNode(!0).firstElementChild;return pe(a,{},e),_(()=>{e.after(a),j(()=>N(a))()}),e._x_currentIfEl=a,e._x_undoIf=()=>{_(()=>{oe(a),a.remove()}),delete e._x_currentIfEl},a},s=()=>{e._x_undoIf&&(e._x_undoIf(),delete e._x_undoIf)};n(()=>i(a=>{a?o():s()})),r(()=>e._x_undoIf&&e._x_undoIf())});A("id",(e,{expression:t},{evaluate:n})=>{n(t).forEach(i=>wo(e,i))});Me((e,t)=>{e._x_ids&&(t._x_ids=e._x_ids)});bt(bn("@",vn(ie("on:"))));A("on",j((e,{value:t,modifiers:n,expression:r},{cleanup:i})=>{let o=r?T(e,r):()=>{};e.tagName.toLowerCase()==="template"&&(e._x_forwardEvents||(e._x_forwardEvents=[]),e._x_forwardEvents.includes(t)||e._x_forwardEvents.push(t));let s=Z(e,t,n,a=>{o(()=>{},{scope:{$event:a},params:[a]})});i(()=>s())}));Be("Collapse","collapse","collapse");Be("Intersect","intersect","intersect");Be("Focus","trap","focus");Be("Mask","mask","mask");function Be(e,t,n){A(t,r=>D(`You can't use [x-${t}] without first installing the "${e}" plugin here: https://alpinejs.dev/plugins/${n}`,r))}se.setEvaluator(kr);se.setRawEvaluator(zr);se.setReactivityEngine({reactive:Dt,effect:Xi,release:zi,raw:x});var jo=se,Pt=jo;window.htmx=Bt;window.Alpine=Pt;Pt.start();})();
+${expression ? 'Expression: "' + expression + '"\n\n' : ""}`, el);
+    setTimeout(() => {
+      throw error2;
+    }, 0);
+  }
+  var shouldAutoEvaluateFunctions = true;
+  function dontAutoEvaluateFunctions(callback) {
+    let cache = shouldAutoEvaluateFunctions;
+    shouldAutoEvaluateFunctions = false;
+    let result = callback();
+    shouldAutoEvaluateFunctions = cache;
+    return result;
+  }
+  function evaluate(el, expression, extras = {}) {
+    let result;
+    evaluateLater(el, expression)((value) => result = value, extras);
+    return result;
+  }
+  function evaluateLater(...args) {
+    return theEvaluatorFunction(...args);
+  }
+  var theEvaluatorFunction = () => {
+  };
+  function setEvaluator(newEvaluator) {
+    theEvaluatorFunction = newEvaluator;
+  }
+  var theRawEvaluatorFunction;
+  function setRawEvaluator(newEvaluator) {
+    theRawEvaluatorFunction = newEvaluator;
+  }
+  function normalEvaluator(el, expression) {
+    let overriddenMagics = {};
+    injectMagics(overriddenMagics, el);
+    let dataStack = [overriddenMagics, ...closestDataStack(el)];
+    let evaluator = typeof expression === "function" ? generateEvaluatorFromFunction(dataStack, expression) : generateEvaluatorFromString(dataStack, expression, el);
+    return tryCatch.bind(null, el, expression, evaluator);
+  }
+  function generateEvaluatorFromFunction(dataStack, func) {
+    return (receiver = () => {
+    }, { scope: scope2 = {}, params = [], context } = {}) => {
+      if (!shouldAutoEvaluateFunctions) {
+        runIfTypeOfFunction(receiver, func, mergeProxies([scope2, ...dataStack]), params);
+        return;
+      }
+      let result = func.apply(mergeProxies([scope2, ...dataStack]), params);
+      runIfTypeOfFunction(receiver, result);
+    };
+  }
+  var evaluatorMemo = {};
+  function generateFunctionFromString(expression, el) {
+    if (evaluatorMemo[expression]) {
+      return evaluatorMemo[expression];
+    }
+    let AsyncFunction = Object.getPrototypeOf(async function() {
+    }).constructor;
+    let rightSideSafeExpression = /^[\n\s]*if.*\(.*\)/.test(expression.trim()) || /^(let|const)\s/.test(expression.trim()) ? `(async()=>{ ${expression} })()` : expression;
+    const safeAsyncFunction = () => {
+      try {
+        let func2 = new AsyncFunction(
+          ["__self", "scope"],
+          `with (scope) { __self.result = ${rightSideSafeExpression} }; __self.finished = true; return __self.result;`
+        );
+        Object.defineProperty(func2, "name", {
+          value: `[Alpine] ${expression}`
+        });
+        return func2;
+      } catch (error2) {
+        handleError(error2, el, expression);
+        return Promise.resolve();
+      }
+    };
+    let func = safeAsyncFunction();
+    evaluatorMemo[expression] = func;
+    return func;
+  }
+  function generateEvaluatorFromString(dataStack, expression, el) {
+    let func = generateFunctionFromString(expression, el);
+    return (receiver = () => {
+    }, { scope: scope2 = {}, params = [], context } = {}) => {
+      func.result = void 0;
+      func.finished = false;
+      let completeScope = mergeProxies([scope2, ...dataStack]);
+      if (typeof func === "function") {
+        let promise = func.call(context, func, completeScope).catch((error2) => handleError(error2, el, expression));
+        if (func.finished) {
+          runIfTypeOfFunction(receiver, func.result, completeScope, params, el);
+          func.result = void 0;
+        } else {
+          promise.then((result) => {
+            runIfTypeOfFunction(receiver, result, completeScope, params, el);
+          }).catch((error2) => handleError(error2, el, expression)).finally(() => func.result = void 0);
+        }
+      }
+    };
+  }
+  function runIfTypeOfFunction(receiver, value, scope2, params, el) {
+    if (shouldAutoEvaluateFunctions && typeof value === "function") {
+      let result = value.apply(scope2, params);
+      if (result instanceof Promise) {
+        result.then((i) => runIfTypeOfFunction(receiver, i, scope2, params)).catch((error2) => handleError(error2, el, value));
+      } else {
+        receiver(result);
+      }
+    } else if (typeof value === "object" && value instanceof Promise) {
+      value.then((i) => receiver(i));
+    } else {
+      receiver(value);
+    }
+  }
+  function evaluateRaw(...args) {
+    return theRawEvaluatorFunction(...args);
+  }
+  function normalRawEvaluator(el, expression, extras = {}) {
+    let overriddenMagics = {};
+    injectMagics(overriddenMagics, el);
+    let dataStack = [overriddenMagics, ...closestDataStack(el)];
+    let scope2 = mergeProxies([extras.scope ?? {}, ...dataStack]);
+    let params = extras.params ?? [];
+    if (expression.includes("await")) {
+      let AsyncFunction = Object.getPrototypeOf(async function() {
+      }).constructor;
+      let rightSideSafeExpression = /^[\n\s]*if.*\(.*\)/.test(expression.trim()) || /^(let|const)\s/.test(expression.trim()) ? `(async()=>{ ${expression} })()` : expression;
+      let func = new AsyncFunction(
+        ["scope"],
+        `with (scope) { let __result = ${rightSideSafeExpression}; return __result }`
+      );
+      let result = func.call(extras.context, scope2);
+      return result;
+    } else {
+      let rightSideSafeExpression = /^[\n\s]*if.*\(.*\)/.test(expression.trim()) || /^(let|const)\s/.test(expression.trim()) ? `(()=>{ ${expression} })()` : expression;
+      let func = new Function(
+        ["scope"],
+        `with (scope) { let __result = ${rightSideSafeExpression}; return __result }`
+      );
+      let result = func.call(extras.context, scope2);
+      if (typeof result === "function" && shouldAutoEvaluateFunctions) {
+        return result.apply(scope2, params);
+      }
+      return result;
+    }
+  }
+  var prefixAsString = "x-";
+  function prefix(subject = "") {
+    return prefixAsString + subject;
+  }
+  function setPrefix(newPrefix) {
+    prefixAsString = newPrefix;
+  }
+  var directiveHandlers = {};
+  function directive(name, callback) {
+    directiveHandlers[name] = callback;
+    return {
+      before(directive2) {
+        if (!directiveHandlers[directive2]) {
+          console.warn(String.raw`Cannot find directive \`${directive2}\`. \`${name}\` will use the default order of execution`);
+          return;
+        }
+        const pos = directiveOrder.indexOf(directive2);
+        directiveOrder.splice(pos >= 0 ? pos : directiveOrder.indexOf("DEFAULT"), 0, name);
+      }
+    };
+  }
+  function directiveExists(name) {
+    return Object.keys(directiveHandlers).includes(name);
+  }
+  function directives(el, attributes, originalAttributeOverride) {
+    attributes = Array.from(attributes);
+    if (el._x_virtualDirectives) {
+      let vAttributes = Object.entries(el._x_virtualDirectives).map(([name, value]) => ({ name, value }));
+      let staticAttributes = attributesOnly(vAttributes);
+      vAttributes = vAttributes.map((attribute) => {
+        if (staticAttributes.find((attr) => attr.name === attribute.name)) {
+          return {
+            name: `x-bind:${attribute.name}`,
+            value: `"${attribute.value}"`
+          };
+        }
+        return attribute;
+      });
+      attributes = attributes.concat(vAttributes);
+    }
+    let transformedAttributeMap = {};
+    let directives2 = attributes.map(toTransformedAttributes((newName, oldName) => transformedAttributeMap[newName] = oldName)).filter(outNonAlpineAttributes).map(toParsedDirectives(transformedAttributeMap, originalAttributeOverride)).sort(byPriority);
+    return directives2.map((directive2) => {
+      return getDirectiveHandler(el, directive2);
+    });
+  }
+  function attributesOnly(attributes) {
+    return Array.from(attributes).map(toTransformedAttributes()).filter((attr) => !outNonAlpineAttributes(attr));
+  }
+  var isDeferringHandlers = false;
+  var directiveHandlerStacks = /* @__PURE__ */ new Map();
+  var currentHandlerStackKey = /* @__PURE__ */ Symbol();
+  function deferHandlingDirectives(callback) {
+    isDeferringHandlers = true;
+    let key = /* @__PURE__ */ Symbol();
+    currentHandlerStackKey = key;
+    directiveHandlerStacks.set(key, []);
+    let flushHandlers = () => {
+      while (directiveHandlerStacks.get(key).length)
+        directiveHandlerStacks.get(key).shift()();
+      directiveHandlerStacks.delete(key);
+    };
+    let stopDeferring = () => {
+      isDeferringHandlers = false;
+      flushHandlers();
+    };
+    callback(flushHandlers);
+    stopDeferring();
+  }
+  function getElementBoundUtilities(el) {
+    let cleanups = [];
+    let cleanup2 = (callback) => cleanups.push(callback);
+    let [effect3, cleanupEffect] = elementBoundEffect(el);
+    cleanups.push(cleanupEffect);
+    let utilities = {
+      Alpine: alpine_default,
+      effect: effect3,
+      cleanup: cleanup2,
+      evaluateLater: evaluateLater.bind(evaluateLater, el),
+      evaluate: evaluate.bind(evaluate, el)
+    };
+    let doCleanup = () => cleanups.forEach((i) => i());
+    return [utilities, doCleanup];
+  }
+  function getDirectiveHandler(el, directive2) {
+    let noop = () => {
+    };
+    let handler4 = directiveHandlers[directive2.type] || noop;
+    let [utilities, cleanup2] = getElementBoundUtilities(el);
+    onAttributeRemoved(el, directive2.original, cleanup2);
+    let fullHandler = () => {
+      if (el._x_ignore || el._x_ignoreSelf)
+        return;
+      handler4.inline && handler4.inline(el, directive2, utilities);
+      handler4 = handler4.bind(handler4, el, directive2, utilities);
+      isDeferringHandlers ? directiveHandlerStacks.get(currentHandlerStackKey).push(handler4) : handler4();
+    };
+    fullHandler.runCleanups = cleanup2;
+    return fullHandler;
+  }
+  var startingWith = (subject, replacement) => ({ name, value }) => {
+    if (name.startsWith(subject))
+      name = name.replace(subject, replacement);
+    return { name, value };
+  };
+  var into = (i) => i;
+  function toTransformedAttributes(callback = () => {
+  }) {
+    return ({ name, value }) => {
+      let { name: newName, value: newValue } = attributeTransformers.reduce((carry, transform) => {
+        return transform(carry);
+      }, { name, value });
+      if (newName !== name)
+        callback(newName, name);
+      return { name: newName, value: newValue };
+    };
+  }
+  var attributeTransformers = [];
+  function mapAttributes(callback) {
+    attributeTransformers.push(callback);
+  }
+  function outNonAlpineAttributes({ name }) {
+    return alpineAttributeRegex().test(name);
+  }
+  var alpineAttributeRegex = () => new RegExp(`^${prefixAsString}([^:^.]+)\\b`);
+  function toParsedDirectives(transformedAttributeMap, originalAttributeOverride) {
+    return ({ name, value }) => {
+      if (name === value)
+        value = "";
+      let typeMatch = name.match(alpineAttributeRegex());
+      let valueMatch = name.match(/:([a-zA-Z0-9\-_:]+)/);
+      let modifiers = name.match(/\.[^.\]]+(?=[^\]]*$)/g) || [];
+      let original = originalAttributeOverride || transformedAttributeMap[name] || name;
+      return {
+        type: typeMatch ? typeMatch[1] : null,
+        value: valueMatch ? valueMatch[1] : null,
+        modifiers: modifiers.map((i) => i.replace(".", "")),
+        expression: value,
+        original
+      };
+    };
+  }
+  var DEFAULT = "DEFAULT";
+  var directiveOrder = [
+    "ignore",
+    "ref",
+    "data",
+    "id",
+    "anchor",
+    "bind",
+    "init",
+    "for",
+    "model",
+    "modelable",
+    "transition",
+    "show",
+    "if",
+    DEFAULT,
+    "teleport"
+  ];
+  function byPriority(a, b) {
+    let typeA = directiveOrder.indexOf(a.type) === -1 ? DEFAULT : a.type;
+    let typeB = directiveOrder.indexOf(b.type) === -1 ? DEFAULT : b.type;
+    return directiveOrder.indexOf(typeA) - directiveOrder.indexOf(typeB);
+  }
+  function dispatch(el, name, detail = {}, options = {}) {
+    return el.dispatchEvent(
+      new CustomEvent(name, {
+        detail,
+        bubbles: true,
+        // Allows events to pass the shadow DOM barrier.
+        composed: true,
+        cancelable: true,
+        // Allows overriding the default event options.
+        ...options
+      })
+    );
+  }
+  function walk(el, callback) {
+    if (typeof ShadowRoot === "function" && el instanceof ShadowRoot) {
+      Array.from(el.children).forEach((el2) => walk(el2, callback));
+      return;
+    }
+    let skip = false;
+    callback(el, () => skip = true);
+    if (skip)
+      return;
+    let node = el.firstElementChild;
+    while (node) {
+      walk(node, callback, false);
+      node = node.nextElementSibling;
+    }
+  }
+  function warn(message, ...args) {
+    console.warn(`Alpine Warning: ${message}`, ...args);
+  }
+  var started = false;
+  function start() {
+    if (started)
+      warn("Alpine has already been initialized on this page. Calling Alpine.start() more than once can cause problems.");
+    started = true;
+    if (!document.body)
+      warn("Unable to initialize. Trying to load Alpine before `<body>` is available. Did you forget to add `defer` in Alpine's `<script>` tag?");
+    dispatch(document, "alpine:init");
+    dispatch(document, "alpine:initializing");
+    startObservingMutations();
+    onElAdded((el) => initTree(el, walk));
+    onElRemoved((el) => destroyTree(el));
+    onAttributesAdded((el, attrs) => {
+      directives(el, attrs).forEach((handle) => handle());
+    });
+    let outNestedComponents = (el) => !closestRoot(el.parentElement, true);
+    Array.from(document.querySelectorAll(allSelectors().join(","))).filter(outNestedComponents).forEach((el) => {
+      initTree(el);
+    });
+    dispatch(document, "alpine:initialized");
+    setTimeout(() => {
+      warnAboutMissingPlugins();
+    });
+  }
+  var rootSelectorCallbacks = [];
+  var initSelectorCallbacks = [];
+  function rootSelectors() {
+    return rootSelectorCallbacks.map((fn) => fn());
+  }
+  function allSelectors() {
+    return rootSelectorCallbacks.concat(initSelectorCallbacks).map((fn) => fn());
+  }
+  function addRootSelector(selectorCallback) {
+    rootSelectorCallbacks.push(selectorCallback);
+  }
+  function addInitSelector(selectorCallback) {
+    initSelectorCallbacks.push(selectorCallback);
+  }
+  function closestRoot(el, includeInitSelectors = false) {
+    return findClosest(el, (element) => {
+      const selectors = includeInitSelectors ? allSelectors() : rootSelectors();
+      if (selectors.some((selector) => element.matches(selector)))
+        return true;
+    });
+  }
+  function findClosest(el, callback) {
+    if (!el)
+      return;
+    if (callback(el))
+      return el;
+    if (el._x_teleportBack)
+      return findClosest(el._x_teleportBack, callback);
+    if (el.parentNode instanceof ShadowRoot) {
+      return findClosest(el.parentNode.host, callback);
+    }
+    if (!el.parentElement)
+      return;
+    return findClosest(el.parentElement, callback);
+  }
+  function isRoot(el) {
+    return rootSelectors().some((selector) => el.matches(selector));
+  }
+  var initInterceptors2 = [];
+  function interceptInit(callback) {
+    initInterceptors2.push(callback);
+  }
+  var markerDispenser = 1;
+  function initTree(el, walker = walk, intercept = () => {
+  }) {
+    if (findClosest(el, (i) => i._x_ignore))
+      return;
+    deferHandlingDirectives(() => {
+      walker(el, (el2, skip) => {
+        if (el2._x_marker)
+          return;
+        intercept(el2, skip);
+        initInterceptors2.forEach((i) => i(el2, skip));
+        directives(el2, el2.attributes).forEach((handle) => handle());
+        if (!el2._x_ignore)
+          el2._x_marker = markerDispenser++;
+        el2._x_ignore && skip();
+      });
+    });
+  }
+  function destroyTree(root, walker = walk) {
+    walker(root, (el) => {
+      cleanupElement(el);
+      cleanupAttributes(el);
+      delete el._x_marker;
+    });
+  }
+  function warnAboutMissingPlugins() {
+    let pluginDirectives = [
+      ["ui", "dialog", ["[x-dialog], [x-popover]"]],
+      ["anchor", "anchor", ["[x-anchor]"]],
+      ["sort", "sort", ["[x-sort]"]]
+    ];
+    pluginDirectives.forEach(([plugin2, directive2, selectors]) => {
+      if (directiveExists(directive2))
+        return;
+      selectors.some((selector) => {
+        if (document.querySelector(selector)) {
+          warn(`found "${selector}", but missing ${plugin2} plugin`);
+          return true;
+        }
+      });
+    });
+  }
+  var tickStack = [];
+  var isHolding = false;
+  function nextTick(callback = () => {
+  }) {
+    queueMicrotask(() => {
+      isHolding || setTimeout(() => {
+        releaseNextTicks();
+      });
+    });
+    return new Promise((res) => {
+      tickStack.push(() => {
+        callback();
+        res();
+      });
+    });
+  }
+  function releaseNextTicks() {
+    isHolding = false;
+    while (tickStack.length)
+      tickStack.shift()();
+  }
+  function holdNextTicks() {
+    isHolding = true;
+  }
+  function setClasses(el, value) {
+    if (Array.isArray(value)) {
+      return setClassesFromString(el, value.join(" "));
+    } else if (typeof value === "object" && value !== null) {
+      return setClassesFromObject(el, value);
+    } else if (typeof value === "function") {
+      return setClasses(el, value());
+    }
+    return setClassesFromString(el, value);
+  }
+  function splitClasses(classString) {
+    return classString.split(/\s/).filter(Boolean);
+  }
+  function setClassesFromString(el, classString) {
+    let missingClasses = (classString2) => splitClasses(classString2).filter((i) => !el.classList.contains(i)).filter(Boolean);
+    let addClassesAndReturnUndo = (classes) => {
+      el.classList.add(...classes);
+      return () => {
+        el.classList.remove(...classes);
+      };
+    };
+    classString = classString === true ? classString = "" : classString || "";
+    return addClassesAndReturnUndo(missingClasses(classString));
+  }
+  function setClassesFromObject(el, classObject) {
+    let forAdd = Object.entries(classObject).flatMap(([classString, bool]) => bool ? splitClasses(classString) : false).filter(Boolean);
+    let forRemove = Object.entries(classObject).flatMap(([classString, bool]) => !bool ? splitClasses(classString) : false).filter(Boolean);
+    let added = [];
+    let removed = [];
+    forRemove.forEach((i) => {
+      if (el.classList.contains(i)) {
+        el.classList.remove(i);
+        removed.push(i);
+      }
+    });
+    forAdd.forEach((i) => {
+      if (!el.classList.contains(i)) {
+        el.classList.add(i);
+        added.push(i);
+      }
+    });
+    return () => {
+      removed.forEach((i) => el.classList.add(i));
+      added.forEach((i) => el.classList.remove(i));
+    };
+  }
+  function setStyles(el, value) {
+    if (typeof value === "object" && value !== null) {
+      return setStylesFromObject(el, value);
+    }
+    return setStylesFromString(el, value);
+  }
+  function setStylesFromObject(el, value) {
+    let previousStyles = {};
+    Object.entries(value).forEach(([key, value2]) => {
+      previousStyles[key] = el.style[key];
+      if (!key.startsWith("--")) {
+        key = kebabCase(key);
+      }
+      el.style.setProperty(key, value2);
+    });
+    setTimeout(() => {
+      if (el.style.length === 0) {
+        el.removeAttribute("style");
+      }
+    });
+    return () => {
+      setStyles(el, previousStyles);
+    };
+  }
+  function setStylesFromString(el, value) {
+    let cache = el.getAttribute("style", value);
+    el.setAttribute("style", value);
+    return () => {
+      el.setAttribute("style", cache || "");
+    };
+  }
+  function kebabCase(subject) {
+    return subject.replace(/([a-z])([A-Z])/g, "$1-$2").toLowerCase();
+  }
+  function once(callback, fallback = () => {
+  }) {
+    let called = false;
+    return function() {
+      if (!called) {
+        called = true;
+        callback.apply(this, arguments);
+      } else {
+        fallback.apply(this, arguments);
+      }
+    };
+  }
+  directive("transition", (el, { value, modifiers, expression }, { evaluate: evaluate2 }) => {
+    if (typeof expression === "function")
+      expression = evaluate2(expression);
+    if (expression === false)
+      return;
+    if (!expression || typeof expression === "boolean") {
+      registerTransitionsFromHelper(el, modifiers, value);
+    } else {
+      registerTransitionsFromClassString(el, expression, value);
+    }
+  });
+  function registerTransitionsFromClassString(el, classString, stage) {
+    registerTransitionObject(el, setClasses, "");
+    let directiveStorageMap = {
+      "enter": (classes) => {
+        el._x_transition.enter.during = classes;
+      },
+      "enter-start": (classes) => {
+        el._x_transition.enter.start = classes;
+      },
+      "enter-end": (classes) => {
+        el._x_transition.enter.end = classes;
+      },
+      "leave": (classes) => {
+        el._x_transition.leave.during = classes;
+      },
+      "leave-start": (classes) => {
+        el._x_transition.leave.start = classes;
+      },
+      "leave-end": (classes) => {
+        el._x_transition.leave.end = classes;
+      }
+    };
+    directiveStorageMap[stage](classString);
+  }
+  function registerTransitionsFromHelper(el, modifiers, stage) {
+    registerTransitionObject(el, setStyles);
+    let doesntSpecify = !modifiers.includes("in") && !modifiers.includes("out") && !stage;
+    let transitioningIn = doesntSpecify || modifiers.includes("in") || ["enter"].includes(stage);
+    let transitioningOut = doesntSpecify || modifiers.includes("out") || ["leave"].includes(stage);
+    if (modifiers.includes("in") && !doesntSpecify) {
+      modifiers = modifiers.filter((i, index) => index < modifiers.indexOf("out"));
+    }
+    if (modifiers.includes("out") && !doesntSpecify) {
+      modifiers = modifiers.filter((i, index) => index > modifiers.indexOf("out"));
+    }
+    let wantsAll = !modifiers.includes("opacity") && !modifiers.includes("scale");
+    let wantsOpacity = wantsAll || modifiers.includes("opacity");
+    let wantsScale = wantsAll || modifiers.includes("scale");
+    let opacityValue = wantsOpacity ? 0 : 1;
+    let scaleValue = wantsScale ? modifierValue(modifiers, "scale", 95) / 100 : 1;
+    let delay = modifierValue(modifiers, "delay", 0) / 1e3;
+    let origin = modifierValue(modifiers, "origin", "center");
+    let property = "opacity, transform";
+    let durationIn = modifierValue(modifiers, "duration", 150) / 1e3;
+    let durationOut = modifierValue(modifiers, "duration", 75) / 1e3;
+    let easing = `cubic-bezier(0.4, 0.0, 0.2, 1)`;
+    if (transitioningIn) {
+      el._x_transition.enter.during = {
+        transformOrigin: origin,
+        transitionDelay: `${delay}s`,
+        transitionProperty: property,
+        transitionDuration: `${durationIn}s`,
+        transitionTimingFunction: easing
+      };
+      el._x_transition.enter.start = {
+        opacity: opacityValue,
+        transform: `scale(${scaleValue})`
+      };
+      el._x_transition.enter.end = {
+        opacity: 1,
+        transform: `scale(1)`
+      };
+    }
+    if (transitioningOut) {
+      el._x_transition.leave.during = {
+        transformOrigin: origin,
+        transitionDelay: `${delay}s`,
+        transitionProperty: property,
+        transitionDuration: `${durationOut}s`,
+        transitionTimingFunction: easing
+      };
+      el._x_transition.leave.start = {
+        opacity: 1,
+        transform: `scale(1)`
+      };
+      el._x_transition.leave.end = {
+        opacity: opacityValue,
+        transform: `scale(${scaleValue})`
+      };
+    }
+  }
+  function registerTransitionObject(el, setFunction, defaultValue = {}) {
+    if (!el._x_transition)
+      el._x_transition = {
+        enter: { during: defaultValue, start: defaultValue, end: defaultValue },
+        leave: { during: defaultValue, start: defaultValue, end: defaultValue },
+        in(before = () => {
+        }, after = () => {
+        }) {
+          transition(el, setFunction, {
+            during: this.enter.during,
+            start: this.enter.start,
+            end: this.enter.end
+          }, before, after);
+        },
+        out(before = () => {
+        }, after = () => {
+        }) {
+          transition(el, setFunction, {
+            during: this.leave.during,
+            start: this.leave.start,
+            end: this.leave.end
+          }, before, after);
+        }
+      };
+  }
+  window.Element.prototype._x_toggleAndCascadeWithTransitions = function(el, value, show, hide) {
+    const nextTick2 = document.visibilityState === "visible" ? requestAnimationFrame : setTimeout;
+    let clickAwayCompatibleShow = () => nextTick2(show);
+    if (value) {
+      if (el._x_transition && (el._x_transition.enter || el._x_transition.leave)) {
+        el._x_transition.enter && (Object.entries(el._x_transition.enter.during).length || Object.entries(el._x_transition.enter.start).length || Object.entries(el._x_transition.enter.end).length) ? el._x_transition.in(show) : clickAwayCompatibleShow();
+      } else {
+        el._x_transition ? el._x_transition.in(show) : clickAwayCompatibleShow();
+      }
+      return;
+    }
+    el._x_hidePromise = el._x_transition ? new Promise((resolve, reject) => {
+      el._x_transition.out(() => {
+      }, () => resolve(hide));
+      el._x_transitioning && el._x_transitioning.beforeCancel(() => reject({ isFromCancelledTransition: true }));
+    }) : Promise.resolve(hide);
+    queueMicrotask(() => {
+      let closest2 = closestHide(el);
+      if (closest2) {
+        if (!closest2._x_hideChildren)
+          closest2._x_hideChildren = [];
+        closest2._x_hideChildren.push(el);
+      } else {
+        nextTick2(() => {
+          let hideAfterChildren = (el2) => {
+            let carry = Promise.all([
+              el2._x_hidePromise,
+              ...(el2._x_hideChildren || []).map(hideAfterChildren)
+            ]).then(([i]) => i?.());
+            delete el2._x_hidePromise;
+            delete el2._x_hideChildren;
+            return carry;
+          };
+          hideAfterChildren(el).catch((e) => {
+            if (!e.isFromCancelledTransition)
+              throw e;
+          });
+        });
+      }
+    });
+  };
+  function closestHide(el) {
+    let parent = el.parentNode;
+    if (!parent)
+      return;
+    return parent._x_hidePromise ? parent : closestHide(parent);
+  }
+  function transition(el, setFunction, { during, start: start2, end } = {}, before = () => {
+  }, after = () => {
+  }) {
+    if (el._x_transitioning)
+      el._x_transitioning.cancel();
+    if (Object.keys(during).length === 0 && Object.keys(start2).length === 0 && Object.keys(end).length === 0) {
+      before();
+      after();
+      return;
+    }
+    let undoStart, undoDuring, undoEnd;
+    performTransition(el, {
+      start() {
+        undoStart = setFunction(el, start2);
+      },
+      during() {
+        undoDuring = setFunction(el, during);
+      },
+      before,
+      end() {
+        undoStart();
+        undoEnd = setFunction(el, end);
+      },
+      after,
+      cleanup() {
+        undoDuring();
+        undoEnd();
+      }
+    });
+  }
+  function performTransition(el, stages) {
+    let interrupted, reachedBefore, reachedEnd;
+    let finish = once(() => {
+      mutateDom(() => {
+        interrupted = true;
+        if (!reachedBefore)
+          stages.before();
+        if (!reachedEnd) {
+          stages.end();
+          releaseNextTicks();
+        }
+        stages.after();
+        if (el.isConnected)
+          stages.cleanup();
+        delete el._x_transitioning;
+      });
+    });
+    el._x_transitioning = {
+      beforeCancels: [],
+      beforeCancel(callback) {
+        this.beforeCancels.push(callback);
+      },
+      cancel: once(function() {
+        while (this.beforeCancels.length) {
+          this.beforeCancels.shift()();
+        }
+        ;
+        finish();
+      }),
+      finish
+    };
+    mutateDom(() => {
+      stages.start();
+      stages.during();
+    });
+    holdNextTicks();
+    requestAnimationFrame(() => {
+      if (interrupted)
+        return;
+      let duration = Number(getComputedStyle(el).transitionDuration.replace(/,.*/, "").replace("s", "")) * 1e3;
+      let delay = Number(getComputedStyle(el).transitionDelay.replace(/,.*/, "").replace("s", "")) * 1e3;
+      if (duration === 0)
+        duration = Number(getComputedStyle(el).animationDuration.replace("s", "")) * 1e3;
+      mutateDom(() => {
+        stages.before();
+      });
+      reachedBefore = true;
+      requestAnimationFrame(() => {
+        if (interrupted)
+          return;
+        mutateDom(() => {
+          stages.end();
+        });
+        releaseNextTicks();
+        setTimeout(el._x_transitioning.finish, duration + delay);
+        reachedEnd = true;
+      });
+    });
+  }
+  function modifierValue(modifiers, key, fallback) {
+    if (modifiers.indexOf(key) === -1)
+      return fallback;
+    const rawValue = modifiers[modifiers.indexOf(key) + 1];
+    if (!rawValue)
+      return fallback;
+    if (key === "scale") {
+      if (isNaN(rawValue))
+        return fallback;
+    }
+    if (key === "duration" || key === "delay") {
+      let match = rawValue.match(/([0-9]+)ms/);
+      if (match)
+        return match[1];
+    }
+    if (key === "origin") {
+      if (["top", "right", "left", "center", "bottom"].includes(modifiers[modifiers.indexOf(key) + 2])) {
+        return [rawValue, modifiers[modifiers.indexOf(key) + 2]].join(" ");
+      }
+    }
+    return rawValue;
+  }
+  var isCloning = false;
+  function skipDuringClone(callback, fallback = () => {
+  }) {
+    return (...args) => isCloning ? fallback(...args) : callback(...args);
+  }
+  function onlyDuringClone(callback) {
+    return (...args) => isCloning && callback(...args);
+  }
+  var interceptors = [];
+  function interceptClone(callback) {
+    interceptors.push(callback);
+  }
+  function cloneNode(from, to) {
+    interceptors.forEach((i) => i(from, to));
+    isCloning = true;
+    dontRegisterReactiveSideEffects(() => {
+      initTree(to, (el, callback) => {
+        callback(el, () => {
+        });
+      });
+    });
+    isCloning = false;
+  }
+  var isCloningLegacy = false;
+  function clone(oldEl, newEl) {
+    if (!newEl._x_dataStack)
+      newEl._x_dataStack = oldEl._x_dataStack;
+    isCloning = true;
+    isCloningLegacy = true;
+    dontRegisterReactiveSideEffects(() => {
+      cloneTree(newEl);
+    });
+    isCloning = false;
+    isCloningLegacy = false;
+  }
+  function cloneTree(el) {
+    let hasRunThroughFirstEl = false;
+    let shallowWalker = (el2, callback) => {
+      walk(el2, (el3, skip) => {
+        if (hasRunThroughFirstEl && isRoot(el3))
+          return skip();
+        hasRunThroughFirstEl = true;
+        callback(el3, skip);
+      });
+    };
+    initTree(el, shallowWalker);
+  }
+  function dontRegisterReactiveSideEffects(callback) {
+    let cache = effect;
+    overrideEffect((callback2, el) => {
+      let storedEffect = cache(callback2);
+      release(storedEffect);
+      return () => {
+      };
+    });
+    callback();
+    overrideEffect(cache);
+  }
+  function bind(el, name, value, modifiers = []) {
+    if (!el._x_bindings)
+      el._x_bindings = reactive({});
+    el._x_bindings[name] = value;
+    name = modifiers.includes("camel") ? camelCase(name) : name;
+    switch (name) {
+      case "value":
+        bindInputValue(el, value);
+        break;
+      case "style":
+        bindStyles(el, value);
+        break;
+      case "class":
+        bindClasses(el, value);
+        break;
+      case "selected":
+      case "checked":
+        bindAttributeAndProperty(el, name, value);
+        break;
+      default:
+        bindAttribute(el, name, value);
+        break;
+    }
+  }
+  function bindInputValue(el, value) {
+    if (isRadio(el)) {
+      if (el.attributes.value === void 0) {
+        el.value = value;
+      }
+    } else if (isCheckbox(el)) {
+      if (Number.isInteger(value)) {
+        el.value = value;
+      } else if (!Array.isArray(value) && typeof value !== "boolean" && ![null, void 0].includes(value)) {
+        el.value = String(value);
+      } else {
+        if (Array.isArray(value)) {
+          el.checked = value.some((val) => checkedAttrLooseCompare(val, el.value));
+        } else {
+          el.checked = !!value;
+        }
+      }
+    } else if (el.tagName === "SELECT") {
+      updateSelect(el, value);
+    } else {
+      if (el.value === value)
+        return;
+      el.value = value === void 0 ? "" : value;
+    }
+  }
+  function bindClasses(el, value) {
+    if (el._x_undoAddedClasses)
+      el._x_undoAddedClasses();
+    el._x_undoAddedClasses = setClasses(el, value);
+  }
+  function bindStyles(el, value) {
+    if (el._x_undoAddedStyles)
+      el._x_undoAddedStyles();
+    el._x_undoAddedStyles = setStyles(el, value);
+  }
+  function bindAttributeAndProperty(el, name, value) {
+    bindAttribute(el, name, value);
+    setPropertyIfChanged(el, name, value);
+  }
+  function bindAttribute(el, name, value) {
+    if ([null, void 0, false].includes(value) && attributeShouldntBePreservedIfFalsy(name)) {
+      el.removeAttribute(name);
+    } else {
+      if (isBooleanAttr(name))
+        value = name;
+      setIfChanged(el, name, value);
+    }
+  }
+  function setIfChanged(el, attrName, value) {
+    if (el.getAttribute(attrName) != value) {
+      el.setAttribute(attrName, value);
+    }
+  }
+  function setPropertyIfChanged(el, propName, value) {
+    if (el[propName] !== value) {
+      el[propName] = value;
+    }
+  }
+  function updateSelect(el, value) {
+    const arrayWrappedValue = [].concat(value).map((value2) => {
+      return value2 + "";
+    });
+    Array.from(el.options).forEach((option) => {
+      option.selected = arrayWrappedValue.includes(option.value);
+    });
+  }
+  function camelCase(subject) {
+    return subject.toLowerCase().replace(/-(\w)/g, (match, char) => char.toUpperCase());
+  }
+  function checkedAttrLooseCompare(valueA, valueB) {
+    return valueA == valueB;
+  }
+  function safeParseBoolean(rawValue) {
+    if ([1, "1", "true", "on", "yes", true].includes(rawValue)) {
+      return true;
+    }
+    if ([0, "0", "false", "off", "no", false].includes(rawValue)) {
+      return false;
+    }
+    return rawValue ? Boolean(rawValue) : null;
+  }
+  var booleanAttributes = /* @__PURE__ */ new Set([
+    "allowfullscreen",
+    "async",
+    "autofocus",
+    "autoplay",
+    "checked",
+    "controls",
+    "default",
+    "defer",
+    "disabled",
+    "formnovalidate",
+    "inert",
+    "ismap",
+    "itemscope",
+    "loop",
+    "multiple",
+    "muted",
+    "nomodule",
+    "novalidate",
+    "open",
+    "playsinline",
+    "readonly",
+    "required",
+    "reversed",
+    "selected",
+    "shadowrootclonable",
+    "shadowrootdelegatesfocus",
+    "shadowrootserializable"
+  ]);
+  function isBooleanAttr(attrName) {
+    return booleanAttributes.has(attrName);
+  }
+  function attributeShouldntBePreservedIfFalsy(name) {
+    return !["aria-pressed", "aria-checked", "aria-expanded", "aria-selected"].includes(name);
+  }
+  function getBinding(el, name, fallback) {
+    if (el._x_bindings && el._x_bindings[name] !== void 0)
+      return el._x_bindings[name];
+    return getAttributeBinding(el, name, fallback);
+  }
+  function extractProp(el, name, fallback, extract = true) {
+    if (el._x_bindings && el._x_bindings[name] !== void 0)
+      return el._x_bindings[name];
+    if (el._x_inlineBindings && el._x_inlineBindings[name] !== void 0) {
+      let binding = el._x_inlineBindings[name];
+      binding.extract = extract;
+      return dontAutoEvaluateFunctions(() => {
+        return evaluate(el, binding.expression);
+      });
+    }
+    return getAttributeBinding(el, name, fallback);
+  }
+  function getAttributeBinding(el, name, fallback) {
+    let attr = el.getAttribute(name);
+    if (attr === null)
+      return typeof fallback === "function" ? fallback() : fallback;
+    if (attr === "")
+      return true;
+    if (isBooleanAttr(name)) {
+      return !![name, "true"].includes(attr);
+    }
+    return attr;
+  }
+  function isCheckbox(el) {
+    return el.type === "checkbox" || el.localName === "ui-checkbox" || el.localName === "ui-switch";
+  }
+  function isRadio(el) {
+    return el.type === "radio" || el.localName === "ui-radio";
+  }
+  function debounce(func, wait) {
+    let timeout;
+    return function() {
+      const context = this, args = arguments;
+      const later = function() {
+        timeout = null;
+        func.apply(context, args);
+      };
+      clearTimeout(timeout);
+      timeout = setTimeout(later, wait);
+    };
+  }
+  function throttle(func, limit) {
+    let inThrottle;
+    return function() {
+      let context = this, args = arguments;
+      if (!inThrottle) {
+        func.apply(context, args);
+        inThrottle = true;
+        setTimeout(() => inThrottle = false, limit);
+      }
+    };
+  }
+  function entangle({ get: outerGet, set: outerSet }, { get: innerGet, set: innerSet }) {
+    let firstRun = true;
+    let outerHash;
+    let innerHash;
+    let reference = effect(() => {
+      let outer = outerGet();
+      let inner = innerGet();
+      if (firstRun) {
+        innerSet(cloneIfObject(outer));
+        firstRun = false;
+      } else {
+        let outerHashLatest = JSON.stringify(outer);
+        let innerHashLatest = JSON.stringify(inner);
+        if (outerHashLatest !== outerHash) {
+          innerSet(cloneIfObject(outer));
+        } else if (outerHashLatest !== innerHashLatest) {
+          outerSet(cloneIfObject(inner));
+        } else {
+        }
+      }
+      outerHash = JSON.stringify(outerGet());
+      innerHash = JSON.stringify(innerGet());
+    });
+    return () => {
+      release(reference);
+    };
+  }
+  function cloneIfObject(value) {
+    return typeof value === "object" ? JSON.parse(JSON.stringify(value)) : value;
+  }
+  function plugin(callback) {
+    let callbacks = Array.isArray(callback) ? callback : [callback];
+    callbacks.forEach((i) => i(alpine_default));
+  }
+  var stores = {};
+  var isReactive = false;
+  function store(name, value) {
+    if (!isReactive) {
+      stores = reactive(stores);
+      isReactive = true;
+    }
+    if (value === void 0) {
+      return stores[name];
+    }
+    stores[name] = value;
+    initInterceptors(stores[name]);
+    if (typeof value === "object" && value !== null && value.hasOwnProperty("init") && typeof value.init === "function") {
+      stores[name].init();
+    }
+  }
+  function getStores() {
+    return stores;
+  }
+  var binds = {};
+  function bind2(name, bindings) {
+    let getBindings = typeof bindings !== "function" ? () => bindings : bindings;
+    if (name instanceof Element) {
+      return applyBindingsObject(name, getBindings());
+    } else {
+      binds[name] = getBindings;
+    }
+    return () => {
+    };
+  }
+  function injectBindingProviders(obj) {
+    Object.entries(binds).forEach(([name, callback]) => {
+      Object.defineProperty(obj, name, {
+        get() {
+          return (...args) => {
+            return callback(...args);
+          };
+        }
+      });
+    });
+    return obj;
+  }
+  function applyBindingsObject(el, obj, original) {
+    let cleanupRunners = [];
+    while (cleanupRunners.length)
+      cleanupRunners.pop()();
+    let attributes = Object.entries(obj).map(([name, value]) => ({ name, value }));
+    let staticAttributes = attributesOnly(attributes);
+    attributes = attributes.map((attribute) => {
+      if (staticAttributes.find((attr) => attr.name === attribute.name)) {
+        return {
+          name: `x-bind:${attribute.name}`,
+          value: `"${attribute.value}"`
+        };
+      }
+      return attribute;
+    });
+    directives(el, attributes, original).map((handle) => {
+      cleanupRunners.push(handle.runCleanups);
+      handle();
+    });
+    return () => {
+      while (cleanupRunners.length)
+        cleanupRunners.pop()();
+    };
+  }
+  var datas = {};
+  function data(name, callback) {
+    datas[name] = callback;
+  }
+  function injectDataProviders(obj, context) {
+    Object.entries(datas).forEach(([name, callback]) => {
+      Object.defineProperty(obj, name, {
+        get() {
+          return (...args) => {
+            return callback.bind(context)(...args);
+          };
+        },
+        enumerable: false
+      });
+    });
+    return obj;
+  }
+  var Alpine = {
+    get reactive() {
+      return reactive;
+    },
+    get release() {
+      return release;
+    },
+    get effect() {
+      return effect;
+    },
+    get raw() {
+      return raw;
+    },
+    get transaction() {
+      return transaction;
+    },
+    version: "3.15.11",
+    flushAndStopDeferringMutations,
+    dontAutoEvaluateFunctions,
+    disableEffectScheduling,
+    startObservingMutations,
+    stopObservingMutations,
+    setReactivityEngine,
+    onAttributeRemoved,
+    onAttributesAdded,
+    closestDataStack,
+    skipDuringClone,
+    onlyDuringClone,
+    addRootSelector,
+    addInitSelector,
+    setErrorHandler,
+    interceptClone,
+    addScopeToNode,
+    deferMutations,
+    mapAttributes,
+    evaluateLater,
+    interceptInit,
+    initInterceptors,
+    injectMagics,
+    setEvaluator,
+    setRawEvaluator,
+    mergeProxies,
+    extractProp,
+    findClosest,
+    onElRemoved,
+    closestRoot,
+    destroyTree,
+    interceptor,
+    // INTERNAL: not public API and is subject to change without major release.
+    transition,
+    // INTERNAL
+    setStyles,
+    // INTERNAL
+    mutateDom,
+    directive,
+    entangle,
+    throttle,
+    debounce,
+    evaluate,
+    evaluateRaw,
+    initTree,
+    nextTick,
+    prefixed: prefix,
+    prefix: setPrefix,
+    plugin,
+    magic,
+    store,
+    start,
+    clone,
+    // INTERNAL
+    cloneNode,
+    // INTERNAL
+    bound: getBinding,
+    $data: scope,
+    watch,
+    walk,
+    data,
+    bind: bind2
+  };
+  var alpine_default = Alpine;
+  function makeMap(str2, expectsLowerCase) {
+    const map = /* @__PURE__ */ Object.create(null);
+    const list = str2.split(",");
+    for (let i = 0; i < list.length; i++) {
+      map[list[i]] = true;
+    }
+    return expectsLowerCase ? (val) => !!map[val.toLowerCase()] : (val) => !!map[val];
+  }
+  var specialBooleanAttrs = `itemscope,allowfullscreen,formnovalidate,ismap,nomodule,novalidate,readonly`;
+  var isBooleanAttr2 = /* @__PURE__ */ makeMap(specialBooleanAttrs + `,async,autofocus,autoplay,controls,default,defer,disabled,hidden,loop,open,required,reversed,scoped,seamless,checked,muted,multiple,selected`);
+  var EMPTY_OBJ = true ? Object.freeze({}) : {};
+  var EMPTY_ARR = true ? Object.freeze([]) : [];
+  var hasOwnProperty = Object.prototype.hasOwnProperty;
+  var hasOwn = (val, key) => hasOwnProperty.call(val, key);
+  var isArray = Array.isArray;
+  var isMap = (val) => toTypeString(val) === "[object Map]";
+  var isString = (val) => typeof val === "string";
+  var isSymbol = (val) => typeof val === "symbol";
+  var isObject = (val) => val !== null && typeof val === "object";
+  var objectToString = Object.prototype.toString;
+  var toTypeString = (value) => objectToString.call(value);
+  var toRawType = (value) => {
+    return toTypeString(value).slice(8, -1);
+  };
+  var isIntegerKey = (key) => isString(key) && key !== "NaN" && key[0] !== "-" && "" + parseInt(key, 10) === key;
+  var cacheStringFunction = (fn) => {
+    const cache = /* @__PURE__ */ Object.create(null);
+    return (str2) => {
+      const hit = cache[str2];
+      return hit || (cache[str2] = fn(str2));
+    };
+  };
+  var camelizeRE = /-(\w)/g;
+  var camelize = cacheStringFunction((str2) => {
+    return str2.replace(camelizeRE, (_, c) => c ? c.toUpperCase() : "");
+  });
+  var hyphenateRE = /\B([A-Z])/g;
+  var hyphenate = cacheStringFunction((str2) => str2.replace(hyphenateRE, "-$1").toLowerCase());
+  var capitalize = cacheStringFunction((str2) => str2.charAt(0).toUpperCase() + str2.slice(1));
+  var toHandlerKey = cacheStringFunction((str2) => str2 ? `on${capitalize(str2)}` : ``);
+  var hasChanged = (value, oldValue) => value !== oldValue && (value === value || oldValue === oldValue);
+  var targetMap = /* @__PURE__ */ new WeakMap();
+  var effectStack = [];
+  var activeEffect;
+  var ITERATE_KEY = /* @__PURE__ */ Symbol(true ? "iterate" : "");
+  var MAP_KEY_ITERATE_KEY = /* @__PURE__ */ Symbol(true ? "Map key iterate" : "");
+  function isEffect(fn) {
+    return fn && fn._isEffect === true;
+  }
+  function effect2(fn, options = EMPTY_OBJ) {
+    if (isEffect(fn)) {
+      fn = fn.raw;
+    }
+    const effect3 = createReactiveEffect(fn, options);
+    if (!options.lazy) {
+      effect3();
+    }
+    return effect3;
+  }
+  function stop(effect3) {
+    if (effect3.active) {
+      cleanup(effect3);
+      if (effect3.options.onStop) {
+        effect3.options.onStop();
+      }
+      effect3.active = false;
+    }
+  }
+  var uid = 0;
+  function createReactiveEffect(fn, options) {
+    const effect3 = function reactiveEffect() {
+      if (!effect3.active) {
+        return fn();
+      }
+      if (!effectStack.includes(effect3)) {
+        cleanup(effect3);
+        try {
+          enableTracking();
+          effectStack.push(effect3);
+          activeEffect = effect3;
+          return fn();
+        } finally {
+          effectStack.pop();
+          resetTracking();
+          activeEffect = effectStack[effectStack.length - 1];
+        }
+      }
+    };
+    effect3.id = uid++;
+    effect3.allowRecurse = !!options.allowRecurse;
+    effect3._isEffect = true;
+    effect3.active = true;
+    effect3.raw = fn;
+    effect3.deps = [];
+    effect3.options = options;
+    return effect3;
+  }
+  function cleanup(effect3) {
+    const { deps } = effect3;
+    if (deps.length) {
+      for (let i = 0; i < deps.length; i++) {
+        deps[i].delete(effect3);
+      }
+      deps.length = 0;
+    }
+  }
+  var shouldTrack = true;
+  var trackStack = [];
+  function pauseTracking() {
+    trackStack.push(shouldTrack);
+    shouldTrack = false;
+  }
+  function enableTracking() {
+    trackStack.push(shouldTrack);
+    shouldTrack = true;
+  }
+  function resetTracking() {
+    const last = trackStack.pop();
+    shouldTrack = last === void 0 ? true : last;
+  }
+  function track(target, type, key) {
+    if (!shouldTrack || activeEffect === void 0) {
+      return;
+    }
+    let depsMap = targetMap.get(target);
+    if (!depsMap) {
+      targetMap.set(target, depsMap = /* @__PURE__ */ new Map());
+    }
+    let dep = depsMap.get(key);
+    if (!dep) {
+      depsMap.set(key, dep = /* @__PURE__ */ new Set());
+    }
+    if (!dep.has(activeEffect)) {
+      dep.add(activeEffect);
+      activeEffect.deps.push(dep);
+      if (activeEffect.options.onTrack) {
+        activeEffect.options.onTrack({
+          effect: activeEffect,
+          target,
+          type,
+          key
+        });
+      }
+    }
+  }
+  function trigger(target, type, key, newValue, oldValue, oldTarget) {
+    const depsMap = targetMap.get(target);
+    if (!depsMap) {
+      return;
+    }
+    const effects = /* @__PURE__ */ new Set();
+    const add2 = (effectsToAdd) => {
+      if (effectsToAdd) {
+        effectsToAdd.forEach((effect3) => {
+          if (effect3 !== activeEffect || effect3.allowRecurse) {
+            effects.add(effect3);
+          }
+        });
+      }
+    };
+    if (type === "clear") {
+      depsMap.forEach(add2);
+    } else if (key === "length" && isArray(target)) {
+      depsMap.forEach((dep, key2) => {
+        if (key2 === "length" || key2 >= newValue) {
+          add2(dep);
+        }
+      });
+    } else {
+      if (key !== void 0) {
+        add2(depsMap.get(key));
+      }
+      switch (type) {
+        case "add":
+          if (!isArray(target)) {
+            add2(depsMap.get(ITERATE_KEY));
+            if (isMap(target)) {
+              add2(depsMap.get(MAP_KEY_ITERATE_KEY));
+            }
+          } else if (isIntegerKey(key)) {
+            add2(depsMap.get("length"));
+          }
+          break;
+        case "delete":
+          if (!isArray(target)) {
+            add2(depsMap.get(ITERATE_KEY));
+            if (isMap(target)) {
+              add2(depsMap.get(MAP_KEY_ITERATE_KEY));
+            }
+          }
+          break;
+        case "set":
+          if (isMap(target)) {
+            add2(depsMap.get(ITERATE_KEY));
+          }
+          break;
+      }
+    }
+    const run = (effect3) => {
+      if (effect3.options.onTrigger) {
+        effect3.options.onTrigger({
+          effect: effect3,
+          target,
+          key,
+          type,
+          newValue,
+          oldValue,
+          oldTarget
+        });
+      }
+      if (effect3.options.scheduler) {
+        effect3.options.scheduler(effect3);
+      } else {
+        effect3();
+      }
+    };
+    effects.forEach(run);
+  }
+  var isNonTrackableKeys = /* @__PURE__ */ makeMap(`__proto__,__v_isRef,__isVue`);
+  var builtInSymbols = new Set(Object.getOwnPropertyNames(Symbol).map((key) => Symbol[key]).filter(isSymbol));
+  var get2 = /* @__PURE__ */ createGetter();
+  var readonlyGet = /* @__PURE__ */ createGetter(true);
+  var arrayInstrumentations = /* @__PURE__ */ createArrayInstrumentations();
+  function createArrayInstrumentations() {
+    const instrumentations = {};
+    ["includes", "indexOf", "lastIndexOf"].forEach((key) => {
+      instrumentations[key] = function(...args) {
+        const arr = toRaw(this);
+        for (let i = 0, l = this.length; i < l; i++) {
+          track(arr, "get", i + "");
+        }
+        const res = arr[key](...args);
+        if (res === -1 || res === false) {
+          return arr[key](...args.map(toRaw));
+        } else {
+          return res;
+        }
+      };
+    });
+    ["push", "pop", "shift", "unshift", "splice"].forEach((key) => {
+      instrumentations[key] = function(...args) {
+        pauseTracking();
+        const res = toRaw(this)[key].apply(this, args);
+        resetTracking();
+        return res;
+      };
+    });
+    return instrumentations;
+  }
+  function createGetter(isReadonly = false, shallow = false) {
+    return function get3(target, key, receiver) {
+      if (key === "__v_isReactive") {
+        return !isReadonly;
+      } else if (key === "__v_isReadonly") {
+        return isReadonly;
+      } else if (key === "__v_raw" && receiver === (isReadonly ? shallow ? shallowReadonlyMap : readonlyMap : shallow ? shallowReactiveMap : reactiveMap).get(target)) {
+        return target;
+      }
+      const targetIsArray = isArray(target);
+      if (!isReadonly && targetIsArray && hasOwn(arrayInstrumentations, key)) {
+        return Reflect.get(arrayInstrumentations, key, receiver);
+      }
+      const res = Reflect.get(target, key, receiver);
+      if (isSymbol(key) ? builtInSymbols.has(key) : isNonTrackableKeys(key)) {
+        return res;
+      }
+      if (!isReadonly) {
+        track(target, "get", key);
+      }
+      if (shallow) {
+        return res;
+      }
+      if (isRef(res)) {
+        const shouldUnwrap = !targetIsArray || !isIntegerKey(key);
+        return shouldUnwrap ? res.value : res;
+      }
+      if (isObject(res)) {
+        return isReadonly ? readonly(res) : reactive2(res);
+      }
+      return res;
+    };
+  }
+  var set2 = /* @__PURE__ */ createSetter();
+  function createSetter(shallow = false) {
+    return function set3(target, key, value, receiver) {
+      let oldValue = target[key];
+      if (!shallow) {
+        value = toRaw(value);
+        oldValue = toRaw(oldValue);
+        if (!isArray(target) && isRef(oldValue) && !isRef(value)) {
+          oldValue.value = value;
+          return true;
+        }
+      }
+      const hadKey = isArray(target) && isIntegerKey(key) ? Number(key) < target.length : hasOwn(target, key);
+      const result = Reflect.set(target, key, value, receiver);
+      if (target === toRaw(receiver)) {
+        if (!hadKey) {
+          trigger(target, "add", key, value);
+        } else if (hasChanged(value, oldValue)) {
+          trigger(target, "set", key, value, oldValue);
+        }
+      }
+      return result;
+    };
+  }
+  function deleteProperty(target, key) {
+    const hadKey = hasOwn(target, key);
+    const oldValue = target[key];
+    const result = Reflect.deleteProperty(target, key);
+    if (result && hadKey) {
+      trigger(target, "delete", key, void 0, oldValue);
+    }
+    return result;
+  }
+  function has(target, key) {
+    const result = Reflect.has(target, key);
+    if (!isSymbol(key) || !builtInSymbols.has(key)) {
+      track(target, "has", key);
+    }
+    return result;
+  }
+  function ownKeys(target) {
+    track(target, "iterate", isArray(target) ? "length" : ITERATE_KEY);
+    return Reflect.ownKeys(target);
+  }
+  var mutableHandlers = {
+    get: get2,
+    set: set2,
+    deleteProperty,
+    has,
+    ownKeys
+  };
+  var readonlyHandlers = {
+    get: readonlyGet,
+    set(target, key) {
+      if (true) {
+        console.warn(`Set operation on key "${String(key)}" failed: target is readonly.`, target);
+      }
+      return true;
+    },
+    deleteProperty(target, key) {
+      if (true) {
+        console.warn(`Delete operation on key "${String(key)}" failed: target is readonly.`, target);
+      }
+      return true;
+    }
+  };
+  var toReactive = (value) => isObject(value) ? reactive2(value) : value;
+  var toReadonly = (value) => isObject(value) ? readonly(value) : value;
+  var toShallow = (value) => value;
+  var getProto = (v) => Reflect.getPrototypeOf(v);
+  function get$1(target, key, isReadonly = false, isShallow = false) {
+    target = target[
+      "__v_raw"
+      /* RAW */
+    ];
+    const rawTarget = toRaw(target);
+    const rawKey = toRaw(key);
+    if (key !== rawKey) {
+      !isReadonly && track(rawTarget, "get", key);
+    }
+    !isReadonly && track(rawTarget, "get", rawKey);
+    const { has: has2 } = getProto(rawTarget);
+    const wrap = isShallow ? toShallow : isReadonly ? toReadonly : toReactive;
+    if (has2.call(rawTarget, key)) {
+      return wrap(target.get(key));
+    } else if (has2.call(rawTarget, rawKey)) {
+      return wrap(target.get(rawKey));
+    } else if (target !== rawTarget) {
+      target.get(key);
+    }
+  }
+  function has$1(key, isReadonly = false) {
+    const target = this[
+      "__v_raw"
+      /* RAW */
+    ];
+    const rawTarget = toRaw(target);
+    const rawKey = toRaw(key);
+    if (key !== rawKey) {
+      !isReadonly && track(rawTarget, "has", key);
+    }
+    !isReadonly && track(rawTarget, "has", rawKey);
+    return key === rawKey ? target.has(key) : target.has(key) || target.has(rawKey);
+  }
+  function size(target, isReadonly = false) {
+    target = target[
+      "__v_raw"
+      /* RAW */
+    ];
+    !isReadonly && track(toRaw(target), "iterate", ITERATE_KEY);
+    return Reflect.get(target, "size", target);
+  }
+  function add(value) {
+    value = toRaw(value);
+    const target = toRaw(this);
+    const proto = getProto(target);
+    const hadKey = proto.has.call(target, value);
+    if (!hadKey) {
+      target.add(value);
+      trigger(target, "add", value, value);
+    }
+    return this;
+  }
+  function set$1(key, value) {
+    value = toRaw(value);
+    const target = toRaw(this);
+    const { has: has2, get: get3 } = getProto(target);
+    let hadKey = has2.call(target, key);
+    if (!hadKey) {
+      key = toRaw(key);
+      hadKey = has2.call(target, key);
+    } else if (true) {
+      checkIdentityKeys(target, has2, key);
+    }
+    const oldValue = get3.call(target, key);
+    target.set(key, value);
+    if (!hadKey) {
+      trigger(target, "add", key, value);
+    } else if (hasChanged(value, oldValue)) {
+      trigger(target, "set", key, value, oldValue);
+    }
+    return this;
+  }
+  function deleteEntry(key) {
+    const target = toRaw(this);
+    const { has: has2, get: get3 } = getProto(target);
+    let hadKey = has2.call(target, key);
+    if (!hadKey) {
+      key = toRaw(key);
+      hadKey = has2.call(target, key);
+    } else if (true) {
+      checkIdentityKeys(target, has2, key);
+    }
+    const oldValue = get3 ? get3.call(target, key) : void 0;
+    const result = target.delete(key);
+    if (hadKey) {
+      trigger(target, "delete", key, void 0, oldValue);
+    }
+    return result;
+  }
+  function clear() {
+    const target = toRaw(this);
+    const hadItems = target.size !== 0;
+    const oldTarget = true ? isMap(target) ? new Map(target) : new Set(target) : void 0;
+    const result = target.clear();
+    if (hadItems) {
+      trigger(target, "clear", void 0, void 0, oldTarget);
+    }
+    return result;
+  }
+  function createForEach(isReadonly, isShallow) {
+    return function forEach2(callback, thisArg) {
+      const observed = this;
+      const target = observed[
+        "__v_raw"
+        /* RAW */
+      ];
+      const rawTarget = toRaw(target);
+      const wrap = isShallow ? toShallow : isReadonly ? toReadonly : toReactive;
+      !isReadonly && track(rawTarget, "iterate", ITERATE_KEY);
+      return target.forEach((value, key) => {
+        return callback.call(thisArg, wrap(value), wrap(key), observed);
+      });
+    };
+  }
+  function createIterableMethod(method, isReadonly, isShallow) {
+    return function(...args) {
+      const target = this[
+        "__v_raw"
+        /* RAW */
+      ];
+      const rawTarget = toRaw(target);
+      const targetIsMap = isMap(rawTarget);
+      const isPair = method === "entries" || method === Symbol.iterator && targetIsMap;
+      const isKeyOnly = method === "keys" && targetIsMap;
+      const innerIterator = target[method](...args);
+      const wrap = isShallow ? toShallow : isReadonly ? toReadonly : toReactive;
+      !isReadonly && track(rawTarget, "iterate", isKeyOnly ? MAP_KEY_ITERATE_KEY : ITERATE_KEY);
+      return {
+        // iterator protocol
+        next() {
+          const { value, done } = innerIterator.next();
+          return done ? { value, done } : {
+            value: isPair ? [wrap(value[0]), wrap(value[1])] : wrap(value),
+            done
+          };
+        },
+        // iterable protocol
+        [Symbol.iterator]() {
+          return this;
+        }
+      };
+    };
+  }
+  function createReadonlyMethod(type) {
+    return function(...args) {
+      if (true) {
+        const key = args[0] ? `on key "${args[0]}" ` : ``;
+        console.warn(`${capitalize(type)} operation ${key}failed: target is readonly.`, toRaw(this));
+      }
+      return type === "delete" ? false : this;
+    };
+  }
+  function createInstrumentations() {
+    const mutableInstrumentations2 = {
+      get(key) {
+        return get$1(this, key);
+      },
+      get size() {
+        return size(this);
+      },
+      has: has$1,
+      add,
+      set: set$1,
+      delete: deleteEntry,
+      clear,
+      forEach: createForEach(false, false)
+    };
+    const shallowInstrumentations2 = {
+      get(key) {
+        return get$1(this, key, false, true);
+      },
+      get size() {
+        return size(this);
+      },
+      has: has$1,
+      add,
+      set: set$1,
+      delete: deleteEntry,
+      clear,
+      forEach: createForEach(false, true)
+    };
+    const readonlyInstrumentations2 = {
+      get(key) {
+        return get$1(this, key, true);
+      },
+      get size() {
+        return size(this, true);
+      },
+      has(key) {
+        return has$1.call(this, key, true);
+      },
+      add: createReadonlyMethod(
+        "add"
+        /* ADD */
+      ),
+      set: createReadonlyMethod(
+        "set"
+        /* SET */
+      ),
+      delete: createReadonlyMethod(
+        "delete"
+        /* DELETE */
+      ),
+      clear: createReadonlyMethod(
+        "clear"
+        /* CLEAR */
+      ),
+      forEach: createForEach(true, false)
+    };
+    const shallowReadonlyInstrumentations2 = {
+      get(key) {
+        return get$1(this, key, true, true);
+      },
+      get size() {
+        return size(this, true);
+      },
+      has(key) {
+        return has$1.call(this, key, true);
+      },
+      add: createReadonlyMethod(
+        "add"
+        /* ADD */
+      ),
+      set: createReadonlyMethod(
+        "set"
+        /* SET */
+      ),
+      delete: createReadonlyMethod(
+        "delete"
+        /* DELETE */
+      ),
+      clear: createReadonlyMethod(
+        "clear"
+        /* CLEAR */
+      ),
+      forEach: createForEach(true, true)
+    };
+    const iteratorMethods = ["keys", "values", "entries", Symbol.iterator];
+    iteratorMethods.forEach((method) => {
+      mutableInstrumentations2[method] = createIterableMethod(method, false, false);
+      readonlyInstrumentations2[method] = createIterableMethod(method, true, false);
+      shallowInstrumentations2[method] = createIterableMethod(method, false, true);
+      shallowReadonlyInstrumentations2[method] = createIterableMethod(method, true, true);
+    });
+    return [
+      mutableInstrumentations2,
+      readonlyInstrumentations2,
+      shallowInstrumentations2,
+      shallowReadonlyInstrumentations2
+    ];
+  }
+  var [mutableInstrumentations, readonlyInstrumentations, shallowInstrumentations, shallowReadonlyInstrumentations] = /* @__PURE__ */ createInstrumentations();
+  function createInstrumentationGetter(isReadonly, shallow) {
+    const instrumentations = shallow ? isReadonly ? shallowReadonlyInstrumentations : shallowInstrumentations : isReadonly ? readonlyInstrumentations : mutableInstrumentations;
+    return (target, key, receiver) => {
+      if (key === "__v_isReactive") {
+        return !isReadonly;
+      } else if (key === "__v_isReadonly") {
+        return isReadonly;
+      } else if (key === "__v_raw") {
+        return target;
+      }
+      return Reflect.get(hasOwn(instrumentations, key) && key in target ? instrumentations : target, key, receiver);
+    };
+  }
+  var mutableCollectionHandlers = {
+    get: /* @__PURE__ */ createInstrumentationGetter(false, false)
+  };
+  var readonlyCollectionHandlers = {
+    get: /* @__PURE__ */ createInstrumentationGetter(true, false)
+  };
+  function checkIdentityKeys(target, has2, key) {
+    const rawKey = toRaw(key);
+    if (rawKey !== key && has2.call(target, rawKey)) {
+      const type = toRawType(target);
+      console.warn(`Reactive ${type} contains both the raw and reactive versions of the same object${type === `Map` ? ` as keys` : ``}, which can lead to inconsistencies. Avoid differentiating between the raw and reactive versions of an object and only use the reactive version if possible.`);
+    }
+  }
+  var reactiveMap = /* @__PURE__ */ new WeakMap();
+  var shallowReactiveMap = /* @__PURE__ */ new WeakMap();
+  var readonlyMap = /* @__PURE__ */ new WeakMap();
+  var shallowReadonlyMap = /* @__PURE__ */ new WeakMap();
+  function targetTypeMap(rawType) {
+    switch (rawType) {
+      case "Object":
+      case "Array":
+        return 1;
+      case "Map":
+      case "Set":
+      case "WeakMap":
+      case "WeakSet":
+        return 2;
+      default:
+        return 0;
+    }
+  }
+  function getTargetType(value) {
+    return value[
+      "__v_skip"
+      /* SKIP */
+    ] || !Object.isExtensible(value) ? 0 : targetTypeMap(toRawType(value));
+  }
+  function reactive2(target) {
+    if (target && target[
+      "__v_isReadonly"
+      /* IS_READONLY */
+    ]) {
+      return target;
+    }
+    return createReactiveObject(target, false, mutableHandlers, mutableCollectionHandlers, reactiveMap);
+  }
+  function readonly(target) {
+    return createReactiveObject(target, true, readonlyHandlers, readonlyCollectionHandlers, readonlyMap);
+  }
+  function createReactiveObject(target, isReadonly, baseHandlers, collectionHandlers, proxyMap) {
+    if (!isObject(target)) {
+      if (true) {
+        console.warn(`value cannot be made reactive: ${String(target)}`);
+      }
+      return target;
+    }
+    if (target[
+      "__v_raw"
+      /* RAW */
+    ] && !(isReadonly && target[
+      "__v_isReactive"
+      /* IS_REACTIVE */
+    ])) {
+      return target;
+    }
+    const existingProxy = proxyMap.get(target);
+    if (existingProxy) {
+      return existingProxy;
+    }
+    const targetType = getTargetType(target);
+    if (targetType === 0) {
+      return target;
+    }
+    const proxy = new Proxy(target, targetType === 2 ? collectionHandlers : baseHandlers);
+    proxyMap.set(target, proxy);
+    return proxy;
+  }
+  function toRaw(observed) {
+    return observed && toRaw(observed[
+      "__v_raw"
+      /* RAW */
+    ]) || observed;
+  }
+  function isRef(r) {
+    return Boolean(r && r.__v_isRef === true);
+  }
+  magic("nextTick", () => nextTick);
+  magic("dispatch", (el) => dispatch.bind(dispatch, el));
+  magic("watch", (el, { evaluateLater: evaluateLater2, cleanup: cleanup2 }) => (key, callback) => {
+    let evaluate2 = evaluateLater2(key);
+    let getter = () => {
+      let value;
+      evaluate2((i) => value = i);
+      return value;
+    };
+    let unwatch = watch(getter, callback);
+    cleanup2(unwatch);
+  });
+  magic("store", getStores);
+  magic("data", (el) => scope(el));
+  magic("root", (el) => closestRoot(el));
+  magic("refs", (el) => {
+    if (el._x_refs_proxy)
+      return el._x_refs_proxy;
+    el._x_refs_proxy = mergeProxies(getArrayOfRefObject(el));
+    return el._x_refs_proxy;
+  });
+  function getArrayOfRefObject(el) {
+    let refObjects = [];
+    findClosest(el, (i) => {
+      if (i._x_refs)
+        refObjects.push(i._x_refs);
+    });
+    return refObjects;
+  }
+  var globalIdMemo = {};
+  function findAndIncrementId(name) {
+    if (!globalIdMemo[name])
+      globalIdMemo[name] = 0;
+    return ++globalIdMemo[name];
+  }
+  function closestIdRoot(el, name) {
+    return findClosest(el, (element) => {
+      if (element._x_ids && element._x_ids[name])
+        return true;
+    });
+  }
+  function setIdRoot(el, name) {
+    if (!el._x_ids)
+      el._x_ids = {};
+    if (!el._x_ids[name])
+      el._x_ids[name] = findAndIncrementId(name);
+  }
+  magic("id", (el, { cleanup: cleanup2 }) => (name, key = null) => {
+    let cacheKey = `${name}${key ? `-${key}` : ""}`;
+    return cacheIdByNameOnElement(el, cacheKey, cleanup2, () => {
+      let root = closestIdRoot(el, name);
+      let id = root ? root._x_ids[name] : findAndIncrementId(name);
+      return key ? `${name}-${id}-${key}` : `${name}-${id}`;
+    });
+  });
+  interceptClone((from, to) => {
+    if (from._x_id) {
+      to._x_id = from._x_id;
+    }
+  });
+  function cacheIdByNameOnElement(el, cacheKey, cleanup2, callback) {
+    if (!el._x_id)
+      el._x_id = {};
+    if (el._x_id[cacheKey])
+      return el._x_id[cacheKey];
+    let output = callback();
+    el._x_id[cacheKey] = output;
+    cleanup2(() => {
+      delete el._x_id[cacheKey];
+    });
+    return output;
+  }
+  magic("el", (el) => el);
+  warnMissingPluginMagic("Focus", "focus", "focus");
+  warnMissingPluginMagic("Persist", "persist", "persist");
+  function warnMissingPluginMagic(name, magicName, slug) {
+    magic(magicName, (el) => warn(`You can't use [$${magicName}] without first installing the "${name}" plugin here: https://alpinejs.dev/plugins/${slug}`, el));
+  }
+  directive("modelable", (el, { expression }, { effect: effect3, evaluateLater: evaluateLater2, cleanup: cleanup2 }) => {
+    let func = evaluateLater2(expression);
+    let innerGet = () => {
+      let result;
+      func((i) => result = i);
+      return result;
+    };
+    let evaluateInnerSet = evaluateLater2(`${expression} = __placeholder`);
+    let innerSet = (val) => evaluateInnerSet(() => {
+    }, { scope: { "__placeholder": val } });
+    let initialValue = innerGet();
+    innerSet(initialValue);
+    queueMicrotask(() => {
+      if (!el._x_model)
+        return;
+      el._x_removeModelListeners["default"]();
+      let outerGet = el._x_model.get;
+      let outerSet = el._x_model.setWithModifiers;
+      let releaseEntanglement = entangle(
+        {
+          get() {
+            return outerGet();
+          },
+          set(value) {
+            outerSet(value);
+          }
+        },
+        {
+          get() {
+            return innerGet();
+          },
+          set(value) {
+            innerSet(value);
+          }
+        }
+      );
+      cleanup2(releaseEntanglement);
+    });
+  });
+  directive("teleport", (el, { modifiers, expression }, { cleanup: cleanup2 }) => {
+    if (el.tagName.toLowerCase() !== "template")
+      warn("x-teleport can only be used on a <template> tag", el);
+    let target = getTarget2(expression);
+    let clone2 = el.content.cloneNode(true).firstElementChild;
+    el._x_teleport = clone2;
+    clone2._x_teleportBack = el;
+    el.setAttribute("data-teleport-template", true);
+    clone2.setAttribute("data-teleport-target", true);
+    if (el._x_forwardEvents) {
+      el._x_forwardEvents.forEach((eventName) => {
+        clone2.addEventListener(eventName, (e) => {
+          e.stopPropagation();
+          el.dispatchEvent(new e.constructor(e.type, e));
+        });
+      });
+    }
+    addScopeToNode(clone2, {}, el);
+    let placeInDom = (clone3, target2, modifiers2) => {
+      if (modifiers2.includes("prepend")) {
+        target2.parentNode.insertBefore(clone3, target2);
+      } else if (modifiers2.includes("append")) {
+        target2.parentNode.insertBefore(clone3, target2.nextSibling);
+      } else {
+        target2.appendChild(clone3);
+      }
+    };
+    mutateDom(() => {
+      placeInDom(clone2, target, modifiers);
+      skipDuringClone(() => {
+        initTree(clone2);
+      })();
+    });
+    el._x_teleportPutBack = () => {
+      let target2 = getTarget2(expression);
+      mutateDom(() => {
+        placeInDom(el._x_teleport, target2, modifiers);
+      });
+    };
+    cleanup2(
+      () => mutateDom(() => {
+        clone2.remove();
+        destroyTree(clone2);
+      })
+    );
+  });
+  var teleportContainerDuringClone = document.createElement("div");
+  function getTarget2(expression) {
+    let target = skipDuringClone(() => {
+      return document.querySelector(expression);
+    }, () => {
+      return teleportContainerDuringClone;
+    })();
+    if (!target)
+      warn(`Cannot find x-teleport element for selector: "${expression}"`);
+    return target;
+  }
+  var handler = () => {
+  };
+  handler.inline = (el, { modifiers }, { cleanup: cleanup2 }) => {
+    modifiers.includes("self") ? el._x_ignoreSelf = true : el._x_ignore = true;
+    cleanup2(() => {
+      modifiers.includes("self") ? delete el._x_ignoreSelf : delete el._x_ignore;
+    });
+  };
+  directive("ignore", handler);
+  directive("effect", skipDuringClone((el, { expression }, { effect: effect3 }) => {
+    effect3(evaluateLater(el, expression));
+  }));
+  function on(el, event, modifiers, callback) {
+    let listenerTarget = el;
+    let handler4 = (e) => callback(e);
+    let options = {};
+    let wrapHandler = (callback2, wrapper) => (e) => wrapper(callback2, e);
+    if (modifiers.includes("dot"))
+      event = dotSyntax(event);
+    if (modifiers.includes("camel"))
+      event = camelCase2(event);
+    if (modifiers.includes("capture"))
+      options.capture = true;
+    if (modifiers.includes("window"))
+      listenerTarget = window;
+    if (modifiers.includes("document"))
+      listenerTarget = document;
+    if (modifiers.includes("passive")) {
+      options.passive = modifiers[modifiers.indexOf("passive") + 1] !== "false";
+    }
+    handler4 = addDebounceOrThrottle(modifiers, handler4);
+    if (modifiers.includes("prevent"))
+      handler4 = wrapHandler(handler4, (next, e) => {
+        e.preventDefault();
+        next(e);
+      });
+    if (modifiers.includes("stop"))
+      handler4 = wrapHandler(handler4, (next, e) => {
+        e.stopPropagation();
+        next(e);
+      });
+    if (modifiers.includes("once")) {
+      handler4 = wrapHandler(handler4, (next, e) => {
+        next(e);
+        listenerTarget.removeEventListener(event, handler4, options);
+      });
+    }
+    if (modifiers.includes("away") || modifiers.includes("outside")) {
+      listenerTarget = document;
+      handler4 = wrapHandler(handler4, (next, e) => {
+        if (el.contains(e.target))
+          return;
+        if (e.target.isConnected === false)
+          return;
+        if (el.offsetWidth < 1 && el.offsetHeight < 1)
+          return;
+        if (el._x_isShown === false)
+          return;
+        next(e);
+      });
+    }
+    if (modifiers.includes("self"))
+      handler4 = wrapHandler(handler4, (next, e) => {
+        e.target === el && next(e);
+      });
+    if (event === "submit") {
+      handler4 = wrapHandler(handler4, (next, e) => {
+        if (e.target._x_pendingModelUpdates) {
+          e.target._x_pendingModelUpdates.forEach((fn) => fn());
+        }
+        next(e);
+      });
+    }
+    if (isKeyEvent(event) || isClickEvent(event)) {
+      handler4 = wrapHandler(handler4, (next, e) => {
+        if (isListeningForASpecificKeyThatHasntBeenPressed(e, modifiers)) {
+          return;
+        }
+        next(e);
+      });
+    }
+    listenerTarget.addEventListener(event, handler4, options);
+    return () => {
+      listenerTarget.removeEventListener(event, handler4, options);
+    };
+  }
+  function addDebounceOrThrottle(modifiers, handler4) {
+    if (modifiers.includes("debounce")) {
+      let nextModifier = modifiers[modifiers.indexOf("debounce") + 1] || "invalid-wait";
+      let wait = isNumeric(nextModifier.split("ms")[0]) ? Number(nextModifier.split("ms")[0]) : 250;
+      handler4 = debounce(handler4, wait);
+    }
+    if (modifiers.includes("throttle")) {
+      let nextModifier = modifiers[modifiers.indexOf("throttle") + 1] || "invalid-wait";
+      let wait = isNumeric(nextModifier.split("ms")[0]) ? Number(nextModifier.split("ms")[0]) : 250;
+      handler4 = throttle(handler4, wait);
+    }
+    return handler4;
+  }
+  function dotSyntax(subject) {
+    return subject.replace(/-/g, ".");
+  }
+  function camelCase2(subject) {
+    return subject.toLowerCase().replace(/-(\w)/g, (match, char) => char.toUpperCase());
+  }
+  function isNumeric(subject) {
+    return !Array.isArray(subject) && !isNaN(subject);
+  }
+  function kebabCase2(subject) {
+    if ([" ", "_"].includes(
+      subject
+    ))
+      return subject;
+    return subject.replace(/([a-z])([A-Z])/g, "$1-$2").replace(/[_\s]/, "-").toLowerCase();
+  }
+  function isKeyEvent(event) {
+    return ["keydown", "keyup"].includes(event);
+  }
+  function isClickEvent(event) {
+    return ["contextmenu", "click", "mouse"].some((i) => event.includes(i));
+  }
+  function isListeningForASpecificKeyThatHasntBeenPressed(e, modifiers) {
+    let keyModifiers = modifiers.filter((i) => {
+      return !["window", "document", "prevent", "stop", "once", "capture", "self", "away", "outside", "passive", "preserve-scroll", "blur", "change", "lazy"].includes(i);
+    });
+    if (keyModifiers.includes("debounce")) {
+      let debounceIndex = keyModifiers.indexOf("debounce");
+      keyModifiers.splice(debounceIndex, isNumeric((keyModifiers[debounceIndex + 1] || "invalid-wait").split("ms")[0]) ? 2 : 1);
+    }
+    if (keyModifiers.includes("throttle")) {
+      let debounceIndex = keyModifiers.indexOf("throttle");
+      keyModifiers.splice(debounceIndex, isNumeric((keyModifiers[debounceIndex + 1] || "invalid-wait").split("ms")[0]) ? 2 : 1);
+    }
+    if (keyModifiers.length === 0)
+      return false;
+    if (keyModifiers.length === 1 && keyToModifiers(e.key).includes(keyModifiers[0]))
+      return false;
+    const systemKeyModifiers = ["ctrl", "shift", "alt", "meta", "cmd", "super"];
+    const selectedSystemKeyModifiers = systemKeyModifiers.filter((modifier) => keyModifiers.includes(modifier));
+    keyModifiers = keyModifiers.filter((i) => !selectedSystemKeyModifiers.includes(i));
+    if (selectedSystemKeyModifiers.length > 0) {
+      const activelyPressedKeyModifiers = selectedSystemKeyModifiers.filter((modifier) => {
+        if (modifier === "cmd" || modifier === "super")
+          modifier = "meta";
+        return e[`${modifier}Key`];
+      });
+      if (activelyPressedKeyModifiers.length === selectedSystemKeyModifiers.length) {
+        if (isClickEvent(e.type))
+          return false;
+        if (keyToModifiers(e.key).includes(keyModifiers[0]))
+          return false;
+      }
+    }
+    return true;
+  }
+  function keyToModifiers(key) {
+    if (!key)
+      return [];
+    key = kebabCase2(key);
+    let modifierToKeyMap = {
+      "ctrl": "control",
+      "slash": "/",
+      "space": " ",
+      "spacebar": " ",
+      "cmd": "meta",
+      "esc": "escape",
+      "up": "arrow-up",
+      "down": "arrow-down",
+      "left": "arrow-left",
+      "right": "arrow-right",
+      "period": ".",
+      "comma": ",",
+      "equal": "=",
+      "minus": "-",
+      "underscore": "_"
+    };
+    modifierToKeyMap[key] = key;
+    return Object.keys(modifierToKeyMap).map((modifier) => {
+      if (modifierToKeyMap[modifier] === key)
+        return modifier;
+    }).filter((modifier) => modifier);
+  }
+  directive("model", (el, { modifiers, expression }, { effect: effect3, cleanup: cleanup2 }) => {
+    let scopeTarget = el;
+    if (modifiers.includes("parent")) {
+      scopeTarget = findClosest(el, (element) => element !== el);
+    }
+    let evaluateGet = evaluateLater(scopeTarget, expression);
+    let evaluateSet;
+    if (typeof expression === "string") {
+      evaluateSet = evaluateLater(scopeTarget, `${expression} = __placeholder`);
+    } else if (typeof expression === "function" && typeof expression() === "string") {
+      evaluateSet = evaluateLater(scopeTarget, `${expression()} = __placeholder`);
+    } else {
+      evaluateSet = () => {
+      };
+    }
+    let getValue = () => {
+      let result;
+      evaluateGet((value) => result = value);
+      return isGetterSetter(result) ? result.get() : result;
+    };
+    let setValue = (value) => {
+      let result;
+      evaluateGet((value2) => result = value2);
+      if (isGetterSetter(result)) {
+        result.set(value);
+      } else {
+        evaluateSet(() => {
+        }, {
+          scope: { "__placeholder": value }
+        });
+      }
+    };
+    if (typeof expression === "string" && el.type === "radio") {
+      mutateDom(() => {
+        if (!el.hasAttribute("name"))
+          el.setAttribute("name", expression);
+      });
+    }
+    let hasChangeModifier = modifiers.includes("change") || modifiers.includes("lazy");
+    let hasBlurModifier = modifiers.includes("blur");
+    let hasEnterModifier = modifiers.includes("enter");
+    let hasExplicitEventModifiers = hasChangeModifier || hasBlurModifier || hasEnterModifier;
+    let removeListener;
+    if (isCloning) {
+      removeListener = () => {
+      };
+    } else if (hasExplicitEventModifiers) {
+      let listeners = [];
+      let syncValue = (e) => setValue(getInputValue(el, modifiers, e, getValue()));
+      if (hasChangeModifier) {
+        listeners.push(on(el, "change", modifiers, syncValue));
+      }
+      if (hasBlurModifier) {
+        listeners.push(on(el, "blur", modifiers, syncValue));
+        if (el.form) {
+          let form = el.form;
+          let syncCallback = () => syncValue({ target: el });
+          if (!form._x_pendingModelUpdates)
+            form._x_pendingModelUpdates = [];
+          form._x_pendingModelUpdates.push(syncCallback);
+          cleanup2(() => {
+            if (form._x_pendingModelUpdates) {
+              form._x_pendingModelUpdates.splice(form._x_pendingModelUpdates.indexOf(syncCallback), 1);
+            }
+          });
+        }
+      }
+      if (hasEnterModifier) {
+        listeners.push(on(el, "keydown", modifiers, (e) => {
+          if (e.key === "Enter")
+            syncValue(e);
+        }));
+      }
+      removeListener = () => listeners.forEach((remove) => remove());
+    } else {
+      let event = el.tagName.toLowerCase() === "select" || ["checkbox", "radio"].includes(el.type) ? "change" : "input";
+      removeListener = on(el, event, modifiers, (e) => {
+        setValue(getInputValue(el, modifiers, e, getValue()));
+      });
+    }
+    if (modifiers.includes("fill")) {
+      if ([void 0, null, ""].includes(getValue()) || isCheckbox(el) && Array.isArray(getValue()) || el.tagName.toLowerCase() === "select" && el.multiple) {
+        setValue(
+          getInputValue(el, modifiers, { target: el }, getValue())
+        );
+      }
+    }
+    if (!el._x_removeModelListeners)
+      el._x_removeModelListeners = {};
+    el._x_removeModelListeners["default"] = removeListener;
+    cleanup2(() => el._x_removeModelListeners["default"]());
+    if (el.form) {
+      let removeResetListener = on(el.form, "reset", [], (e) => {
+        nextTick(() => el._x_model && el._x_model.set(getInputValue(el, modifiers, { target: el }, getValue())));
+      });
+      cleanup2(() => removeResetListener());
+    }
+    el._x_model = {
+      get() {
+        return getValue();
+      },
+      set(value) {
+        setValue(value);
+      },
+      setWithModifiers: addDebounceOrThrottle(modifiers, setValue)
+    };
+    el._x_forceModelUpdate = (value) => {
+      if (value === void 0 && typeof expression === "string" && expression.match(/\./))
+        value = "";
+      mutateDom(() => {
+        if (isCheckbox(el)) {
+          if (Array.isArray(value)) {
+            el.checked = value.some((val) => val == el.value);
+          } else {
+            el.checked = !!value;
+          }
+        } else if (isRadio(el)) {
+          if (typeof value === "boolean") {
+            el.checked = safeParseBoolean(el.value) === value;
+          } else {
+            el.checked = el.value == value;
+          }
+        } else {
+          bind(el, "value", value);
+        }
+      });
+    };
+    effect3(() => {
+      let value = getValue();
+      if (modifiers.includes("unintrusive") && document.activeElement.isSameNode(el))
+        return;
+      el._x_forceModelUpdate(value);
+    });
+  });
+  function getInputValue(el, modifiers, event, currentValue) {
+    return mutateDom(() => {
+      if (event instanceof CustomEvent && event.detail !== void 0)
+        return event.detail !== null && event.detail !== void 0 ? event.detail : event.target.value;
+      else if (isCheckbox(el)) {
+        if (Array.isArray(currentValue)) {
+          let newValue = null;
+          if (modifiers.includes("number")) {
+            newValue = safeParseNumber(event.target.value);
+          } else if (modifiers.includes("boolean")) {
+            newValue = safeParseBoolean(event.target.value);
+          } else {
+            newValue = event.target.value;
+          }
+          return event.target.checked ? currentValue.includes(newValue) ? currentValue : currentValue.concat([newValue]) : currentValue.filter((el2) => !checkedAttrLooseCompare2(el2, newValue));
+        } else {
+          return event.target.checked;
+        }
+      } else if (el.tagName.toLowerCase() === "select" && el.multiple) {
+        if (modifiers.includes("number")) {
+          return Array.from(event.target.selectedOptions).map((option) => {
+            let rawValue = option.value || option.text;
+            return safeParseNumber(rawValue);
+          });
+        } else if (modifiers.includes("boolean")) {
+          return Array.from(event.target.selectedOptions).map((option) => {
+            let rawValue = option.value || option.text;
+            return safeParseBoolean(rawValue);
+          });
+        }
+        return Array.from(event.target.selectedOptions).map((option) => {
+          return option.value || option.text;
+        });
+      } else {
+        let newValue;
+        if (isRadio(el)) {
+          if (event.target.checked) {
+            newValue = event.target.value;
+          } else {
+            newValue = currentValue;
+          }
+        } else {
+          newValue = event.target.value;
+        }
+        if (modifiers.includes("number")) {
+          return safeParseNumber(newValue);
+        } else if (modifiers.includes("boolean")) {
+          return safeParseBoolean(newValue);
+        } else if (modifiers.includes("trim")) {
+          return newValue.trim();
+        } else {
+          return newValue;
+        }
+      }
+    });
+  }
+  function safeParseNumber(rawValue) {
+    let number = rawValue ? parseFloat(rawValue) : null;
+    return isNumeric2(number) ? number : rawValue;
+  }
+  function checkedAttrLooseCompare2(valueA, valueB) {
+    return valueA == valueB;
+  }
+  function isNumeric2(subject) {
+    return !Array.isArray(subject) && !isNaN(subject);
+  }
+  function isGetterSetter(value) {
+    return value !== null && typeof value === "object" && typeof value.get === "function" && typeof value.set === "function";
+  }
+  directive("cloak", (el) => queueMicrotask(() => mutateDom(() => el.removeAttribute(prefix("cloak")))));
+  addInitSelector(() => `[${prefix("init")}]`);
+  directive("init", skipDuringClone((el, { expression }, { evaluate: evaluate2 }) => {
+    if (typeof expression === "string") {
+      return !!expression.trim() && evaluate2(expression, {}, false);
+    }
+    return evaluate2(expression, {}, false);
+  }));
+  directive("text", (el, { expression }, { effect: effect3, evaluateLater: evaluateLater2 }) => {
+    let evaluate2 = evaluateLater2(expression);
+    effect3(() => {
+      evaluate2((value) => {
+        mutateDom(() => {
+          el.textContent = value;
+        });
+      });
+    });
+  });
+  directive("html", (el, { expression }, { effect: effect3, evaluateLater: evaluateLater2 }) => {
+    let evaluate2 = evaluateLater2(expression);
+    effect3(() => {
+      evaluate2((value) => {
+        mutateDom(() => {
+          el.innerHTML = value ?? "";
+          el._x_ignoreSelf = true;
+          initTree(el);
+          delete el._x_ignoreSelf;
+        });
+      });
+    });
+  });
+  mapAttributes(startingWith(":", into(prefix("bind:"))));
+  var handler2 = (el, { value, modifiers, expression, original }, { effect: effect3, cleanup: cleanup2 }) => {
+    if (!value) {
+      let bindingProviders = {};
+      injectBindingProviders(bindingProviders);
+      let getBindings = evaluateLater(el, expression);
+      getBindings((bindings) => {
+        applyBindingsObject(el, bindings, original);
+      }, { scope: bindingProviders });
+      return;
+    }
+    if (value === "key")
+      return storeKeyForXFor(el, expression);
+    if (el._x_inlineBindings && el._x_inlineBindings[value] && el._x_inlineBindings[value].extract) {
+      return;
+    }
+    let evaluate2 = evaluateLater(el, expression);
+    effect3(() => evaluate2((result) => {
+      if (result === void 0 && typeof expression === "string" && expression.match(/\./)) {
+        result = "";
+      }
+      mutateDom(() => bind(el, value, result, modifiers));
+    }));
+    cleanup2(() => {
+      el._x_undoAddedClasses && el._x_undoAddedClasses();
+      el._x_undoAddedStyles && el._x_undoAddedStyles();
+    });
+  };
+  handler2.inline = (el, { value, modifiers, expression }) => {
+    if (!value)
+      return;
+    if (!el._x_inlineBindings)
+      el._x_inlineBindings = {};
+    el._x_inlineBindings[value] = { expression, extract: false };
+  };
+  directive("bind", handler2);
+  function storeKeyForXFor(el, expression) {
+    el._x_keyExpression = expression;
+  }
+  addRootSelector(() => `[${prefix("data")}]`);
+  directive("data", (el, { expression }, { cleanup: cleanup2 }) => {
+    if (shouldSkipRegisteringDataDuringClone(el))
+      return;
+    expression = expression === "" ? "{}" : expression;
+    let magicContext = {};
+    injectMagics(magicContext, el);
+    let dataProviderContext = {};
+    injectDataProviders(dataProviderContext, magicContext);
+    let data2 = evaluate(el, expression, { scope: dataProviderContext });
+    if (data2 === void 0 || data2 === true)
+      data2 = {};
+    injectMagics(data2, el);
+    let reactiveData = reactive(data2);
+    initInterceptors(reactiveData);
+    let undo = addScopeToNode(el, reactiveData);
+    reactiveData["init"] && evaluate(el, reactiveData["init"]);
+    cleanup2(() => {
+      reactiveData["destroy"] && evaluate(el, reactiveData["destroy"]);
+      undo();
+    });
+  });
+  interceptClone((from, to) => {
+    if (from._x_dataStack) {
+      to._x_dataStack = from._x_dataStack;
+      to.setAttribute("data-has-alpine-state", true);
+    }
+  });
+  function shouldSkipRegisteringDataDuringClone(el) {
+    if (!isCloning)
+      return false;
+    if (isCloningLegacy)
+      return true;
+    return el.hasAttribute("data-has-alpine-state");
+  }
+  directive("show", (el, { modifiers, expression }, { effect: effect3 }) => {
+    let evaluate2 = evaluateLater(el, expression);
+    if (!el._x_doHide)
+      el._x_doHide = () => {
+        mutateDom(() => {
+          el.style.setProperty("display", "none", modifiers.includes("important") ? "important" : void 0);
+        });
+      };
+    if (!el._x_doShow)
+      el._x_doShow = () => {
+        mutateDom(() => {
+          if (el.style.length === 1 && el.style.display === "none") {
+            el.removeAttribute("style");
+          } else {
+            el.style.removeProperty("display");
+          }
+        });
+      };
+    let hide = () => {
+      el._x_doHide();
+      el._x_isShown = false;
+    };
+    let show = () => {
+      el._x_doShow();
+      el._x_isShown = true;
+    };
+    let clickAwayCompatibleShow = () => setTimeout(show);
+    let toggle = once(
+      (value) => value ? show() : hide(),
+      (value) => {
+        if (typeof el._x_toggleAndCascadeWithTransitions === "function") {
+          el._x_toggleAndCascadeWithTransitions(el, value, show, hide);
+        } else {
+          value ? clickAwayCompatibleShow() : hide();
+        }
+      }
+    );
+    let oldValue;
+    let firstTime = true;
+    effect3(() => evaluate2((value) => {
+      if (!firstTime && value === oldValue)
+        return;
+      if (modifiers.includes("immediate"))
+        value ? clickAwayCompatibleShow() : hide();
+      toggle(value);
+      oldValue = value;
+      firstTime = false;
+    }));
+  });
+  directive("for", (el, { expression }, { effect: effect3, cleanup: cleanup2 }) => {
+    let iteratorNames = parseForExpression(expression);
+    let evaluateItems = evaluateLater(el, iteratorNames.items);
+    let evaluateKey = evaluateLater(
+      el,
+      // the x-bind:key expression is stored for our use instead of evaluated.
+      el._x_keyExpression || "index"
+    );
+    el._x_lookup = /* @__PURE__ */ new Map();
+    effect3(() => loop(el, iteratorNames, evaluateItems, evaluateKey));
+    cleanup2(() => {
+      el._x_lookup.forEach(
+        (el2) => mutateDom(() => {
+          destroyTree(el2);
+          el2.remove();
+        })
+      );
+      delete el._x_lookup;
+    });
+  });
+  function refreshScope(scope2) {
+    return (newScope) => {
+      Object.entries(newScope).forEach(([key, value]) => {
+        scope2[key] = value;
+      });
+    };
+  }
+  function loop(templateEl, iteratorNames, evaluateItems, evaluateKey) {
+    evaluateItems((items) => {
+      if (isNumeric3(items))
+        items = Array.from({ length: items }, (_, i) => i + 1);
+      if (items === void 0)
+        items = [];
+      if (items instanceof Set)
+        items = Array.from(items);
+      if (items instanceof Map)
+        items = Array.from(items);
+      let oldLookup = templateEl._x_lookup;
+      let lookup = /* @__PURE__ */ new Map();
+      templateEl._x_lookup = lookup;
+      let hasStringKeys = isObject2(items);
+      let scopeEntries = Object.entries(items).map(([index, item]) => {
+        if (!hasStringKeys)
+          index = parseInt(index);
+        let scope2 = getIterationScopeVariables(iteratorNames, item, index, items);
+        let key;
+        evaluateKey((innerKey) => {
+          if (typeof innerKey === "object")
+            warn("x-for key cannot be an object, it must be a string or an integer", templateEl);
+          if (oldLookup.has(innerKey)) {
+            lookup.set(innerKey, oldLookup.get(innerKey));
+            oldLookup.delete(innerKey);
+          }
+          key = innerKey;
+        }, { scope: { index, ...scope2 } });
+        return [key, scope2];
+      });
+      mutateDom(() => {
+        oldLookup.forEach((el) => {
+          destroyTree(el);
+          el.remove();
+        });
+        let added = /* @__PURE__ */ new Set();
+        let prev = templateEl;
+        scopeEntries.forEach(([key, scope2]) => {
+          if (lookup.has(key)) {
+            let el = lookup.get(key);
+            el._x_refreshXForScope(scope2);
+            if (prev.nextElementSibling !== el) {
+              if (prev.nextElementSibling)
+                el.replaceWith(prev.nextElementSibling);
+              prev.after(el);
+            }
+            prev = el;
+            if (el._x_currentIfEl) {
+              if (el.nextElementSibling !== el._x_currentIfEl)
+                prev.after(el._x_currentIfEl);
+              prev = el._x_currentIfEl;
+            }
+            return;
+          }
+          if (templateEl.content.children.length > 1)
+            warn("x-for templates require a single root element, additional elements will be ignored.", templateEl);
+          let clone2 = document.importNode(templateEl.content, true).firstElementChild;
+          let reactiveScope = reactive(scope2);
+          addScopeToNode(clone2, reactiveScope, templateEl);
+          clone2._x_refreshXForScope = refreshScope(reactiveScope);
+          lookup.set(key, clone2);
+          added.add(clone2);
+          prev.after(clone2);
+          prev = clone2;
+        });
+        skipDuringClone(() => added.forEach((clone2) => initTree(clone2)))();
+      });
+    });
+  }
+  function parseForExpression(expression) {
+    let forIteratorRE = /,([^,\}\]]*)(?:,([^,\}\]]*))?$/;
+    let stripParensRE = /^\s*\(|\)\s*$/g;
+    let forAliasRE = /([\s\S]*?)\s+(?:in|of)\s+([\s\S]*)/;
+    let inMatch = expression.match(forAliasRE);
+    if (!inMatch)
+      return;
+    let res = {};
+    res.items = inMatch[2].trim();
+    let item = inMatch[1].replace(stripParensRE, "").trim();
+    let iteratorMatch = item.match(forIteratorRE);
+    if (iteratorMatch) {
+      res.item = item.replace(forIteratorRE, "").trim();
+      res.index = iteratorMatch[1].trim();
+      if (iteratorMatch[2]) {
+        res.collection = iteratorMatch[2].trim();
+      }
+    } else {
+      res.item = item;
+    }
+    return res;
+  }
+  function getIterationScopeVariables(iteratorNames, item, index, items) {
+    let scopeVariables = {};
+    if (/^\[.*\]$/.test(iteratorNames.item) && Array.isArray(item)) {
+      let names = iteratorNames.item.replace("[", "").replace("]", "").split(",").map((i) => i.trim());
+      names.forEach((name, i) => {
+        scopeVariables[name] = item[i];
+      });
+    } else if (/^\{.*\}$/.test(iteratorNames.item) && !Array.isArray(item) && typeof item === "object") {
+      let names = iteratorNames.item.replace("{", "").replace("}", "").split(",").map((i) => i.trim());
+      names.forEach((name) => {
+        scopeVariables[name] = item[name];
+      });
+    } else {
+      scopeVariables[iteratorNames.item] = item;
+    }
+    if (iteratorNames.index)
+      scopeVariables[iteratorNames.index] = index;
+    if (iteratorNames.collection)
+      scopeVariables[iteratorNames.collection] = items;
+    return scopeVariables;
+  }
+  function isNumeric3(subject) {
+    return !Array.isArray(subject) && !isNaN(subject);
+  }
+  function isObject2(subject) {
+    return typeof subject === "object" && !Array.isArray(subject);
+  }
+  function handler3() {
+  }
+  handler3.inline = (el, { expression }, { cleanup: cleanup2 }) => {
+    let root = closestRoot(el);
+    if (!root)
+      return;
+    if (!root._x_refs)
+      root._x_refs = {};
+    root._x_refs[expression] = el;
+    cleanup2(() => delete root._x_refs[expression]);
+  };
+  directive("ref", handler3);
+  directive("if", (el, { expression }, { effect: effect3, cleanup: cleanup2 }) => {
+    if (el.tagName.toLowerCase() !== "template")
+      warn("x-if can only be used on a <template> tag", el);
+    let evaluate2 = evaluateLater(el, expression);
+    let show = () => {
+      if (el._x_currentIfEl)
+        return el._x_currentIfEl;
+      let clone2 = el.content.cloneNode(true).firstElementChild;
+      addScopeToNode(clone2, {}, el);
+      mutateDom(() => {
+        el.after(clone2);
+        skipDuringClone(() => initTree(clone2))();
+      });
+      el._x_currentIfEl = clone2;
+      el._x_undoIf = () => {
+        mutateDom(() => {
+          destroyTree(clone2);
+          clone2.remove();
+        });
+        delete el._x_currentIfEl;
+      };
+      return clone2;
+    };
+    let hide = () => {
+      if (!el._x_undoIf)
+        return;
+      el._x_undoIf();
+      delete el._x_undoIf;
+    };
+    effect3(() => evaluate2((value) => {
+      value ? show() : hide();
+    }));
+    cleanup2(() => el._x_undoIf && el._x_undoIf());
+  });
+  directive("id", (el, { expression }, { evaluate: evaluate2 }) => {
+    let names = evaluate2(expression);
+    names.forEach((name) => setIdRoot(el, name));
+  });
+  interceptClone((from, to) => {
+    if (from._x_ids) {
+      to._x_ids = from._x_ids;
+    }
+  });
+  mapAttributes(startingWith("@", into(prefix("on:"))));
+  directive("on", skipDuringClone((el, { value, modifiers, expression }, { cleanup: cleanup2 }) => {
+    let evaluate2 = expression ? evaluateLater(el, expression) : () => {
+    };
+    if (el.tagName.toLowerCase() === "template") {
+      if (!el._x_forwardEvents)
+        el._x_forwardEvents = [];
+      if (!el._x_forwardEvents.includes(value))
+        el._x_forwardEvents.push(value);
+    }
+    let removeListener = on(el, value, modifiers, (e) => {
+      evaluate2(() => {
+      }, { scope: { "$event": e }, params: [e] });
+    });
+    cleanup2(() => removeListener());
+  }));
+  warnMissingPluginDirective("Collapse", "collapse", "collapse");
+  warnMissingPluginDirective("Intersect", "intersect", "intersect");
+  warnMissingPluginDirective("Focus", "trap", "focus");
+  warnMissingPluginDirective("Mask", "mask", "mask");
+  function warnMissingPluginDirective(name, directiveName, slug) {
+    directive(directiveName, (el) => warn(`You can't use [x-${directiveName}] without first installing the "${name}" plugin here: https://alpinejs.dev/plugins/${slug}`, el));
+  }
+  alpine_default.setEvaluator(normalEvaluator);
+  alpine_default.setRawEvaluator(normalRawEvaluator);
+  alpine_default.setReactivityEngine({ reactive: reactive2, effect: effect2, release: stop, raw: toRaw });
+  var src_default = alpine_default;
+  var module_default = src_default;
+
+  // scripts/bundle.js
+  window.htmx = htmx_esm_default;
+  window.Alpine = module_default;
+  module_default.start();
+})();

@@ -3,17 +3,22 @@
   "version": "1.0.0",
   "description": "HTMX Shop with Tailwind CSS",
   "scripts": {
-    "build:css": "tailwindcss -i ./styles/input.css -o ./public/styles.css -m",
-    "watch:css": "tailwindcss -i ./styles/input.css -o ./public/styles.css -w",
-    "build:js": "esbuild scripts/bundle.js --bundle --minify --outfile=public/bundle.js",
+    "start": "go run ./cmd/server",
+    "dev": "nodemon --watch api --watch internal --watch ui --watch cmd --signal SIGTERM --exec go run ./cmd/server",
     "build": "npm run build:css && npm run build:js",
+    "build:css": "tailwindcss -i ./styles/input.css -o ./public/styles.css -m",
+    "build:js": "esbuild scripts/bundle.js --bundle --minify --outfile=public/bundle.js",
+    "watch:assets": "concurrently -k \"npm:watch:css\" \"npm:watch:js\"",
+    "watch:css": "tailwindcss -i ./styles/input.css -o ./public/styles.css -w",
     "watch:js": "esbuild scripts/bundle.js --bundle --outfile=public/bundle.js --watch"
   },
   "devDependencies": {
     "@tailwindcss/cli": "^4.2.2",
     "alpinejs": "^3.15.11",
+    "concurrently": "^9.2.1",
     "esbuild": "^0.28.0",
     "htmx.org": "^2.0.8",
+    "nodemon": "^3.1.14",
     "tailwindcss": "^4.2.2"
   }
 }

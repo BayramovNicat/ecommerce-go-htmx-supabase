@@ -4,8 +4,11 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"path/filepath"
+	"strings"
 
 	"github.com/joho/godotenv"
+	"github.com/rs/cors"
 	handler "htmxshop/api"
 )
 
@@ -20,10 +23,39 @@ func main() {
 		port = "8080"
 	}
 
-	http.HandleFunc("/", handler.Handler)
+	mux := http.NewServeMux()
+	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		if servePublicFile(w, r) {
+			return
+		}
+		handler.Handler(w, r)
+	})
+
+	handlerWithCors := cors.AllowAll().Handler(mux)
 
 	log.Printf("Server starting on http://localhost:%s", port)
-	if err := http.ListenAndServe(":"+port, nil); err != nil {
+	if err := http.ListenAndServe(":"+port, handlerWithCors); err != nil {
 		log.Fatal(err)
 	}
+}
+
+func servePublicFile(w http.ResponseWriter, r *http.Request) bool {
+	if r.Method != http.MethodGet && r.Method != http.MethodHead {
+		return false
+	}
+
+	path := r.URL.Path
+	if path == "/" || strings.Contains(path, "..") {
+		return false
+	}
+
+	filePath := filepath.Join("public", strings.TrimPrefix(path, "/"))
+	info, err := os.Stat(filePath)
+	if err != nil || info.IsDir() {
+		return false
+	}
+
+	w.Header().Set("Cache-Control", "public, max-age=31536000")
+	http.ServeFile(w, r, filePath)
+	return true
 }
