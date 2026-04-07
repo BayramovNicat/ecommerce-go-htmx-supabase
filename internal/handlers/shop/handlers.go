@@ -21,6 +21,7 @@ const productsPerPage = 60
 
 const homeProductsCacheTTL = 30 * time.Second
 const productCacheTTL = 5 * time.Minute
+const categoriesCacheTTL = 10 * time.Minute
 
 var homeProductsCache struct {
 	mu        sync.RWMutex
@@ -38,8 +39,62 @@ type cachedProduct struct {
 	expiresAt time.Time
 }
 
+var categoriesCache struct {
+	mu         sync.RWMutex
+	categories []database.Category
+	bySlug     map[string]database.Category
+	expiresAt  time.Time
+}
+
 func init() {
 	productCache.items = make(map[string]*cachedProduct)
+}
+
+// getCategories returns all categories, using an in-memory cache.
+func getCategories(ctx context.Context) ([]database.Category, map[string]database.Category, error) {
+	now := time.Now()
+
+	categoriesCache.mu.RLock()
+	if now.Before(categoriesCache.expiresAt) && len(categoriesCache.categories) > 0 {
+		cats := append([]database.Category(nil), categoriesCache.categories...)
+		bySlug := categoriesCache.bySlug
+		categoriesCache.mu.RUnlock()
+		return cats, bySlug, nil
+	}
+	categoriesCache.mu.RUnlock()
+
+	cats, err := database.GetCategories(ctx)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	bySlug := make(map[string]database.Category, len(cats))
+	for _, c := range cats {
+		bySlug[c.Slug] = c
+	}
+
+	categoriesCache.mu.Lock()
+	categoriesCache.categories = cats
+	categoriesCache.bySlug = bySlug
+	categoriesCache.expiresAt = now.Add(categoriesCacheTTL)
+	categoriesCache.mu.Unlock()
+
+	return cats, bySlug, nil
+}
+
+// resolveCategoryID returns the category ID for a slug, or 0 if slug is empty/unknown.
+func resolveCategoryID(ctx context.Context, slug string) (int, error) {
+	if slug == "" {
+		return 0, nil
+	}
+	_, bySlug, err := getCategories(ctx)
+	if err != nil {
+		return 0, err
+	}
+	if cat, ok := bySlug[slug]; ok {
+		return cat.ID, nil
+	}
+	return 0, nil
 }
 
 // getEnv returns the current environment (production or development)
@@ -53,18 +108,50 @@ func getEnv() string {
 
 // HandleHome renders the shop homepage with initial products
 func HandleHome(w http.ResponseWriter, r *http.Request) {
-	products, err := getHomeProducts(r.Context())
+	categorySlug := r.URL.Query().Get("category")
+
+	categories, _, err := getCategories(r.Context())
+	if err != nil {
+		log.Printf("Failed to load categories: %v", err)
+		// Non-fatal: continue without categories
+	}
+
+	categoryID, err := resolveCategoryID(r.Context(), categorySlug)
+	if err != nil {
+		log.Printf("Failed to resolve category %q: %v", categorySlug, err)
+	}
+
+	var products []database.Product
+	if categoryID == 0 && categorySlug == "" {
+		// All-products first page: use cache
+		products, err = getHomeProducts(r.Context())
+	} else {
+		products, err = database.GetProductsKeyset(r.Context(), 0, productsPerPage, categoryID)
+	}
 	if err != nil {
 		http.Error(w, "Failed to load products: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
+	title := "Shop - Premium Products"
+	if categorySlug != "" {
+		for _, c := range categories {
+			if c.Slug == categorySlug {
+				title = c.Name + " - Meridian Living"
+				break
+			}
+		}
+	}
+
 	data := map[string]interface{}{
-		"Products":    products,
-		"Title":       "Shop - Premium Products",
-		"User":        getUserFromRequest(r),
-		"Env":         getEnv(),
-		"CriticalCSS": web.GetCriticalCSS(),
+		"Products":       products,
+		"Title":          title,
+		"User":           getUserFromRequest(r),
+		"Env":            getEnv(),
+		"CriticalCSS":    web.GetCriticalCSS(),
+		"Categories":     categories,
+		"ActiveCategory": categorySlug,
+		"Category":       categorySlug,
 	}
 
 	tmpl, err := web.GetTemplate("shop:home", "templates/layouts/base.html", "templates/shop/home.html")
@@ -87,7 +174,6 @@ func HandleHome(w http.ResponseWriter, r *http.Request) {
 func HandleProductsList(w http.ResponseWriter, r *http.Request) {
 	cursorStr := r.URL.Query().Get("cursor")
 	cursor := int64(0)
-
 	if cursorStr != "" {
 		var err error
 		cursor, err = strconv.ParseInt(cursorStr, 10, 64)
@@ -97,20 +183,23 @@ func HandleProductsList(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	products, err := database.GetProductsKeyset(r.Context(), cursor, productsPerPage)
+	categorySlug := r.URL.Query().Get("category")
+	categoryID, err := resolveCategoryID(r.Context(), categorySlug)
+	if err != nil {
+		log.Printf("Failed to resolve category %q: %v", categorySlug, err)
+	}
+
+	products, err := database.GetProductsKeyset(r.Context(), cursor, productsPerPage, categoryID)
 	if err != nil {
 		http.Error(w, "Failed to load products", http.StatusInternalServerError)
 		return
 	}
 
-	// Check if this is an HTMX request
 	if r.Header.Get("HX-Request") == "true" {
-		// Return HTML fragment for HTMX
-		renderProductCards(w, products)
+		renderProductCards(w, products, categorySlug)
 		return
 	}
 
-	// Return JSON for API requests
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(products)
 }
@@ -208,25 +297,31 @@ func HandleSearch(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// renderProductCards renders product cards as HTML fragment for HTMX
-func renderProductCards(w http.ResponseWriter, products []database.Product) {
+// renderProductCards renders product cards as HTML fragment for HTMX.
+// categorySlug is threaded into the infinite-scroll cursor URL so pagination
+// stays within the same category.
+func renderProductCards(w http.ResponseWriter, products []database.Product, categorySlug string) {
 	if len(products) == 0 {
 		w.Write([]byte(""))
 		return
 	}
 
-	// Get the last product ID for the next cursor
 	lastID := products[len(products)-1].ID
+
+	// Build the next-page URL including category if present
+	nextURL := fmt.Sprintf("/api/products?cursor=%d", lastID)
+	if categorySlug != "" {
+		nextURL += "&category=" + categorySlug
+	}
 
 	var html strings.Builder
 	html.Grow(len(products) * 512)
 
-	// Render each product card
 	for i, product := range products {
 		// Apply hx-trigger="revealed" to the 10th-to-last item for pre-fetch buffer
 		triggerAttr := ""
 		if i == len(products)-10 {
-			triggerAttr = fmt.Sprintf(` hx-get="/api/products?cursor=%d" hx-trigger="revealed" hx-swap="beforeend" hx-target="#products-grid" hx-push-url="false" hx-history="false"`, lastID)
+			triggerAttr = fmt.Sprintf(` hx-get="%s" hx-trigger="revealed" hx-swap="beforeend" hx-target="#products-grid" hx-push-url="false" hx-history="false"`, nextURL)
 		}
 
 		stockStatus := `<span class="text-sm text-green-600">In Stock</span>`
@@ -323,7 +418,7 @@ func getHomeProducts(ctx context.Context) ([]database.Product, error) {
 	}
 	homeProductsCache.mu.RUnlock()
 
-	products, err := database.GetProductsKeyset(ctx, 0, productsPerPage)
+	products, err := database.GetProductsKeyset(ctx, 0, productsPerPage, 0)
 	if err != nil {
 		return nil, err
 	}

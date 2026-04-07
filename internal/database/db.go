@@ -64,6 +64,33 @@ func Close() {
 	}
 }
 
+// Category represents a product category
+type Category struct {
+	ID        int    `json:"id"`
+	Name      string `json:"name"`
+	Slug      string `json:"slug"`
+	SortOrder int    `json:"sort_order"`
+}
+
+// GetCategories retrieves all categories ordered by sort_order
+func GetCategories(ctx context.Context) ([]Category, error) {
+	rows, err := Pool.Query(ctx, `SELECT id, name, slug, sort_order FROM categories ORDER BY sort_order`)
+	if err != nil {
+		return nil, fmt.Errorf("query categories: %w", err)
+	}
+	defer rows.Close()
+
+	var cats []Category
+	for rows.Next() {
+		var c Category
+		if err := rows.Scan(&c.ID, &c.Name, &c.Slug, &c.SortOrder); err != nil {
+			return nil, fmt.Errorf("scan category: %w", err)
+		}
+		cats = append(cats, c)
+	}
+	return cats, rows.Err()
+}
+
 // Product represents a product in the database
 type Product struct {
 	ID            int64     `json:"id"`
@@ -80,25 +107,42 @@ type Product struct {
 	UpdatedAt     time.Time `json:"updated_at"`
 }
 
-// GetProductsKeyset retrieves products using keyset pagination (cursor-based)
-// cursor is the last product ID from the previous page (0 for first page)
-// limit is the number of products to retrieve
-func GetProductsKeyset(ctx context.Context, cursor int64, limit int) ([]Product, error) {
-	query := `
-		SELECT id, uuid, name, slug, COALESCE(description, ''), price, stock,
-		       COALESCE(image_full, ''), COALESCE(image_thumb, ''), is_active, created_at, updated_at
-		FROM products
-		WHERE is_active = true AND id < $1
-		ORDER BY id DESC
-		LIMIT $2
-	`
-
-	// For first page, use a very large cursor value
+// GetProductsKeyset retrieves products using keyset pagination (cursor-based).
+// cursor is the last product ID from the previous page (0 = first page).
+// categoryID filters by category; pass 0 for all categories.
+func GetProductsKeyset(ctx context.Context, cursor int64, limit int, categoryID int) ([]Product, error) {
 	if cursor == 0 {
 		cursor = 9223372036854775807 // Max int64
 	}
 
-	rows, err := Pool.Query(ctx, query, cursor, limit)
+	var query string
+	var args []interface{}
+
+	if categoryID > 0 {
+		// Uses idx_products_category_keyset (category_id, id DESC)
+		query = `
+			SELECT id, uuid, name, slug, COALESCE(description, ''), price, stock,
+			       COALESCE(image_full, ''), COALESCE(image_thumb, ''), is_active, created_at, updated_at
+			FROM products
+			WHERE is_active = true AND category_id = $1 AND id < $2
+			ORDER BY id DESC
+			LIMIT $3
+		`
+		args = []interface{}{categoryID, cursor, limit}
+	} else {
+		// Uses idx_products_keyset (id DESC)
+		query = `
+			SELECT id, uuid, name, slug, COALESCE(description, ''), price, stock,
+			       COALESCE(image_full, ''), COALESCE(image_thumb, ''), is_active, created_at, updated_at
+			FROM products
+			WHERE is_active = true AND id < $1
+			ORDER BY id DESC
+			LIMIT $2
+		`
+		args = []interface{}{cursor, limit}
+	}
+
+	rows, err := Pool.Query(ctx, query, args...)
 	if err != nil {
 		return nil, fmt.Errorf("query products: %w", err)
 	}
@@ -107,22 +151,17 @@ func GetProductsKeyset(ctx context.Context, cursor int64, limit int) ([]Product,
 	var products []Product
 	for rows.Next() {
 		var p Product
-		err := rows.Scan(
+		if err := rows.Scan(
 			&p.ID, &p.UUID, &p.Name, &p.Slug, &p.Description,
 			&p.Price, &p.Stock, &p.ImageURL, &p.ImageThumbURL,
 			&p.IsActive, &p.CreatedAt, &p.UpdatedAt,
-		)
-		if err != nil {
+		); err != nil {
 			return nil, fmt.Errorf("scan product: %w", err)
 		}
 		products = append(products, p)
 	}
 
-	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("rows error: %w", err)
-	}
-
-	return products, nil
+	return products, rows.Err()
 }
 
 // GetProductBySlug retrieves a single product by its slug

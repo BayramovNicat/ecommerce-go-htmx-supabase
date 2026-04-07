@@ -41,7 +41,7 @@ func HandleProductsList(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	products, err := database.GetProductsKeyset(r.Context(), cursor, 50)
+	products, err := database.GetProductsKeyset(r.Context(), cursor, 50, 0)
 	if err != nil {
 		http.Error(w, "Failed to load products", http.StatusInternalServerError)
 		return
