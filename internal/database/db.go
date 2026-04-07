@@ -86,7 +86,7 @@ type Product struct {
 func GetProductsKeyset(ctx context.Context, cursor int64, limit int) ([]Product, error) {
 	query := `
 		SELECT id, uuid, name, slug, COALESCE(description, ''), price, stock,
-		       COALESCE(image_url, ''), COALESCE(image_thumb_url, ''), is_active, created_at, updated_at
+		       COALESCE(image_full, ''), COALESCE(image_thumb, ''), is_active, created_at, updated_at
 		FROM products
 		WHERE is_active = true AND id < $1
 		ORDER BY id DESC
@@ -129,7 +129,7 @@ func GetProductsKeyset(ctx context.Context, cursor int64, limit int) ([]Product,
 func GetProductBySlug(ctx context.Context, slug string) (*Product, error) {
 	query := `
 		SELECT id, uuid, name, slug, COALESCE(description, ''), price, stock,
-		       COALESCE(image_url, ''), COALESCE(image_thumb_url, ''), is_active, created_at, updated_at
+		       COALESCE(image_full, ''), COALESCE(image_thumb, ''), is_active, created_at, updated_at
 		FROM products
 		WHERE slug = $1 AND is_active = true
 		LIMIT 1
@@ -152,7 +152,7 @@ func GetProductBySlug(ctx context.Context, slug string) (*Product, error) {
 func SearchProducts(ctx context.Context, searchQuery string, cursor int64, limit int) ([]Product, error) {
 	query := `
 		SELECT id, uuid, name, slug, COALESCE(description, ''), price, stock,
-		       COALESCE(image_url, ''), COALESCE(image_thumb_url, ''), is_active, created_at, updated_at
+		       COALESCE(image_full, ''), COALESCE(image_thumb, ''), is_active, created_at, updated_at
 		FROM products
 		WHERE is_active = true 
 		  AND search_vector @@ plainto_tsquery('english', $1)
@@ -191,7 +191,7 @@ func SearchProducts(ctx context.Context, searchQuery string, cursor int64, limit
 // CreateProduct creates a new product (admin only)
 func CreateProduct(ctx context.Context, p *Product) error {
 	query := `
-		INSERT INTO products (name, slug, description, price, stock, image_url, image_thumb_url, is_active)
+		INSERT INTO products (name, slug, description, price, stock, image_full, image_thumb, is_active)
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
 		RETURNING id, uuid, created_at, updated_at
 	`
@@ -213,7 +213,7 @@ func UpdateProduct(ctx context.Context, p *Product) error {
 	query := `
 		UPDATE products
 		SET name = $1, slug = $2, description = $3, price = $4, 
-		    stock = $5, image_url = $6, image_thumb_url = $7, is_active = $8
+		    stock = $5, image_full = $6, image_thumb = $7, is_active = $8
 		WHERE id = $9
 		RETURNING updated_at
 	`
