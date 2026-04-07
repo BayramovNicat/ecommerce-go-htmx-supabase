@@ -46,7 +46,7 @@
 										alt="{{ .Name }}"
 										width="400"
 										height="400"
-										loading="lazy"
+										{{ if eq $index 0 }}fetchpriority="high"{{ else }}loading="lazy"{{ end }}
 										class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition duration-300"
 										onerror="this.style.display = 'none'"
 									/>

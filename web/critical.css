@@ -1,8 +1,8 @@
 /* Critical CSS - Above the fold styles */
 :root {
 	--font-sans:
-		system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Helvetica Neue", Arial,
-		sans-serif;
+		ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol",
+		"Noto Color Emoji";
 	--font-serif: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
 	--color-background: #f8f6f2;
 	--color-surface: #ffffff;
@@ -146,6 +146,47 @@ nav {
 	.lg\:grid-cols-6 {
 		grid-template-columns: repeat(6, minmax(0, 1fr));
 	}
+}
+
+/* Product grid: reserve height for image containers before full CSS loads */
+.aspect-square {
+	aspect-ratio: 1 / 1;
+}
+
+/* Image positioning inside aspect-ratio containers */
+.relative {
+	position: relative;
+}
+.absolute {
+	position: absolute;
+}
+.inset-0 {
+	inset: 0;
+}
+.w-full {
+	width: 100%;
+}
+.h-full {
+	height: 100%;
+}
+.object-cover {
+	object-fit: cover;
+}
+
+/* Category nav sticky positioning */
+.sticky {
+	position: sticky;
+}
+.top-0 {
+	top: 0;
+}
+.z-10 {
+	z-index: 10;
+}
+
+/* Reserve auth container width to prevent header shift */
+.min-w-\[120px\] {
+	min-width: 120px;
 }
 
 /* Alpine.js cloak */
