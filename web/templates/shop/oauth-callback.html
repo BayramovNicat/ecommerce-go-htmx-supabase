@@ -8,21 +8,25 @@
 			<link rel="stylesheet" href="/dist/styles.css" />
 		</head>
 		<body class="h-full flex items-center justify-center bg-white">
-			<div
-				id="config"
-				data-supabase-url="{{ .SupabaseURL }}"
-				data-supabase-anon-key="{{ .SupabaseAnonKey }}"
-				data-success-redirect="{{ .SuccessRedirect }}"
-				data-failure-redirect="{{ .FailureRedirect }}"
-				class="text-center"
-			>
-				<div
-					class="w-10 h-10 rounded-full border-3 border-gray-200 border-t-gray-900 animate-spin mx-auto"
-				></div>
+			<div class="text-center">
+				<div class="w-10 h-10 rounded-full border-3 border-gray-200 border-t-gray-900 animate-spin mx-auto"></div>
 				<h1 class="mt-5 mb-2.5 text-xl font-semibold text-gray-900">Signing in...</h1>
 				<p class="text-sm text-gray-500">Please wait</p>
 			</div>
-			<script src="/dist/oauth-callback.js" defer></script>
+			<script type="module">
+				import { createClient } from "https://esm.sh/@supabase/supabase-js@2.43.4";
+				const supabase = createClient("{{ .SupabaseURL }}", "{{ .SupabaseAnonKey }}", {
+					auth: { detectSessionInUrl: true },
+				});
+				supabase.auth.onAuthStateChange(async (event, session) => {
+					if (event === "SIGNED_IN" && session?.access_token) {
+						document.cookie = `sb-access-token=${session.access_token}; Path=/; Max-Age=3600; SameSite=Lax`;
+						window.location.href = "{{ .SuccessRedirect }}";
+					} else if (event === "SIGNED_OUT" || !session) {
+						window.location.href = "{{ .FailureRedirect }}";
+					}
+				});
+			</script>
 		</body>
 	</html>
 {{ end }}

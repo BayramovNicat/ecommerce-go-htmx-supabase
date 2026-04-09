@@ -7,10 +7,10 @@
 		"start": "go run ./cmd/server",
 		"build": "npm run build:css && npm run build:js",
 		"build:css": "tailwindcss -i ./web/static/css/styles.css -o ./web/dist/styles.css -m",
-		"build:js": "esbuild 'web/static/ts/*.ts' --bundle --minify --outdir=web/dist --entry-names=[name]",
+		"build:js": "esbuild web/static/ts/bundle.ts --bundle --minify --outfile=web/dist/bundle.js",
 		"watch": "concurrently -k \"npm:watch:css\" \"npm:watch:js\"",
 		"watch:css": "tailwindcss -i ./web/static/css/styles.css -o ./web/dist/styles.css -w",
-		"watch:js": "esbuild 'web/static/ts/*.ts' --bundle --outdir=web/dist --entry-names=[name] --watch",
+		"watch:js": "esbuild web/static/ts/bundle.ts --bundle --outfile=web/dist/bundle.js --watch",
 		"lint": "prettier --check .",
 		"format": "prettier --write .",
 		"generate:images": "node scripts/generate_images.js"
@@ -30,6 +30,7 @@
 		"typescript": "^6.0.2"
 	},
 	"dependencies": {
+		"alpinejs": "^3.15.11",
 		"pg": "^8.20.0"
 	}
 }

@@ -16,9 +16,6 @@
 			<div class="bg-white rounded-lg border border-gray-200 p-8 shadow-sm">
 				<button
 					id="google-login"
-					data-supabase-url="{{ .SupabaseURL }}"
-					data-supabase-anon-key="{{ .SupabaseAnonKey }}"
-					data-oauth-redirect-url="{{ .OAuthRedirectURL }}"
 					class="w-full flex items-center justify-center gap-3 rounded-lg border border-gray-300 bg-white py-3 px-4 font-medium text-gray-900 hover:bg-gray-50 transition"
 				>
 					<svg class="w-5 h-5" viewBox="0 0 24 24">
@@ -54,5 +51,17 @@
 	</div>
 {{ end }}
 {{ define "scripts" }}
-	<script src="/dist/login.js" defer></script>
+<script type="module">
+	import { createClient } from "https://esm.sh/@supabase/supabase-js@2.43.4";
+	const supabase = createClient("{{ .SupabaseURL }}", "{{ .SupabaseAnonKey }}", {
+		auth: { detectSessionInUrl: false },
+	});
+	document.getElementById("google-login").addEventListener("click", async () => {
+		const { error } = await supabase.auth.signInWithOAuth({
+			provider: "google",
+			options: { scopes: "email profile", redirectTo: "{{ .OAuthRedirectURL }}" },
+		});
+		if (error) alert("Authentication failed: " + error.message);
+	});
+</script>
 {{ end }}

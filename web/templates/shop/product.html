@@ -53,19 +53,22 @@
 					{{ end }}
 
 					{{ if gt .Product.Stock 0 }}
-						<div class="space-y-4">
+						<div
+							class="space-y-4"
+							x-data="{ qty: 1, max: {{ .Product.Stock }}, slug: '{{ .Product.Slug }}' }"
+						>
 							<div>
 								<label class="text-sm font-medium text-gray-900 mb-2 block">Quantity</label>
 								<div class="flex items-center gap-3">
 									<button
-										id="qty-dec"
+										@click="if (qty > 1) qty--"
 										class="w-12 h-12 flex items-center justify-center rounded-full border-2 border-gray-300 hover:border-gray-900 text-xl font-medium"
 									>
 										−
 									</button>
-									<span id="qty-display" class="text-xl font-medium w-16 text-center">1</span>
+									<span x-text="qty" class="text-xl font-medium w-16 text-center">1</span>
 									<button
-										id="qty-inc"
+										@click="if (qty < max) qty++"
 										class="w-12 h-12 flex items-center justify-center rounded-full border-2 border-gray-300 hover:border-gray-900 text-xl font-medium"
 									>
 										+
@@ -74,9 +77,7 @@
 							</div>
 
 							<button
-								id="add-to-cart"
-								data-stock="{{ .Product.Stock }}"
-								data-slug="{{ .Product.Slug }}"
+								@click="fetch('/api/cart/items', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ slug, quantity: qty }) }).then(() => window.location.href = '/cart')"
 								class="w-full bg-gray-900 text-white py-3 rounded-lg font-medium hover:bg-gray-800"
 							>
 								Add to Cart
@@ -97,8 +98,4 @@
 	</div>
 {{ end }}
 
-{{ define "scripts" }}
-	{{ if gt .Product.Stock 0 }}
-		<script src="/dist/product.js" defer></script>
-	{{ end }}
-{{ end }}
+{{ define "scripts" }}{{ end }}
