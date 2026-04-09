@@ -9,25 +9,11 @@
 				{{ if eq $index (add $productsLen -10) }}
 					hx-get="/api/products?cursor={{ $lastProduct.ID }}{{ if $category }}&category={{ $category }}{{ end }}"
 					hx-trigger="revealed" hx-swap="beforeend" hx-target="#products-grid"
-					hx-push-url="false" hx-history="false" hx-indicator="#loading-skeleton"
+					hx-push-url="false" hx-history="false"
 				{{ end }}
 			>
 				{{ template "product_card_grid" (dict "Product" $product "Priority" (lt $index 6)) }}
 			</div>
 		{{ end }}
-
-		<!-- Loading skeleton -->
-		<div
-			id="loading-skeleton"
-			class="htmx-indicator col-span-2 md:col-span-4 lg:col-span-6 grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-8"
-		>
-			{{ range $i := slice 0 1 2 3 4 5 }}
-				<div class="skeleton-product">
-					<div class="aspect-square rounded-lg bg-gray-300 mb-4"></div>
-					<div class="h-6 bg-gray-300 rounded mb-2"></div>
-					<div class="h-5 bg-gray-300 rounded w-2/3"></div>
-				</div>
-			{{ end }}
-		</div>
 	</div>
 {{ end }}
