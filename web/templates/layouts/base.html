@@ -125,77 +125,53 @@
 						</svg>
 						<span>Cart</span>
 					</a>
-					<div
-						x-data="{ user: null }"
-						x-init="
-							// Check if user data from server
-							user = {{ if .User }}
-							{{ .User | json }}
-						{{ else }}
-							null
-						{{ end }}
-						;
-							
-							// If no user from server, check cookie (for post-login scenarios)
-							if (!user) {
-								const token = document.cookie.split('; ').find(row => row.startsWith('sb-access-token='));
-								if (token) {
-									// Parse JWT to get user info
-									try {
-										const payload = JSON.parse(atob(token.split('=')[1].split('.')[1]));
-										if (payload.email) {
-											user = { email: payload.email, id: payload.sub };
-										}
-									} catch (e) {
-										console.error('Failed to parse token:', e);
-									}
-								}
-							}
-						"
-						class="min-w-[120px]"
-					>
-						<div x-show="user" x-cloak>
-							<div x-data="{ open: false }" class="relative">
-								<button
-									@click="open = !open"
-									class="flex items-center gap-2 rounded-lg border border-gray-300 px-3 py-2 text-sm hover:border-gray-900"
-								>
-									<div
-										class="w-6 h-6 rounded-full bg-gray-900 text-white flex items-center justify-center text-xs font-medium"
-										x-text="(user?.email || 'U')[0].toUpperCase()"
-									></div>
-									<span x-text="user?.email"></span>
-								</button>
-								<div
-									x-show="open"
-									@click.away="open = false"
-									x-transition
-									class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50"
-								>
-									<a href="/orders" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-										>Orders</a
-									>
-									<a href="/profile" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-										>Profile</a
-									>
-									<hr class="my-1" />
-									<button
-										@click="document.cookie='sb-access-token=; Path=/; Max-Age=0'; window.location.href='/'"
-										class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
-									>
-										Sign Out
-									</button>
-								</div>
-							</div>
-						</div>
-						<div x-show="!user" x-cloak>
-							<a
-								href="/login"
-								class="rounded-lg bg-gray-900 text-white px-4 py-2 text-sm font-medium hover:bg-gray-800"
-								>Sign In</a
+					{{ if .User }}
+					<div class="relative" id="user-menu">
+						<button
+							id="user-menu-btn"
+							class="flex items-center gap-2 rounded-lg border border-gray-300 px-3 py-2 text-sm hover:border-gray-900"
+						>
+							<div
+								id="user-initial"
+								class="w-6 h-6 rounded-full bg-gray-900 text-white flex items-center justify-center text-xs font-medium"
+							></div>
+							<span>{{ index .User "email" }}</span>
+						</button>
+						<div
+							id="user-dropdown"
+							hidden
+							class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50"
+						>
+							<a href="/orders" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Orders</a>
+							<a href="/profile" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Profile</a>
+							<hr class="my-1" />
+							<button
+								onclick="document.cookie='sb-access-token=; Path=/; Max-Age=0'; window.location.href='/'"
+								class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
 							>
+								Sign Out
+							</button>
 						</div>
 					</div>
+					<script>
+						;(function () {
+							const email = {{ index .User "email" | json }}
+							document.getElementById("user-initial").textContent = email.charAt(0).toUpperCase()
+							const btn = document.getElementById("user-menu-btn")
+							const dd = document.getElementById("user-dropdown")
+							btn.addEventListener("click", function (e) {
+								e.stopPropagation()
+								dd.hidden = !dd.hidden
+							})
+							document.addEventListener("click", function () { dd.hidden = true })
+						})()
+					</script>
+					{{ else }}
+					<a
+						href="/login"
+						class="rounded-lg bg-gray-900 text-white px-4 py-2 text-sm font-medium hover:bg-gray-800"
+					>Sign In</a>
+					{{ end }}
 				</div>
 			</div>
 		</nav>

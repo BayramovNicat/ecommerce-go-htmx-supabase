@@ -53,27 +53,19 @@
 					{{ end }}
 
 					{{ if gt .Product.Stock 0 }}
-						<div
-							class="space-y-4"
-							x-data="productCart({
-                    slug: {{ printf " %q" .Product.Slug }}, name: {{ printf "%q" .Product.Name }}, price: {{ printf "%.2f"
-								.Product.Price
-							}}, image: {{ printf "%q" .Product.ImageThumbURL }}, url: {{ printf "%q"
-								(printf "/products/%s" .Product.Slug)
-							}} })"
-						>
+						<div class="space-y-4">
 							<div>
 								<label class="text-sm font-medium text-gray-900 mb-2 block">Quantity</label>
 								<div class="flex items-center gap-3">
 									<button
-										@click="quantity = Math.max(1, quantity - 1)"
+										id="qty-dec"
 										class="w-12 h-12 flex items-center justify-center rounded-full border-2 border-gray-300 hover:border-gray-900 text-xl font-medium"
 									>
 										−
 									</button>
-									<span x-text="quantity" class="text-xl font-medium w-16 text-center"></span>
+									<span id="qty-display" class="text-xl font-medium w-16 text-center">1</span>
 									<button
-										@click="quantity = Math.min({{ .Product.Stock }}, quantity + 1)"
+										id="qty-inc"
 										class="w-12 h-12 flex items-center justify-center rounded-full border-2 border-gray-300 hover:border-gray-900 text-xl font-medium"
 									>
 										+
@@ -82,14 +74,13 @@
 							</div>
 
 							<button
-								@click="addToCart()"
+								id="add-to-cart"
 								class="w-full bg-gray-900 text-white py-3 rounded-lg font-medium hover:bg-gray-800"
 							>
 								Add to Cart
 							</button>
 						</div>
 					{{ end }}
-
 
 					<a
 						href="/"
@@ -104,4 +95,33 @@
 {{ end }}
 
 {{ define "scripts" }}
+{{ if gt .Product.Stock 0 }}
+<script>
+(function () {
+	const max = {{ .Product.Stock }}
+	const slug = {{ printf "%q" .Product.Slug }}
+	let qty = 1
+
+	const display = document.getElementById("qty-display")
+
+	document.getElementById("qty-dec").addEventListener("click", function () {
+		if (qty > 1) { qty--; display.textContent = qty }
+	})
+
+	document.getElementById("qty-inc").addEventListener("click", function () {
+		if (qty < max) { qty++; display.textContent = qty }
+	})
+
+	document.getElementById("add-to-cart").addEventListener("click", function () {
+		fetch("/api/cart/items", {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({ slug: slug, quantity: qty }),
+		}).then(function () {
+			window.location.href = "/cart"
+		})
+	})
+})()
+</script>
+{{ end }}
 {{ end }}
