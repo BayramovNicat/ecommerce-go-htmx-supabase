@@ -2,14 +2,21 @@ package web
 
 import (
 	_ "embed"
+	"embed"
 	"encoding/json"
 	"html/template"
+	"io/fs"
 	"os"
 	"sync"
 )
 
+//go:embed templates/*/*.html dist/*
+var embeddedFS embed.FS
+
 //go:embed critical.min.css
 var criticalCSS string
+
+var FS fs.FS
 
 var (
 	templateCache sync.Map
@@ -31,7 +38,14 @@ var (
 	}
 )
 
-// GetCriticalCSS returns the inlined critical CSS
+func init() {
+	if os.Getenv("ENV") == "production" {
+		FS = embeddedFS
+	} else {
+		FS = os.DirFS("web")
+	}
+}
+
 func GetCriticalCSS() template.CSS {
 	return template.CSS(criticalCSS)
 }

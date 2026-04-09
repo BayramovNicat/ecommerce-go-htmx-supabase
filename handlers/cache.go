@@ -1,11 +1,11 @@
-package shop
+package handlers
 
 import (
 	"context"
 	"sync"
 	"time"
 
-	"htmxshop/internal/database"
+	"htmxshop/db"
 )
 
 const homeProductsCacheTTL = 30 * time.Second
@@ -14,7 +14,7 @@ const categoriesCacheTTL = 10 * time.Minute
 
 var homeProductsCache struct {
 	mu        sync.RWMutex
-	products  []database.Product
+	products  []db.Product
 	expiresAt time.Time
 }
 
@@ -24,14 +24,14 @@ var productCache struct {
 }
 
 type cachedProduct struct {
-	product   *database.Product
+	product   *db.Product
 	expiresAt time.Time
 }
 
 var categoriesCache struct {
 	mu         sync.RWMutex
-	categories []database.Category
-	bySlug     map[string]database.Category
+	categories []db.Category
+	bySlug     map[string]db.Category
 	expiresAt  time.Time
 }
 
@@ -39,24 +39,24 @@ func init() {
 	productCache.items = make(map[string]*cachedProduct)
 }
 
-func getCategories(ctx context.Context) ([]database.Category, map[string]database.Category, error) {
+func getCategories(ctx context.Context) ([]db.Category, map[string]db.Category, error) {
 	now := time.Now()
 
 	categoriesCache.mu.RLock()
 	if now.Before(categoriesCache.expiresAt) && len(categoriesCache.categories) > 0 {
-		cats := append([]database.Category(nil), categoriesCache.categories...)
+		cats := append([]db.Category(nil), categoriesCache.categories...)
 		bySlug := categoriesCache.bySlug
 		categoriesCache.mu.RUnlock()
 		return cats, bySlug, nil
 	}
 	categoriesCache.mu.RUnlock()
 
-	cats, err := database.GetCategories(ctx)
+	cats, err := db.GetCategories(ctx)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	bySlug := make(map[string]database.Category, len(cats))
+	bySlug := make(map[string]db.Category, len(cats))
 	for _, c := range cats {
 		bySlug[c.Slug] = c
 	}
@@ -84,18 +84,18 @@ func resolveCategoryID(ctx context.Context, slug string) (int, error) {
 	return 0, nil
 }
 
-func getHomeProducts(ctx context.Context) ([]database.Product, error) {
+func getHomeProducts(ctx context.Context) ([]db.Product, error) {
 	now := time.Now()
 
 	homeProductsCache.mu.RLock()
 	if now.Before(homeProductsCache.expiresAt) && len(homeProductsCache.products) > 0 {
-		cached := append([]database.Product(nil), homeProductsCache.products...)
+		cached := append([]db.Product(nil), homeProductsCache.products...)
 		homeProductsCache.mu.RUnlock()
 		return cached, nil
 	}
 	homeProductsCache.mu.RUnlock()
 
-	products, err := database.GetProductsKeyset(ctx, 0, productsPerPage, 0)
+	products, err := db.GetProductsKeyset(ctx, 0, productsPerPage, 0)
 	if err != nil {
 		return nil, err
 	}
@@ -108,7 +108,7 @@ func getHomeProducts(ctx context.Context) ([]database.Product, error) {
 	return products, nil
 }
 
-func getCachedProduct(ctx context.Context, slug string) (*database.Product, error) {
+func getCachedProduct(ctx context.Context, slug string) (*db.Product, error) {
 	now := time.Now()
 
 	productCache.mu.RLock()
@@ -118,7 +118,7 @@ func getCachedProduct(ctx context.Context, slug string) (*database.Product, erro
 	}
 	productCache.mu.RUnlock()
 
-	product, err := database.GetProductBySlug(ctx, slug)
+	product, err := db.GetProductBySlug(ctx, slug)
 	if err != nil {
 		return nil, err
 	}

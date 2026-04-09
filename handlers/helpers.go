@@ -1,10 +1,10 @@
-package shop
+package handlers
 
 import (
 	"net/http"
 	"os"
 
-	"htmxshop/internal/middleware"
+	"htmxshop/auth"
 )
 
 const productsPerPage = 60
@@ -23,7 +23,7 @@ func getUserFromRequest(r *http.Request) map[string]interface{} {
 		return nil
 	}
 
-	userData, err := middleware.VerifySupabaseToken(cookie.Value)
+	userData, err := auth.VerifyToken(cookie.Value)
 	if err != nil {
 		return nil
 	}

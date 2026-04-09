@@ -1,4 +1,4 @@
-package shop
+package handlers
 
 import (
 	"fmt"
@@ -9,7 +9,6 @@ import (
 	"htmxshop/web"
 )
 
-// HandleLogin renders the Supabase login page with OAuth wiring
 func HandleLogin(w http.ResponseWriter, r *http.Request) {
 	supabaseURL := os.Getenv("SUPABASE_URL")
 	supabaseAnonKey := os.Getenv("SUPABASE_ANON_KEY")
@@ -44,7 +43,6 @@ func HandleLogin(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// HandleGoogleAuth finalizes the Supabase OAuth login flow
 func HandleGoogleAuth(w http.ResponseWriter, r *http.Request) {
 	supabaseURL := os.Getenv("SUPABASE_URL")
 	supabaseAnonKey := os.Getenv("SUPABASE_ANON_KEY")
@@ -85,7 +83,6 @@ func oauthRedirectURL(r *http.Request) string {
 		host = r.Host
 	}
 
-	// Don't strip port in development (localhost)
 	if !strings.Contains(host, "localhost") && !strings.Contains(host, "127.0.0.1") {
 		host = stripPort(host)
 	}

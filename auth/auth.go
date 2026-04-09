@@ -1,4 +1,4 @@
-package middleware
+package auth
 
 import (
 	"encoding/json"
@@ -15,58 +15,51 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-// SupabaseClaims represents the claims in a Supabase JWT
-type SupabaseClaims struct {
-	Sub   string `json:"sub"`
-	Email string `json:"email"`
-	Role  string `json:"role"`
-}
-
-type supabaseUserResponse struct {
+type UserData struct {
 	ID           string                 `json:"id"`
 	Email        string                 `json:"email"`
 	UserMetadata map[string]interface{} `json:"user_metadata"`
 }
 
-type cachedAuthUser struct {
-	user      *supabaseUserResponse
+type cachedUser struct {
+	user      *UserData
 	expiresAt time.Time
 }
 
-var authTokenCache sync.Map
+var tokenCache sync.Map
 
-const maxAuthTokenCacheTTL = 5 * time.Minute
+const maxCacheTTL = 5 * time.Minute
 
-// VerifySupabaseToken verifies a Supabase JWT token and returns the user data
-func VerifySupabaseToken(tokenString string) (*supabaseUserResponse, error) {
+// VerifyToken verifies a Supabase JWT and returns the user data.
+func VerifyToken(tokenString string) (*UserData, error) {
 	if tokenString == "" {
 		return nil, errors.New("missing token")
 	}
 
-	if user := getCachedAuthUser(tokenString); user != nil {
+	if user := getCached(tokenString); user != nil {
 		return user, nil
 	}
 
 	jwtSecret := os.Getenv("SUPABASE_JWT_SECRET")
 	if jwtSecret != "" {
-		user, exp, err := verifySupabaseTokenLocally(tokenString, jwtSecret)
+		user, exp, err := verifyLocally(tokenString, jwtSecret)
 		if err != nil {
 			return nil, err
 		}
-		cacheAuthUser(tokenString, user, exp)
+		cache(tokenString, user, exp)
 		return user, nil
 	}
 
-	user, err := verifySupabaseTokenWithAPI(tokenString)
+	user, err := verifyWithAPI(tokenString)
 	if err != nil {
 		return nil, err
 	}
 
-	cacheAuthUser(tokenString, user, time.Now().Add(30*time.Second))
+	cache(tokenString, user, time.Now().Add(30*time.Second))
 	return user, nil
 }
 
-func verifySupabaseTokenWithAPI(tokenString string) (*supabaseUserResponse, error) {
+func verifyWithAPI(tokenString string) (*UserData, error) {
 	supabaseURL := strings.TrimSuffix(os.Getenv("SUPABASE_URL"), "/")
 	if supabaseURL == "" {
 		return nil, fmt.Errorf("SUPABASE_URL not configured")
@@ -96,7 +89,7 @@ func verifySupabaseTokenWithAPI(tokenString string) (*supabaseUserResponse, erro
 		return nil, fmt.Errorf("supabase user request failed: status %d: %s", resp.StatusCode, strings.TrimSpace(string(body)))
 	}
 
-	var user supabaseUserResponse
+	var user UserData
 	if err := json.NewDecoder(resp.Body).Decode(&user); err != nil {
 		return nil, fmt.Errorf("failed to decode supabase user response: %w", err)
 	}
@@ -108,7 +101,7 @@ func verifySupabaseTokenWithAPI(tokenString string) (*supabaseUserResponse, erro
 	return &user, nil
 }
 
-func verifySupabaseTokenLocally(tokenString, jwtSecret string) (*supabaseUserResponse, time.Time, error) {
+func verifyLocally(tokenString, jwtSecret string) (*UserData, time.Time, error) {
 	claims := jwt.MapClaims{}
 	token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
 		return []byte(jwtSecret), nil
@@ -126,13 +119,41 @@ func verifySupabaseTokenLocally(tokenString, jwtSecret string) (*supabaseUserRes
 		return nil, time.Time{}, errors.New("token missing sub claim")
 	}
 
-	user := &supabaseUserResponse{
+	user := &UserData{
 		ID:           sub,
 		Email:        claimString(claims, "email"),
 		UserMetadata: claimMap(claims, "user_metadata"),
 	}
 
 	return user, claimTime(claims, "exp"), nil
+}
+
+func getCached(token string) *UserData {
+	v, ok := tokenCache.Load(token)
+	if !ok {
+		return nil
+	}
+	entry := v.(cachedUser)
+	if time.Now().After(entry.expiresAt) {
+		tokenCache.Delete(token)
+		return nil
+	}
+	u := *entry.user
+	return &u
+}
+
+func cache(token string, user *UserData, expiresAt time.Time) {
+	if user == nil {
+		return
+	}
+	now := time.Now()
+	if expiresAt.IsZero() || expiresAt.Before(now) {
+		expiresAt = now.Add(30 * time.Second)
+	}
+	if max := now.Add(maxCacheTTL); expiresAt.After(max) {
+		expiresAt = max
+	}
+	tokenCache.Store(token, cachedUser{user: user, expiresAt: expiresAt})
 }
 
 func claimString(claims jwt.MapClaims, key string) string {
@@ -153,7 +174,6 @@ func claimTime(claims jwt.MapClaims, key string) time.Time {
 	if !ok {
 		return time.Time{}
 	}
-
 	switch exp := v.(type) {
 	case float64:
 		if exp <= 0 || math.IsNaN(exp) {
@@ -175,50 +195,3 @@ func claimTime(claims jwt.MapClaims, key string) time.Time {
 		return time.Time{}
 	}
 }
-
-func getCachedAuthUser(tokenString string) *supabaseUserResponse {
-	value, ok := authTokenCache.Load(tokenString)
-	if !ok {
-		return nil
-	}
-
-	entry := value.(cachedAuthUser)
-	if time.Now().After(entry.expiresAt) {
-		authTokenCache.Delete(tokenString)
-		return nil
-	}
-
-	user := *entry.user
-	return &user
-}
-
-func cacheAuthUser(tokenString string, user *supabaseUserResponse, expiresAt time.Time) {
-	if user == nil {
-		return
-	}
-
-	now := time.Now()
-	if expiresAt.IsZero() || expiresAt.Before(now) {
-		expiresAt = now.Add(30 * time.Second)
-	}
-
-	maxExpiry := now.Add(maxAuthTokenCacheTTL)
-	if expiresAt.After(maxExpiry) {
-		expiresAt = maxExpiry
-	}
-
-	authTokenCache.Store(tokenString, cachedAuthUser{
-		user:      user,
-		expiresAt: expiresAt,
-	})
-}
-
-// ExtractToken extracts the JWT token from the Authorization header or cookie
-func ExtractToken(authHeader string, cookieValue string) string {
-	if authHeader != "" {
-		return strings.TrimPrefix(authHeader, "Bearer ")
-	}
-	return cookieValue
-}
-
-// (legacy decode fns removed)

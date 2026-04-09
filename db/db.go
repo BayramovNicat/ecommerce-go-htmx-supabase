@@ -1,4 +1,4 @@
-package database
+package db
 
 import (
 	"context"
@@ -193,7 +193,7 @@ func SearchProducts(ctx context.Context, searchQuery string, cursor int64, limit
 		SELECT id, uuid, name, slug, COALESCE(description, ''), price, stock,
 		       COALESCE(image_full, ''), COALESCE(image_thumb, ''), is_active, created_at, updated_at
 		FROM products
-		WHERE is_active = true 
+		WHERE is_active = true
 		  AND search_vector @@ plainto_tsquery('english', $1)
 		  AND id < $2
 		ORDER BY id DESC
@@ -290,4 +290,3 @@ func RemoveCartItem(ctx context.Context, sessionID, productSlug string) error {
 	}
 	return nil
 }
-

@@ -118,8 +118,8 @@ func watchFiles() {
 		log.Println("Failed to watch dist directory:", err)
 	}
 
-	// Watch Go files in api, internal, web, and cmd directories
-	goDirs := []string{"api", "internal", "web", "cmd"}
+	// Watch Go files in top-level Go packages and cmd directory
+	goDirs := []string{"api", "handlers", "db", "auth", "web", "cmd"}
 	for _, dir := range goDirs {
 		err = filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
 			if err != nil {

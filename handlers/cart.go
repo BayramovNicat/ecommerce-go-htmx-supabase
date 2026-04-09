@@ -1,4 +1,4 @@
-package shop
+package handlers
 
 import (
 	"crypto/rand"
@@ -7,11 +7,10 @@ import (
 	"net/http"
 	"strings"
 
-	"htmxshop/internal/database"
+	"htmxshop/db"
 	"htmxshop/web"
 )
 
-// CartItemView is the template-friendly representation of a cart line.
 type CartItemView struct {
 	Slug          string
 	Name          string
@@ -23,7 +22,6 @@ type CartItemView struct {
 	Subtotal      float64
 }
 
-// getCartSessionID reads the cart_sid cookie, or generates and sets a new one.
 func getCartSessionID(w http.ResponseWriter, r *http.Request) string {
 	if cookie, err := r.Cookie("cart_sid"); err == nil && cookie.Value != "" {
 		return cookie.Value
@@ -44,10 +42,9 @@ func getCartSessionID(w http.ResponseWriter, r *http.Request) string {
 	return sid
 }
 
-// buildCartData loads cart items for the session and returns template data.
 func buildCartData(w http.ResponseWriter, r *http.Request) (map[string]interface{}, error) {
 	sid := getCartSessionID(w, r)
-	dbItems, err := database.GetCartItems(r.Context(), sid)
+	dbItems, err := db.GetCartItems(r.Context(), sid)
 	if err != nil {
 		return nil, err
 	}
@@ -83,7 +80,6 @@ func buildCartData(w http.ResponseWriter, r *http.Request) (map[string]interface
 	}, nil
 }
 
-// HandleCart renders the cart page.
 func HandleCart(w http.ResponseWriter, r *http.Request) {
 	data, err := buildCartData(w, r)
 	if err != nil {
@@ -107,7 +103,6 @@ func HandleCart(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// renderCartContent renders just the #cart-content fragment (used after mutations).
 func renderCartContent(w http.ResponseWriter, r *http.Request) {
 	data, err := buildCartData(w, r)
 	if err != nil {
@@ -126,8 +121,6 @@ func renderCartContent(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// HandleCartAdd handles POST /api/cart/items.
-// Body JSON: {"slug": "product-slug", "quantity": 2}
 func HandleCartAdd(w http.ResponseWriter, r *http.Request) {
 	var body struct {
 		Slug     string `json:"slug"`
@@ -142,7 +135,7 @@ func HandleCartAdd(w http.ResponseWriter, r *http.Request) {
 	}
 
 	sid := getCartSessionID(w, r)
-	if err := database.UpsertCartItem(r.Context(), sid, body.Slug, body.Quantity); err != nil {
+	if err := db.UpsertCartItem(r.Context(), sid, body.Slug, body.Quantity); err != nil {
 		http.Error(w, "Failed to add item: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -151,8 +144,6 @@ func HandleCartAdd(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(`{"ok":true}`))
 }
 
-// HandleCartUpdate handles PUT /api/cart/items/{slug}.
-// Body JSON: {"quantity": N} — if N <= 0 the item is removed.
 func HandleCartUpdate(w http.ResponseWriter, r *http.Request) {
 	slug := strings.TrimPrefix(r.URL.Path, "/api/cart/items/")
 	if slug == "" {
@@ -170,12 +161,12 @@ func HandleCartUpdate(w http.ResponseWriter, r *http.Request) {
 
 	sid := getCartSessionID(w, r)
 	if body.Quantity <= 0 {
-		if err := database.RemoveCartItem(r.Context(), sid, slug); err != nil {
+		if err := db.RemoveCartItem(r.Context(), sid, slug); err != nil {
 			http.Error(w, "Failed to remove item: "+err.Error(), http.StatusInternalServerError)
 			return
 		}
 	} else {
-		if err := database.UpsertCartItem(r.Context(), sid, slug, body.Quantity); err != nil {
+		if err := db.UpsertCartItem(r.Context(), sid, slug, body.Quantity); err != nil {
 			http.Error(w, "Failed to update item: "+err.Error(), http.StatusInternalServerError)
 			return
 		}
@@ -184,7 +175,6 @@ func HandleCartUpdate(w http.ResponseWriter, r *http.Request) {
 	renderCartContent(w, r)
 }
 
-// HandleCartRemove handles DELETE /api/cart/items/{slug}.
 func HandleCartRemove(w http.ResponseWriter, r *http.Request) {
 	slug := strings.TrimPrefix(r.URL.Path, "/api/cart/items/")
 	if slug == "" {
@@ -193,7 +183,7 @@ func HandleCartRemove(w http.ResponseWriter, r *http.Request) {
 	}
 
 	sid := getCartSessionID(w, r)
-	if err := database.RemoveCartItem(r.Context(), sid, slug); err != nil {
+	if err := db.RemoveCartItem(r.Context(), sid, slug); err != nil {
 		http.Error(w, "Failed to remove item: "+err.Error(), http.StatusInternalServerError)
 		return
 	}

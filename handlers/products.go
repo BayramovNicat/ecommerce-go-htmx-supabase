@@ -1,4 +1,4 @@
-package shop
+package handlers
 
 import (
 	"encoding/json"
@@ -7,11 +7,10 @@ import (
 	"strconv"
 	"strings"
 
-	"htmxshop/internal/database"
+	"htmxshop/db"
 	"htmxshop/web"
 )
 
-// HandleProductsList returns products as JSON or HTML fragment for HTMX infinite scroll.
 func HandleProductsList(w http.ResponseWriter, r *http.Request) {
 	cursorStr := r.URL.Query().Get("cursor")
 	cursor := int64(0)
@@ -30,7 +29,7 @@ func HandleProductsList(w http.ResponseWriter, r *http.Request) {
 		log.Printf("Failed to resolve category %q: %v", categorySlug, err)
 	}
 
-	products, err := database.GetProductsKeyset(r.Context(), cursor, productsPerPage, categoryID)
+	products, err := db.GetProductsKeyset(r.Context(), cursor, productsPerPage, categoryID)
 	if err != nil {
 		http.Error(w, "Failed to load products", http.StatusInternalServerError)
 		return
@@ -45,7 +44,6 @@ func HandleProductsList(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(products)
 }
 
-// HandleProductDetail renders a single product page.
 func HandleProductDetail(w http.ResponseWriter, r *http.Request) {
 	slug := strings.TrimPrefix(r.URL.Path, "/products/")
 
@@ -81,8 +79,7 @@ func HandleProductDetail(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// renderProductCards renders product cards as HTML fragment for HTMX infinite scroll.
-func renderProductCards(w http.ResponseWriter, products []database.Product, categorySlug string) {
+func renderProductCards(w http.ResponseWriter, products []db.Product, categorySlug string) {
 	if len(products) == 0 {
 		return
 	}

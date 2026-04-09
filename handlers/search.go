@@ -1,4 +1,4 @@
-package shop
+package handlers
 
 import (
 	"fmt"
@@ -6,11 +6,10 @@ import (
 	"net/http"
 	"strconv"
 
-	"htmxshop/internal/database"
+	"htmxshop/db"
 	"htmxshop/web"
 )
 
-// HandleSearch performs full-text search and returns results.
 func HandleSearch(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query().Get("q")
 	if query == "" {
@@ -29,7 +28,7 @@ func HandleSearch(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	products, err := database.SearchProducts(r.Context(), query, cursor, productsPerPage)
+	products, err := db.SearchProducts(r.Context(), query, cursor, productsPerPage)
 	if err != nil {
 		log.Printf("Search failed for query '%s': %v", query, err)
 		http.Error(w, "Search failed", http.StatusInternalServerError)

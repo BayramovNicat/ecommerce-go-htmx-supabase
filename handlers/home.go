@@ -1,14 +1,13 @@
-package shop
+package handlers
 
 import (
 	"log"
 	"net/http"
 
-	"htmxshop/internal/database"
+	"htmxshop/db"
 	"htmxshop/web"
 )
 
-// HandleHome renders the shop homepage with initial products.
 func HandleHome(w http.ResponseWriter, r *http.Request) {
 	categorySlug := r.URL.Query().Get("category")
 
@@ -22,11 +21,11 @@ func HandleHome(w http.ResponseWriter, r *http.Request) {
 		log.Printf("Failed to resolve category %q: %v", categorySlug, err)
 	}
 
-	var products []database.Product
+	var products []db.Product
 	if categoryID == 0 && categorySlug == "" {
 		products, err = getHomeProducts(r.Context())
 	} else {
-		products, err = database.GetProductsKeyset(r.Context(), 0, productsPerPage, categoryID)
+		products, err = db.GetProductsKeyset(r.Context(), 0, productsPerPage, categoryID)
 	}
 	if err != nil {
 		http.Error(w, "Failed to load products: "+err.Error(), http.StatusInternalServerError)
