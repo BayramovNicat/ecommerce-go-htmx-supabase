@@ -227,60 +227,6 @@ func SearchProducts(ctx context.Context, searchQuery string, cursor int64, limit
 	return products, nil
 }
 
-// CreateProduct creates a new product (admin only)
-func CreateProduct(ctx context.Context, p *Product) error {
-	query := `
-		INSERT INTO products (name, slug, description, price, stock, image_full, image_thumb, is_active)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-		RETURNING id, uuid, created_at, updated_at
-	`
-
-	err := Pool.QueryRow(ctx, query,
-		p.Name, p.Slug, p.Description, p.Price, p.Stock,
-		p.ImageURL, p.ImageThumbURL, p.IsActive,
-	).Scan(&p.ID, &p.UUID, &p.CreatedAt, &p.UpdatedAt)
-
-	if err != nil {
-		return fmt.Errorf("create product: %w", err)
-	}
-
-	return nil
-}
-
-// UpdateProduct updates an existing product (admin only)
-func UpdateProduct(ctx context.Context, p *Product) error {
-	query := `
-		UPDATE products
-		SET name = $1, slug = $2, description = $3, price = $4, 
-		    stock = $5, image_full = $6, image_thumb = $7, is_active = $8
-		WHERE id = $9
-		RETURNING updated_at
-	`
-
-	err := Pool.QueryRow(ctx, query,
-		p.Name, p.Slug, p.Description, p.Price, p.Stock,
-		p.ImageURL, p.ImageThumbURL, p.IsActive, p.ID,
-	).Scan(&p.UpdatedAt)
-
-	if err != nil {
-		return fmt.Errorf("update product: %w", err)
-	}
-
-	return nil
-}
-
-// DeleteProduct soft-deletes a product by setting is_active to false
-func DeleteProduct(ctx context.Context, id int64) error {
-	query := `UPDATE products SET is_active = false WHERE id = $1`
-
-	_, err := Pool.Exec(ctx, query, id)
-	if err != nil {
-		return fmt.Errorf("delete product: %w", err)
-	}
-
-	return nil
-}
-
 // CartItem holds a cart line joined with product details.
 type CartItem struct {
 	ID          int64
@@ -345,15 +291,3 @@ func RemoveCartItem(ctx context.Context, sessionID, productSlug string) error {
 	return nil
 }
 
-// VerifyAdmin checks if a user is an admin
-func VerifyAdmin(ctx context.Context, userID string) (bool, error) {
-	query := `SELECT is_admin FROM admin_users WHERE id = $1`
-
-	var isAdmin bool
-	err := Pool.QueryRow(ctx, query, userID).Scan(&isAdmin)
-	if err != nil {
-		return false, fmt.Errorf("verify admin: %w", err)
-	}
-
-	return isAdmin, nil
-}

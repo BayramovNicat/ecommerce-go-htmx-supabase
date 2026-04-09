@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -14,7 +13,6 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
-	"htmxshop/internal/database"
 )
 
 // SupabaseClaims represents the claims in a Supabase JWT
@@ -221,11 +219,6 @@ func ExtractToken(authHeader string, cookieValue string) string {
 		return strings.TrimPrefix(authHeader, "Bearer ")
 	}
 	return cookieValue
-}
-
-// VerifyAdminAccess verifies that a user has admin privileges
-func VerifyAdminAccess(ctx context.Context, userID string) (bool, error) {
-	return database.VerifyAdmin(ctx, userID)
 }
 
 // (legacy decode fns removed)
