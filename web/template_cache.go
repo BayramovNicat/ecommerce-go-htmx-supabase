@@ -21,6 +21,13 @@ var (
 		"add": func(a, b int) int {
 			return a + b
 		},
+		"dict": func(pairs ...interface{}) map[string]interface{} {
+			d := make(map[string]interface{}, len(pairs)/2)
+			for i := 0; i+1 < len(pairs); i += 2 {
+				d[pairs[i].(string)] = pairs[i+1]
+			}
+			return d
+		},
 	}
 )
 

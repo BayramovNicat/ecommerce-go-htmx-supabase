@@ -156,7 +156,12 @@ func HandleHome(w http.ResponseWriter, r *http.Request) {
 		"Category":       categorySlug,
 	}
 
-	tmpl, err := web.GetTemplate("shop:home", "templates/layouts/base.html", "templates/shop/home.html")
+	tmpl, err := web.GetTemplate("shop:home",
+		"templates/layouts/base.html",
+		"templates/shop/home.html",
+		"templates/components/product_card_grid.html",
+		"templates/components/products_grid.html",
+	)
 	if err != nil {
 		http.Error(w, "Template parse error: "+err.Error(), http.StatusInternalServerError)
 		return
