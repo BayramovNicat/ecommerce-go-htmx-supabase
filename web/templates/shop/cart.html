@@ -10,103 +10,104 @@
 {{ end }}
 
 {{ define "cart_content" }}
-<div id="cart-content">
-	{{ if eq (len .Items) 0 }}
-		<div class="rounded-lg border border-gray-200 bg-white p-8 text-center">
-			<p class="text-gray-600">Your cart is empty</p>
-			<a
-				href="/"
-				class="mt-4 inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900"
-			>
-				← Continue shopping
-			</a>
-		</div>
-	{{ else }}
-		<div class="space-y-6">
-			<div class="rounded-lg border border-gray-200 bg-white divide-y divide-gray-100">
-				{{ range .Items }}
-					<div class="flex items-start gap-4 p-6">
-						<div
-							class="w-24 h-24 rounded-lg bg-gray-100 overflow-hidden flex items-center justify-center flex-shrink-0"
-						>
-							{{ if .ImageThumb }}
-								<img
-									src="{{ .ImageThumb }}"
-									alt="{{ .Name }}"
-									width="96"
-									height="96"
-									class="w-full h-full object-cover"
-									onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"
-								/>
-							{{ end }}
-							<div
-								class="w-3/4 aspect-[3/1] border-2 border-gray-400 rounded-md {{ if .ImageThumb }}hidden{{ end }} items-center justify-center"
-							>
-								<div class="w-10 h-10 rounded-full bg-gray-400"></div>
-							</div>
-						</div>
-						<div class="flex-1">
-							<div class="flex items-start justify-between">
-								<div>
-									<a
-										href="/products/{{ .Slug }}"
-										class="text-lg font-medium text-gray-900"
-									>{{ .Name }}</a>
-									<p class="text-sm text-gray-500 mt-1">${{ printf "%.2f" .Price }}</p>
-								</div>
-								<button
-									hx-delete="/api/cart/items/{{ .Slug }}"
-									hx-target="#cart-content"
-									hx-swap="outerHTML"
-									class="text-sm text-gray-500 hover:text-gray-900"
-								>
-									Remove
-								</button>
-							</div>
-							<div class="flex items-center gap-4 mt-4">
-								<button
-									hx-put="/api/cart/items/{{ .Slug }}"
-									hx-vals='{"quantity": {{ .QuantityMinus }}}'
-									hx-target="#cart-content"
-									hx-swap="outerHTML"
-									class="w-10 h-10 flex items-center justify-center rounded-full border border-gray-300 hover:border-gray-900"
-								>
-									−
-								</button>
-								<span class="w-12 text-center font-medium">{{ .Quantity }}</span>
-								<button
-									hx-put="/api/cart/items/{{ .Slug }}"
-									hx-vals='{"quantity": {{ .QuantityPlus }}}'
-									hx-target="#cart-content"
-									hx-swap="outerHTML"
-									class="w-10 h-10 flex items-center justify-center rounded-full border border-gray-300 hover:border-gray-900"
-								>
-									+
-								</button>
-							</div>
-						</div>
-						<div class="text-right flex-shrink-0">
-							<p class="text-lg font-medium text-gray-900">${{ printf "%.2f" .Subtotal }}</p>
-						</div>
-					</div>
-				{{ end }}
-			</div>
-
-			<div class="rounded-lg border border-gray-200 bg-white p-6">
-				<div class="flex items-center justify-between text-lg">
-					<span class="text-gray-600">Subtotal</span>
-					<span class="font-medium text-gray-900">${{ printf "%.2f" .Total }}</span>
-				</div>
-				<p class="text-sm text-gray-500 mt-2">Taxes and shipping calculated at checkout</p>
-				<button
-					class="w-full bg-gray-900 text-white py-3 rounded-lg font-medium hover:bg-gray-800 mt-4"
+	<div id="cart-content">
+		{{ if eq (len .Items) 0 }}
+			<div class="rounded-lg border border-gray-200 bg-white p-8 text-center">
+				<p class="text-gray-600">Your cart is empty</p>
+				<a
+					href="/"
+					class="mt-4 inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900"
 				>
-					Checkout
-				</button>
+					← Continue shopping
+				</a>
 			</div>
-		</div>
-	{{ end }}
-</div>
+		{{ else }}
+			<div class="space-y-6">
+				<div class="rounded-lg border border-gray-200 bg-white divide-y divide-gray-100">
+					{{ range .Items }}
+						<div class="flex items-start gap-4 p-6">
+							<div
+								class="w-24 h-24 rounded-lg bg-gray-100 overflow-hidden flex items-center justify-center flex-shrink-0"
+							>
+								{{ if .ImageThumb }}
+									<img
+										src="{{ .ImageThumb }}"
+										alt="{{ .Name }}"
+										width="96"
+										height="96"
+										class="w-full h-full object-cover"
+										onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"
+									/>
+								{{ end }}
+								<div
+									class="w-3/4 aspect-[3/1] border-2 border-gray-400 rounded-md {{ if .ImageThumb }}
+										hidden
+									{{ end }} items-center justify-center"
+								>
+									<div class="w-10 h-10 rounded-full bg-gray-400"></div>
+								</div>
+							</div>
+							<div class="flex-1">
+								<div class="flex items-start justify-between">
+									<div>
+										<a href="/products/{{ .Slug }}" class="text-lg font-medium text-gray-900"
+											>{{ .Name }}</a
+										>
+										<p class="text-sm text-gray-500 mt-1">${{ printf "%.2f" .Price }}</p>
+									</div>
+									<button
+										hx-delete="/api/cart/items/{{ .Slug }}"
+										hx-target="#cart-content"
+										hx-swap="outerHTML"
+										class="text-sm text-gray-500 hover:text-gray-900"
+									>
+										Remove
+									</button>
+								</div>
+								<div class="flex items-center gap-4 mt-4">
+									<button
+										hx-put="/api/cart/items/{{ .Slug }}"
+										hx-vals='{"quantity": {{ .QuantityMinus }}}'
+										hx-target="#cart-content"
+										hx-swap="outerHTML"
+										class="w-10 h-10 flex items-center justify-center rounded-full border border-gray-300 hover:border-gray-900"
+									>
+										−
+									</button>
+									<span class="w-12 text-center font-medium">{{ .Quantity }}</span>
+									<button
+										hx-put="/api/cart/items/{{ .Slug }}"
+										hx-vals='{"quantity": {{ .QuantityPlus }}}'
+										hx-target="#cart-content"
+										hx-swap="outerHTML"
+										class="w-10 h-10 flex items-center justify-center rounded-full border border-gray-300 hover:border-gray-900"
+									>
+										+
+									</button>
+								</div>
+							</div>
+							<div class="text-right flex-shrink-0">
+								<p class="text-lg font-medium text-gray-900">${{ printf "%.2f" .Subtotal }}</p>
+							</div>
+						</div>
+					{{ end }}
+				</div>
+
+				<div class="rounded-lg border border-gray-200 bg-white p-6">
+					<div class="flex items-center justify-between text-lg">
+						<span class="text-gray-600">Subtotal</span>
+						<span class="font-medium text-gray-900">${{ printf "%.2f" .Total }}</span>
+					</div>
+					<p class="text-sm text-gray-500 mt-2">Taxes and shipping calculated at checkout</p>
+					<button
+						class="w-full bg-gray-900 text-white py-3 rounded-lg font-medium hover:bg-gray-800 mt-4"
+					>
+						Checkout
+					</button>
+				</div>
+			</div>
+		{{ end }}
+	</div>
 {{ end }}
 
 {{ define "scripts" }}{{ end }}

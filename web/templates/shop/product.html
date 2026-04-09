@@ -82,6 +82,7 @@
 						</div>
 					{{ end }}
 
+
 					<a
 						href="/"
 						class="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900"
@@ -95,7 +96,7 @@
 {{ end }}
 
 {{ define "scripts" }}
-{{ if gt .Product.Stock 0 }}
+	{{ if gt .Product.Stock 0 }}
 <script>
 (function () {
 	const max = {{ .Product.Stock }}
@@ -123,5 +124,5 @@
 	})
 })()
 </script>
-{{ end }}
+	{{ end }}
 {{ end }}

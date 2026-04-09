@@ -126,33 +126,37 @@
 						<span>Cart</span>
 					</a>
 					{{ if .User }}
-					<div class="relative" id="user-menu">
-						<button
-							id="user-menu-btn"
-							class="flex items-center gap-2 rounded-lg border border-gray-300 px-3 py-2 text-sm hover:border-gray-900"
-						>
-							<div
-								id="user-initial"
-								class="w-6 h-6 rounded-full bg-gray-900 text-white flex items-center justify-center text-xs font-medium"
-							></div>
-							<span>{{ index .User "email" }}</span>
-						</button>
-						<div
-							id="user-dropdown"
-							hidden
-							class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50"
-						>
-							<a href="/orders" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Orders</a>
-							<a href="/profile" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Profile</a>
-							<hr class="my-1" />
+						<div class="relative" id="user-menu">
 							<button
-								onclick="document.cookie='sb-access-token=; Path=/; Max-Age=0'; window.location.href='/'"
-								class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+								id="user-menu-btn"
+								class="flex items-center gap-2 rounded-lg border border-gray-300 px-3 py-2 text-sm hover:border-gray-900"
 							>
-								Sign Out
+								<div
+									id="user-initial"
+									class="w-6 h-6 rounded-full bg-gray-900 text-white flex items-center justify-center text-xs font-medium"
+								></div>
+								<span>{{ index .User "email" }}</span>
 							</button>
+							<div
+								id="user-dropdown"
+								hidden
+								class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50"
+							>
+								<a href="/orders" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+									>Orders</a
+								>
+								<a href="/profile" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+									>Profile</a
+								>
+								<hr class="my-1" />
+								<button
+									onclick="document.cookie='sb-access-token=; Path=/; Max-Age=0'; window.location.href='/'"
+									class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+								>
+									Sign Out
+								</button>
+							</div>
 						</div>
-					</div>
 					<script>
 						;(function () {
 							const email = {{ index .User "email" | json }}
@@ -167,10 +171,11 @@
 						})()
 					</script>
 					{{ else }}
-					<a
-						href="/login"
-						class="rounded-lg bg-gray-900 text-white px-4 py-2 text-sm font-medium hover:bg-gray-800"
-					>Sign In</a>
+						<a
+							href="/login"
+							class="rounded-lg bg-gray-900 text-white px-4 py-2 text-sm font-medium hover:bg-gray-800"
+							>Sign In</a
+						>
 					{{ end }}
 				</div>
 			</div>

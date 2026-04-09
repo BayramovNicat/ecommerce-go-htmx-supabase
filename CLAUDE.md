@@ -6,15 +6,15 @@ Go + HTMX e-commerce storefront deployed on Vercel serverless. Go handles all ro
 
 ## Tech Stack
 
-| Layer | Technology |
-|---|---|
-| Backend | Go 1.22, `net/http` (no framework) |
-| Database | Supabase (PostgreSQL), pgx/v5 pooling |
-| Auth | Supabase JWT (local HMAC-SHA256 verify + API fallback) |
-| Frontend | HTMX 2.0.8 + Alpine.js 3.15.11 |
-| CSS | Tailwind CSS 4.2.2 (compiled via CLI) |
-| JS bundler | esbuild |
-| Deployment | Vercel serverless (fra1 region) |
+| Layer      | Technology                                             |
+| ---------- | ------------------------------------------------------ |
+| Backend    | Go 1.22, `net/http` (no framework)                     |
+| Database   | Supabase (PostgreSQL), pgx/v5 pooling                  |
+| Auth       | Supabase JWT (local HMAC-SHA256 verify + API fallback) |
+| Frontend   | HTMX 2.0.8 + Alpine.js 3.15.11                         |
+| CSS        | Tailwind CSS 4.2.2 (compiled via CLI)                  |
+| JS bundler | esbuild                                                |
+| Deployment | Vercel serverless (fra1 region)                        |
 
 ---
 
@@ -88,42 +88,49 @@ npm run start
 
 Copy `.env.example` to `.env` before running locally.
 
-| Variable | Purpose |
-|---|---|
-| `SUPABASE_DB_URL` | Postgres connection string via Supabase pooler |
-| `SUPABASE_JWT_SECRET` | Enables fast local JWT verification (skip Supabase API call) |
-| `SUPABASE_URL` | Supabase project API base URL |
-| `SUPABASE_ANON_KEY` | Public anon key (used in Supabase Auth UI) |
-| `SUPABASE_SERVICE_ROLE_KEY` | Admin key for server-side Supabase client |
-| `ENV` | `production` embeds static files; anything else serves from disk |
-| `PORT` | Dev server port (default 8080) |
+| Variable                    | Purpose                                                          |
+| --------------------------- | ---------------------------------------------------------------- |
+| `SUPABASE_DB_URL`           | Postgres connection string via Supabase pooler                   |
+| `SUPABASE_JWT_SECRET`       | Enables fast local JWT verification (skip Supabase API call)     |
+| `SUPABASE_URL`              | Supabase project API base URL                                    |
+| `SUPABASE_ANON_KEY`         | Public anon key (used in Supabase Auth UI)                       |
+| `SUPABASE_SERVICE_ROLE_KEY` | Admin key for server-side Supabase client                        |
+| `ENV`                       | `production` embeds static files; anything else serves from disk |
+| `PORT`                      | Dev server port (default 8080)                                   |
 
 ---
 
 ## Architecture Decisions
 
 ### Routing
+
 `api/index.go` is a single `http.Handler` wired to all routes. In dev (`cmd/server/main.go`) the same handler runs behind a standard `http.Server`. There is no framework — routes are matched with `r.URL.Path` and method checks.
 
 ### HTMX rendering pattern
+
 Every handler checks the `HX-Request` header. On a full-page request it renders the base layout. On an HTMX request it renders only the `page_root` fragment or a specific partial. Template target logic lives in each handler — keep it there, not in templates.
 
 ### Database access
+
 All DB access goes through `internal/database/db.go`. No ORM. Queries use `pgx/v5` with `$1`-style params. The connection pool (`*pgxpool.Pool`) is a package-level singleton, lazily initialized on first request (important for Vercel cold starts). Max 5 connections — respect this limit for serverless.
 
 ### Pagination
+
 Keyset pagination everywhere. Home page cursor = highest `id` seen. Do **not** use OFFSET — the `idx_products_keyset` index is built for cursor-based access only.
 
 ### Auth flow
+
 1. Token arrives in `Authorization` header or `sb-access-token` cookie.
 2. `VerifySupabaseToken` checks local HMAC-SHA256 if `SUPABASE_JWT_SECRET` is set (fast path).
 3. Falls back to Supabase `/auth/v1/user` API call (cached 5 min).
 4. Admin routes additionally query `admin_users` table.
 
 ### Static assets
+
 In production, `web/dist/` is embedded into the binary via `//go:embed`. Vercel serves `/dist/*` with immutable cache headers (1 year). In dev, files are served from disk so changes are reflected without restart.
 
 ### Cart
+
 Cart state lives entirely in `localStorage` under the key `"cart"`. There is no server-side cart — `cart.html` is a client-rendered page driven by Alpine.js reading localStorage.
 
 ---
@@ -131,18 +138,22 @@ Cart state lives entirely in `localStorage` under the key `"cart"`. There is no 
 ## Key Patterns
 
 ### Adding a new shop route
+
 1. Add handler function to `internal/handlers/shop/handlers.go`.
 2. Register route in `api/index.go` `shopHandler` switch.
 3. Create template in `web/templates/shop/`.
 4. Add template cache key in `web/templates.go` if needed.
 
 ### Adding a new admin route
+
 Same as above but in `internal/handlers/admin/handlers.go` and `admin/` templates. The admin middleware (`VerifyAdminAccess`) is applied at the router level — no need to re-check inside handlers.
 
 ### Template data
+
 Handlers pass `map[string]interface{}` to templates. User data comes from `getUserFromRequest()` which parses the JWT cookie. Keep template data keys consistent — use lowercase snake_case keys.
 
 ### Cache invalidation
+
 `internal/handlers/shop/handlers.go` holds an in-memory product cache (`sync.RWMutex` + TTL). After any admin mutation (create/update/delete product), call the cache invalidation helper to clear stale entries.
 
 ---
@@ -158,6 +169,7 @@ admin_users    -- id (FK auth.users), email, is_admin
 ```
 
 **Indexes used at runtime:**
+
 - `idx_products_keyset` — `(id DESC) WHERE is_active` — home page pagination
 - `idx_products_search` — GIN on `search_vector` — full-text search
 - `idx_products_slug` — `(slug) WHERE is_active` — product detail
@@ -170,6 +182,7 @@ RLS is enabled. Public reads active products. Only `admin_users` rows can mutate
 ## Deployment
 
 Vercel config (`vercel.json`):
+
 - Region: `fra1`
 - Build: `bash scripts/vercel-build.sh` (runs `npm run build`, then `go build`)
 - `/dist/*` → immutable 1-year cache

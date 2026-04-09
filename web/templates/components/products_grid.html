@@ -7,9 +7,11 @@
 			<div
 				class="group"
 				{{ if eq $index (add $productsLen -10) }}
-					hx-get="/api/products?cursor={{ $lastProduct.ID }}{{ if $category }}&category={{ $category }}{{ end }}"
-					hx-trigger="revealed" hx-swap="beforeend" hx-target="#products-grid"
-					hx-push-url="false" hx-history="false"
+					hx-get="/api/products?cursor={{ $lastProduct.ID }}{{ if $category }}
+						&category={{ $category }}
+					{{ end }}"
+					hx-trigger="revealed" hx-swap="beforeend" hx-target="#products-grid" hx-push-url="false"
+					hx-history="false"
 				{{ end }}
 			>
 				{{ template "product_card_grid" (dict "Product" $product "Priority" (lt $index 6)) }}

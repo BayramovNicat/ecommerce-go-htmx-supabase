@@ -7,9 +7,7 @@
 {{ end }}
 {{ define "content" }}
 	<main class="max-w-7xl mx-auto px-6 lg:px-10 py-8 min-h-[calc(100vh-8rem)]">
-		<h1 class="text-2xl font-serif text-[color:var(--color-contrast)] mb-6">
-			Search: "{{ .SearchQuery }}"
-		</h1>
+		<h1 class="text-2xl font-serif text-(--color-contrast) mb-6">Search: "{{ .SearchQuery }}"</h1>
 
 		{{ if .Products }}
 			<div
@@ -20,7 +18,7 @@
 			</div>
 		{{ else }}
 			<div class="text-center py-12">
-				<p class="text-[color:var(--color-muted)] mb-2">No products found matching your search.</p>
+				<p class="text-(--color-muted) mb-2">No products found matching your search.</p>
 				<a href="/" class="text-gray-900 underline hover:no-underline">Browse all products</a>
 			</div>
 		{{ end }}
