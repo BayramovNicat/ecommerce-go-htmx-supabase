@@ -6,42 +6,18 @@ import Alpine from "alpinejs"
 window.htmx = htmx
 window.Alpine = Alpine
 
-// Cart utilities
-const CART_KEY = "cart"
-
-function getStoredCart() {
-	try {
-		return JSON.parse(localStorage.getItem(CART_KEY)) || []
-	} catch (e) {
-		return []
-	}
-}
-
-function saveCart(items) {
-	localStorage.setItem(CART_KEY, JSON.stringify(items))
-}
-
 // Alpine component for product cart
 window.productCart = function (product) {
 	return {
 		quantity: 1,
 		addToCart() {
-			const cart = getStoredCart()
-			const existing = cart.find(item => item.slug === product.slug)
-			if (existing) {
-				existing.quantity += this.quantity
-			} else {
-				cart.push({
-					slug: product.slug,
-					name: product.name,
-					price: product.price,
-					image: product.image,
-					url: product.url,
-					quantity: this.quantity,
-				})
-			}
-			saveCart(cart)
-			window.location.href = "/cart"
+			fetch("/api/cart/items", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ slug: product.slug, quantity: this.quantity }),
+			}).then(() => {
+				window.location.href = "/cart"
+			})
 		},
 	}
 }

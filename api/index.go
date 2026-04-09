@@ -148,6 +148,16 @@ func shopHandler(w http.ResponseWriter, r *http.Request) {
 		if method == http.MethodGet {
 			handleProductsList(w, r)
 		}
+	case path == "/api/cart/items":
+		if method == http.MethodPost {
+			handleCartAdd(w, r)
+		}
+	case strings.HasPrefix(path, "/api/cart/items/"):
+		if method == http.MethodPut {
+			handleCartUpdate(w, r)
+		} else if method == http.MethodDelete {
+			handleCartRemove(w, r)
+		}
 	case path == "/search":
 		if method == http.MethodGet {
 			handleSearch(w, r)
@@ -240,6 +250,18 @@ func handleProductsList(w http.ResponseWriter, r *http.Request) {
 
 func handleSearch(w http.ResponseWriter, r *http.Request) {
 	shop.HandleSearch(w, r)
+}
+
+func handleCartAdd(w http.ResponseWriter, r *http.Request) {
+	shop.HandleCartAdd(w, r)
+}
+
+func handleCartUpdate(w http.ResponseWriter, r *http.Request) {
+	shop.HandleCartUpdate(w, r)
+}
+
+func handleCartRemove(w http.ResponseWriter, r *http.Request) {
+	shop.HandleCartRemove(w, r)
 }
 
 func handleLogin(w http.ResponseWriter, r *http.Request) {

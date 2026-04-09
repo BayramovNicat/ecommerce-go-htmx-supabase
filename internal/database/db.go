@@ -281,6 +281,70 @@ func DeleteProduct(ctx context.Context, id int64) error {
 	return nil
 }
 
+// CartItem holds a cart line joined with product details.
+type CartItem struct {
+	ID          int64
+	ProductSlug string
+	ProductName string
+	Price       float64
+	ImageThumb  string
+	Quantity    int
+}
+
+// GetCartItems returns all items for the given session ID.
+func GetCartItems(ctx context.Context, sessionID string) ([]CartItem, error) {
+	rows, err := Pool.Query(ctx, `
+		SELECT ci.id, p.slug, p.name, p.price, COALESCE(p.image_thumb, ''), ci.quantity
+		FROM cart_items ci
+		JOIN products p ON p.id = ci.product_id
+		WHERE ci.session_id = $1
+		ORDER BY ci.created_at
+	`, sessionID)
+	if err != nil {
+		return nil, fmt.Errorf("get cart items: %w", err)
+	}
+	defer rows.Close()
+
+	var items []CartItem
+	for rows.Next() {
+		var item CartItem
+		if err := rows.Scan(&item.ID, &item.ProductSlug, &item.ProductName, &item.Price, &item.ImageThumb, &item.Quantity); err != nil {
+			return nil, fmt.Errorf("scan cart item: %w", err)
+		}
+		items = append(items, item)
+	}
+	return items, rows.Err()
+}
+
+// UpsertCartItem sets the quantity for a product (by slug) in the session cart.
+// If the item already exists its quantity is replaced.
+func UpsertCartItem(ctx context.Context, sessionID, productSlug string, qty int) error {
+	_, err := Pool.Exec(ctx, `
+		WITH p AS (SELECT id FROM products WHERE slug = $2 AND is_active = true)
+		INSERT INTO cart_items (session_id, product_id, quantity)
+		SELECT $1, p.id, $3 FROM p
+		ON CONFLICT (session_id, product_id) DO UPDATE
+			SET quantity = EXCLUDED.quantity, updated_at = NOW()
+	`, sessionID, productSlug, qty)
+	if err != nil {
+		return fmt.Errorf("upsert cart item: %w", err)
+	}
+	return nil
+}
+
+// RemoveCartItem deletes a product (by slug) from the session cart.
+func RemoveCartItem(ctx context.Context, sessionID, productSlug string) error {
+	_, err := Pool.Exec(ctx, `
+		DELETE FROM cart_items ci
+		USING products p
+		WHERE ci.session_id = $1 AND ci.product_id = p.id AND p.slug = $2
+	`, sessionID, productSlug)
+	if err != nil {
+		return fmt.Errorf("remove cart item: %w", err)
+	}
+	return nil
+}
+
 // VerifyAdmin checks if a user is an admin
 func VerifyAdmin(ctx context.Context, userID string) (bool, error) {
 	query := `SELECT is_admin FROM admin_users WHERE id = $1`
