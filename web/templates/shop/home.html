@@ -3,20 +3,34 @@
 	<div id="page-root" hx-history-elt>
 		{{ if .Categories }}
 			<nav class="border-b border-gray-100 bg-white sticky top-0 z-10">
-				<div class="max-w-7xl mx-auto px-6 flex gap-6 overflow-x-auto py-3" style="scrollbar-width:none">
+				<div
+					class="max-w-7xl mx-auto px-6 flex gap-6 overflow-x-auto py-3"
+					style="scrollbar-width:none"
+				>
 					<a
 						href="/"
-						class="text-sm whitespace-nowrap transition-colors {{ if eq .ActiveCategory "" }}font-semibold text-gray-900{{ else }}text-gray-500 hover:text-gray-900{{ end }}"
-					>All</a>
+						class="text-sm whitespace-nowrap transition-colors {{ if eq .ActiveCategory "" }}
+							font-semibold text-gray-900
+						{{ else }}
+							text-gray-500 hover:text-gray-900
+						{{ end }}"
+						>All</a
+					>
 					{{ range .Categories }}
 						<a
 							href="/?category={{ .Slug }}"
-							class="text-sm whitespace-nowrap transition-colors {{ if eq $.ActiveCategory .Slug }}font-semibold text-gray-900{{ else }}text-gray-500 hover:text-gray-900{{ end }}"
-						>{{ .Name }}</a>
+							class="text-sm whitespace-nowrap transition-colors {{ if eq $.ActiveCategory .Slug }}
+								font-semibold text-gray-900
+							{{ else }}
+								text-gray-500 hover:text-gray-900
+							{{ end }}"
+							>{{ .Name }}</a
+						>
 					{{ end }}
 				</div>
 			</nav>
 		{{ end }}
+
 
 		<main class="max-w-7xl mx-auto px-6 py-16 min-h-[calc(100vh-8rem)]">
 			<div id="products-grid" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-8">
@@ -27,13 +41,11 @@
 					<div
 						class="group"
 						{{ if eq $index (add $productsLen -10) }}
-							hx-get="/api/products?cursor={{ $lastProduct.ID }}{{ if $category }}&category={{ $category }}{{ end }}"
-							hx-trigger="revealed"
-							hx-swap="beforeend"
-							hx-target="#products-grid"
-							hx-push-url="false"
-							hx-history="false"
-							hx-indicator="#loading-skeleton"
+							hx-get="/api/products?cursor={{ $lastProduct.ID }}{{ if $category }}
+								&category={{ $category }}
+							{{ end }}"
+							hx-trigger="revealed" hx-swap="beforeend" hx-target="#products-grid"
+							hx-push-url="false" hx-history="false" hx-indicator="#loading-skeleton"
 						{{ end }}
 					>
 						<a href="/products/{{ .Slug }}" class="block">
@@ -46,7 +58,11 @@
 										alt="{{ .Name }}"
 										width="400"
 										height="400"
-										{{ if eq $index 0 }}fetchpriority="high"{{ else }}loading="lazy"{{ end }}
+										{{ if lt $index 6 }}
+											fetchpriority="high" loading="eager"
+										{{ else }}
+											loading="lazy"
+										{{ end }}
 										class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition duration-300"
 										onerror="this.style.display = 'none'"
 									/>
@@ -69,6 +85,7 @@
 						</a>
 					</div>
 				{{ end }}
+
 
 				<!-- Loading skeleton -->
 				<div

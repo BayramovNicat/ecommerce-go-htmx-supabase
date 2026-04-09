@@ -15,13 +15,8 @@
 			/>
 			<title>{{ .Title }}</title>
 		<style>{{.CriticalCSS}}</style>
-			<link
-				rel="preload"
-				href="/dist/styles.css"
-				as="style"
-				onload="this.onload=null;this.rel='stylesheet'"
-			/>
-			<noscript><link rel="stylesheet" href="/dist/styles.css" /></noscript>
+			<link rel="preload" href="/dist/styles.css" as="style" />
+			<link rel="stylesheet" href="/dist/styles.css" />
 			<script src="/dist/bundle.js" defer></script>
 			{{ block "extra_head" . }}{{ end }}
 			{{ if ne .Env "production" }}

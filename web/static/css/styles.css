@@ -14,8 +14,24 @@
 }
 
 @layer base {
+	@font-face {
+		font-family: "Meridian Sans";
+		src: local("Segoe UI"), local("Helvetica Neue"), local("Arial");
+		font-weight: 400 700;
+		font-style: normal;
+		font-display: swap;
+	}
+
+	@font-face {
+		font-family: "Meridian Serif";
+		src: local("Georgia"), local("Times New Roman"), local("Times");
+		font-weight: 400 700;
+		font-style: normal;
+		font-display: swap;
+	}
+
 	body {
-		font-family: var(--font-sans);
+		font-family: "Meridian Sans", var(--font-sans);
 		background-color: var(--color-background);
 		color: var(--color-contrast);
 	}
@@ -26,7 +42,7 @@
 	h4,
 	h5,
 	h6 {
-		font-family: var(--font-serif);
+		font-family: "Meridian Serif", var(--font-serif);
 		letter-spacing: -0.02em;
 	}
 }
@@ -63,6 +79,11 @@
 /* Prevent layout shift on page load */
 #page-root {
 	min-height: 400px;
+}
+
+.product-card,
+#products-grid > .group {
+	contain: layout paint;
 }
 
 /* Skeleton loader for infinite scroll */
