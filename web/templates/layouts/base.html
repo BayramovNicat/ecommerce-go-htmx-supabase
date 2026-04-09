@@ -126,28 +126,22 @@
 						<span>Cart</span>
 					</a>
 					{{ if .User }}
-						<div class="relative" id="user-menu">
+						<div class="relative" x-data="{ open: false }" @click.outside="open = false">
 							<button
-								id="user-menu-btn"
+								@click="open = !open"
 								class="flex items-center gap-2 rounded-lg border border-gray-300 px-3 py-2 text-sm hover:border-gray-900"
 							>
-								<div
-									id="user-initial"
-									class="w-6 h-6 rounded-full bg-gray-900 text-white flex items-center justify-center text-xs font-medium"
-								></div>
+								<div class="w-6 h-6 rounded-full bg-gray-900 text-white flex items-center justify-center text-xs font-medium">
+									{{ index .User "email" | printf "%.1s" | upper }}
+								</div>
 								<span>{{ index .User "email" }}</span>
 							</button>
 							<div
-								id="user-dropdown"
-								hidden
+								x-show="open"
 								class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50"
 							>
-								<a href="/orders" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-									>Orders</a
-								>
-								<a href="/profile" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-									>Profile</a
-								>
+								<a href="/orders" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Orders</a>
+								<a href="/profile" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Profile</a>
 								<hr class="my-1" />
 								<button
 									onclick="document.cookie='sb-access-token=; Path=/; Max-Age=0'; window.location.href='/'"
@@ -157,19 +151,6 @@
 								</button>
 							</div>
 						</div>
-					<script>
-						;(function () {
-							const email = {{ index .User "email" | json }}
-							document.getElementById("user-initial").textContent = email.charAt(0).toUpperCase()
-							const btn = document.getElementById("user-menu-btn")
-							const dd = document.getElementById("user-dropdown")
-							btn.addEventListener("click", function (e) {
-								e.stopPropagation()
-								dd.hidden = !dd.hidden
-							})
-							document.addEventListener("click", function () { dd.hidden = true })
-						})()
-					</script>
 					{{ else }}
 						<a
 							href="/login"
