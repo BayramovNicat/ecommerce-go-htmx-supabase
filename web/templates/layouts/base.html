@@ -21,11 +21,11 @@
 			{{ block "extra_head" . }}{{ end }}
 			{{ if ne .Env "production" }}
 				<script>
-					;(function () {
-						const ws = new WebSocket("ws://" + window.location.host + "/livereload")
-						ws.onmessage = () => window.location.reload()
-						ws.onclose = () => setTimeout(() => window.location.reload(), 1000)
-					})()
+					(function () {
+						const ws = new WebSocket("ws://" + window.location.host + "/livereload");
+						ws.onmessage = () => window.location.reload();
+						ws.onclose = () => setTimeout(() => window.location.reload(), 1000);
+					})();
 				</script>
 			{{ end }}
 		</head>

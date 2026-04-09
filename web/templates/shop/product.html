@@ -75,6 +75,8 @@
 
 							<button
 								id="add-to-cart"
+								data-stock="{{ .Product.Stock }}"
+								data-slug="{{ .Product.Slug }}"
 								class="w-full bg-gray-900 text-white py-3 rounded-lg font-medium hover:bg-gray-800"
 							>
 								Add to Cart
@@ -97,32 +99,6 @@
 
 {{ define "scripts" }}
 	{{ if gt .Product.Stock 0 }}
-<script>
-(function () {
-	const max = {{ .Product.Stock }}
-	const slug = {{ printf "%q" .Product.Slug }}
-	let qty = 1
-
-	const display = document.getElementById("qty-display")
-
-	document.getElementById("qty-dec").addEventListener("click", function () {
-		if (qty > 1) { qty--; display.textContent = qty }
-	})
-
-	document.getElementById("qty-inc").addEventListener("click", function () {
-		if (qty < max) { qty++; display.textContent = qty }
-	})
-
-	document.getElementById("add-to-cart").addEventListener("click", function () {
-		fetch("/api/cart/items", {
-			method: "POST",
-			headers: { "Content-Type": "application/json" },
-			body: JSON.stringify({ slug: slug, quantity: qty }),
-		}).then(function () {
-			window.location.href = "/cart"
-		})
-	})
-})()
-</script>
+		<script src="/dist/product.js" defer></script>
 	{{ end }}
 {{ end }}
