@@ -2,7 +2,6 @@ package shop
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 	"strconv"
@@ -85,61 +84,25 @@ func HandleProductDetail(w http.ResponseWriter, r *http.Request) {
 // renderProductCards renders product cards as HTML fragment for HTMX infinite scroll.
 func renderProductCards(w http.ResponseWriter, products []database.Product, categorySlug string) {
 	if len(products) == 0 {
-		w.Write([]byte(""))
 		return
 	}
 
-	lastID := products[len(products)-1].ID
-
-	nextURL := fmt.Sprintf("/api/products?cursor=%d", lastID)
-	if categorySlug != "" {
-		nextURL += "&category=" + categorySlug
+	tmpl, err := web.GetTemplate("shop:products_scroll",
+		"templates/components/products_scroll_fragment.html",
+		"templates/components/product_card_grid.html",
+	)
+	if err != nil {
+		log.Printf("renderProductCards: template parse error: %v", err)
+		http.Error(w, "Template error", http.StatusInternalServerError)
+		return
 	}
 
-	var html strings.Builder
-	html.Grow(len(products) * 512)
-
-	for i, product := range products {
-		triggerAttr := ""
-		if i == len(products)-10 {
-			triggerAttr = fmt.Sprintf(` hx-get="%s" hx-trigger="revealed" hx-swap="beforeend" hx-target="#products-grid" hx-push-url="false" hx-history="false"`, nextURL)
-		}
-
-		stockStatus := `<span class="text-sm text-green-600">In Stock</span>`
-		if product.Stock <= 0 {
-			stockStatus = `<span class="text-sm text-red-500">Out of Stock</span>`
-		}
-
-		imageHTML := ""
-		if product.ImageThumbURL != "" {
-			imageHTML = fmt.Sprintf(`<img src="%s" alt="%s" loading="lazy" class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition duration-300" onerror="this.style.display = 'none'" />`,
-				product.ImageThumbURL, product.Name)
-		}
-
-		fmt.Fprintf(&html, `
-<div class="group"%s>
-	<a href="/products/%s" class="block">
-		<div class="aspect-square overflow-hidden rounded-lg bg-gray-200 mb-4 relative flex items-center justify-center">
-			%s
-			<div class="w-3/4 aspect-[3/1] border-2 border-gray-400 rounded-md flex items-center justify-center">
-				<div class="w-16 h-16 rounded-full bg-gray-400"></div>
-			</div>
-		</div>
-		<h3 class="text-lg font-medium text-gray-900 mb-2">%s</h3>
-		<div class="flex items-center justify-between">
-			<p class="text-xl font-semibold text-gray-900">$%.2f</p>
-			%s
-		</div>
-	</a>
-</div>`,
-			triggerAttr,
-			product.Slug,
-			imageHTML,
-			product.Name,
-			product.Price,
-			stockStatus,
-		)
+	data := map[string]interface{}{
+		"Products": products,
+		"Category": categorySlug,
 	}
 
-	_, _ = w.Write([]byte(html.String()))
+	if err := tmpl.ExecuteTemplate(w, "products_scroll_fragment", data); err != nil {
+		log.Printf("renderProductCards: template execute error: %v", err)
+	}
 }
